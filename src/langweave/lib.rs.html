@@ -333,7 +333,18 @@
 <a href="#332" id="332">332</a>
 <a href="#333" id="333">333</a>
 <a href="#334" id="334">334</a>
-<a href="#335" id="335">335</a></pre></div><pre class="rust"><code><span class="comment">// Copyright © 2024 LangWeave. All rights reserved.
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a></pre></div><pre class="rust"><code><span class="comment">// Copyright © 2024 LangWeave. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 </span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">"../README.md"</span>)]
@@ -519,51 +530,62 @@
 </span><span class="kw">pub mod </span>async_utils {
     <span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-   <span class="doccomment">/// Asynchronously translates a given text to a specified language.
-///
-/// # Arguments
-///
-/// * `lang` - A string slice that holds the target language code (e.g., "en", "fr").
-/// * `text` - A string slice that holds the text to be translated.
-///
-/// # Returns
-///
-/// A Future that resolves to:
-/// * `Ok(String)` - The translated text.
-/// * `Err(I18nError)` - An error if the translation fails.
-///
-/// # Examples
-///
-/// ```
-/// use langweave::async_utils::translate_async;
-/// use langweave::error::I18nError;
-///
-/// // This is a synchronous wrapper to demonstrate the usage
-/// fn translate_sync(lang: &amp;str, text: &amp;str) -&gt; Result&lt;String, I18nError&gt; {
-///     use futures::executor::block_on;
-///     block_on(translate_async(lang, text))
-/// }
-///
-/// let result = translate_sync("fr", "Hello");
-/// assert_eq!(result.unwrap(), "Bonjour");
-/// ```
-///
-/// # Errors
-///
-/// This function will return an error if:
-/// * The specified language is not supported.
-/// * The translation process fails for any reason.
-</span><span class="kw">pub async fn </span>translate_async(lang: <span class="kw-2">&amp;</span>str, text: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, I18nError&gt; {
-    <span class="kw">if </span>!is_language_supported(lang) {
-        <span class="kw">return </span><span class="prelude-val">Err</span>(I18nError::UnsupportedLanguage(lang.to_string()));
+    <span class="doccomment">/// Asynchronously translates a given text to a specified language.
+    ///
+    /// # Arguments
+    ///
+    /// * `lang` - A string slice that holds the target language code (e.g., "en", "fr").
+    /// * `text` - A string slice that holds the text to be translated.
+    ///
+    /// # Returns
+    ///
+    /// A Future that resolves to:
+    /// * `Ok(String)` - The translated text.
+    /// * `Err(I18nError)` - An error if the translation fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use langweave::async_utils::translate_async;
+    /// use langweave::error::I18nError;
+    ///
+    /// async fn example() -&gt; Result&lt;(), I18nError&gt; {
+    ///     let result = translate_async("fr", "Hello").await?;
+    ///     assert_eq!(result, "Bonjour");
+    ///     Ok(())
+    /// }
+    ///
+    /// // Note: In a real application, you would run this async function
+    /// // using an async runtime like tokio or async-std.
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if:
+    /// * The specified language is not supported.
+    /// * The translation process fails for any reason.
+    </span><span class="kw">pub async fn </span>translate_async(
+        lang: <span class="kw-2">&amp;</span>str,
+        text: <span class="kw-2">&amp;</span>str,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;String, I18nError&gt; {
+        <span class="kw">if </span>!is_language_supported(lang) {
+            <span class="kw">return </span><span class="prelude-val">Err</span>(I18nError::UnsupportedLanguage(
+                lang.to_string(),
+            ));
+        }
+        <span class="kw">let </span>translator = Translator::new(lang).map_err(|e| {
+            I18nError::TranslationFailed(<span class="macro">format!</span>(
+                <span class="string">"Failed to create translator: {}"</span>,
+                e
+            ))
+        })<span class="question-mark">?</span>;
+        translator.translate(text).map_err(|e| {
+            I18nError::TranslationFailed(<span class="macro">format!</span>(
+                <span class="string">"Async translation failed: {}"</span>,
+                e
+            ))
+        })
     }
-    <span class="kw">let </span>translator = Translator::new(lang).map_err(|e| {
-        I18nError::TranslationFailed(<span class="macro">format!</span>(<span class="string">"Failed to create translator: {}"</span>, e))
-    })<span class="question-mark">?</span>;
-    translator.translate(text).map_err(|e| {
-        I18nError::TranslationFailed(<span class="macro">format!</span>(<span class="string">"Async translation failed: {}"</span>, e))
-    })
-}
 }
 
 <span class="attr">#[cfg(test)]
