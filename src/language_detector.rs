@@ -1,6 +1,8 @@
 // Copyright © 2024 LangWeave. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+// src/language_detector.rs
+
 //! # Language Detection Module
 //!
 //! This module provides mechanisms to detect the language of given text using
