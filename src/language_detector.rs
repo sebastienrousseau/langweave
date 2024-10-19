@@ -9,10 +9,10 @@
 //! for short texts and mixed language inputs, including non-Latin scripts.
 
 use crate::error::I18nError;
+use log::debug;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use whatlang::{detect, Lang};
-use log::debug;
 
 /// Struct for detecting the language of a given text.
 #[derive(Debug, Clone)]
@@ -120,7 +120,9 @@ impl LanguageDetector {
         let normalized_text = text.trim();
 
         // Reject empty or non-alphabetic input
-        if normalized_text.is_empty() || !normalized_text.chars().any(|c| c.is_alphabetic()) {
+        if normalized_text.is_empty()
+            || !normalized_text.chars().any(|c| c.is_alphabetic())
+        {
             return Err(I18nError::LanguageDetectionFailed);
         }
 
@@ -137,7 +139,11 @@ impl LanguageDetector {
             match detect(word) {
                 Some(info) => {
                     if info.is_reliable() || info.confidence() > 0.3 {
-                        debug!("Detected language '{}' for word '{}'", info.lang(), word);
+                        debug!(
+                            "Detected language '{}' for word '{}'",
+                            info.lang(),
+                            word
+                        );
                         return Ok(self.convert_lang_code(info.lang()));
                     }
                 }
@@ -149,7 +155,7 @@ impl LanguageDetector {
         Err(I18nError::LanguageDetectionFailed)
     }
 
-        /// Converts `whatlang`'s language codes to the desired format.
+    /// Converts `whatlang`'s language codes to the desired format.
     ///
     /// # Arguments
     ///
@@ -199,7 +205,8 @@ mod tests {
     use super::*;
 
     // Instance of the default language detector for testing
-    static LANGUAGE_DETECTOR: Lazy<LanguageDetector> = Lazy::new(LanguageDetector::new);
+    static LANGUAGE_DETECTOR: Lazy<LanguageDetector> =
+        Lazy::new(LanguageDetector::new);
 
     /// Tests direct language detection for mixed input.
     #[test]
@@ -213,8 +220,14 @@ mod tests {
         assert!(result_hello.is_ok(), "Detection failed for 'Hello'");
 
         let result_bonjour = LANGUAGE_DETECTOR.detect("bonjour");
-        println!("Detection result for 'bonjour': {:?}", result_bonjour);
-        assert!(result_bonjour.is_ok(), "Detection failed for 'bonjour'");
+        println!(
+            "Detection result for 'bonjour': {:?}",
+            result_bonjour
+        );
+        assert!(
+            result_bonjour.is_ok(),
+            "Detection failed for 'bonjour'"
+        );
     }
 
     /// Tests custom pattern matching for English and French.
@@ -222,15 +235,27 @@ mod tests {
     fn test_custom_patterns_direct() {
         let patterns = &LANGUAGE_DETECTOR.patterns;
 
-        let hello_match = patterns.iter().any(|(pattern, _)| pattern.is_match("Hello"));
-        let bonjour_match = patterns.iter().any(|(pattern, _)| pattern.is_match("bonjour"));
-        let mixed_match = patterns.iter().any(|(pattern, _)| pattern.is_match("Hello bonjour"));
+        let hello_match = patterns
+            .iter()
+            .any(|(pattern, _)| pattern.is_match("Hello"));
+        let bonjour_match = patterns
+            .iter()
+            .any(|(pattern, _)| pattern.is_match("bonjour"));
+        let mixed_match = patterns
+            .iter()
+            .any(|(pattern, _)| pattern.is_match("Hello bonjour"));
 
         println!("Does any pattern match 'Hello'? {}", hello_match);
         println!("Does any pattern match 'bonjour'? {}", bonjour_match);
-        println!("Does any pattern match 'Hello bonjour'? {}", mixed_match);
+        println!(
+            "Does any pattern match 'Hello bonjour'? {}",
+            mixed_match
+        );
 
-        assert!(hello_match || bonjour_match, "No pattern matched either 'Hello' or 'bonjour'.");
+        assert!(
+            hello_match || bonjour_match,
+            "No pattern matched either 'Hello' or 'bonjour'."
+        );
     }
 
     /// Tests the fallback `whatlang` detection for individual words and mixed input.
@@ -242,10 +267,19 @@ mod tests {
 
         println!("Whatlang result for 'Hello': {:?}", hello_result);
         println!("Whatlang result for 'bonjour': {:?}", bonjour_result);
-        println!("Whatlang result for 'Hello bonjour': {:?}", mixed_result);
+        println!(
+            "Whatlang result for 'Hello bonjour': {:?}",
+            mixed_result
+        );
 
-        assert!(hello_result.is_some(), "Whatlang failed to detect 'Hello'");
-        assert!(bonjour_result.is_some(), "Whatlang failed to detect 'bonjour'");
+        assert!(
+            hello_result.is_some(),
+            "Whatlang failed to detect 'Hello'"
+        );
+        assert!(
+            bonjour_result.is_some(),
+            "Whatlang failed to detect 'bonjour'"
+        );
     }
 
     /// Tests general language detection for various languages and scripts.
@@ -267,8 +301,15 @@ mod tests {
 
         for (text, expected_lang) in test_cases {
             match detector.detect(text) {
-                Ok(lang) => assert_eq!(lang, expected_lang, "Failed to detect {} for text: {}", expected_lang, text),
-                Err(err) => panic!("Failed to detect language for '{}': {:?}", text, err),
+                Ok(lang) => assert_eq!(
+                    lang, expected_lang,
+                    "Failed to detect {} for text: {}",
+                    expected_lang, text
+                ),
+                Err(err) => panic!(
+                    "Failed to detect language for '{}': {:?}",
+                    text, err
+                ),
             }
         }
     }
@@ -288,7 +329,9 @@ mod tests {
     #[test]
     fn test_mixed_language() {
         let detector = LanguageDetector::new();
-        let result = detector.detect("The quick brown fox Le chat noir").unwrap();
+        let result = detector
+            .detect("The quick brown fox Le chat noir")
+            .unwrap();
         assert!(result == "en" || result == "fr", "Should detect either English or French in mixed-language input.");
     }
 
@@ -296,16 +339,27 @@ mod tests {
     #[test]
     fn test_empty_input() {
         let detector = LanguageDetector::new();
-        assert!(detector.detect("").is_err(), "Empty input should return an error.");
-        assert!(detector.detect("   ").is_err(), "Whitespace-only input should return an error.");
+        assert!(
+            detector.detect("").is_err(),
+            "Empty input should return an error."
+        );
+        assert!(
+            detector.detect("   ").is_err(),
+            "Whitespace-only input should return an error."
+        );
     }
 
     /// Tests language detection for long input.
     #[test]
     fn test_long_input() {
         let detector = LanguageDetector::new();
-        let long_text = "The quick brown fox jumps over the lazy dog ".repeat(1000);
-        assert_eq!(detector.detect(&long_text).unwrap(), "en", "Failed to detect English in long input.");
+        let long_text =
+            "The quick brown fox jumps over the lazy dog ".repeat(1000);
+        assert_eq!(
+            detector.detect(&long_text).unwrap(),
+            "en",
+            "Failed to detect English in long input."
+        );
     }
 
     /// Tests that non-linguistic characters return a detection error.
@@ -319,6 +373,9 @@ mod tests {
     #[test]
     fn test_non_language_gibberish() {
         let detector = LanguageDetector::new();
-        assert!(detector.detect("asdfghjkl").is_err(), "Should not detect non-linguistic gibberish.");
+        assert!(
+            detector.detect("asdfghjkl").is_err(),
+            "Should not detect non-linguistic gibberish."
+        );
     }
 }

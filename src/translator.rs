@@ -36,7 +36,9 @@ impl Translator {
         // Check if the language is supported by trying to translate a known key
         match translations::translate(&lang, "Hello") {
             Ok(_) => Ok(Translator { lang }),
-            Err(I18nError::UnsupportedLanguage(_)) => Err(I18nError::UnsupportedLanguage(lang)),
+            Err(I18nError::UnsupportedLanguage(_)) => {
+                Err(I18nError::UnsupportedLanguage(lang))
+            }
             Err(e) => Err(e),
         }
     }
@@ -94,17 +96,24 @@ mod tests {
 
     #[test]
     fn test_translation_supported_languages() {
-        let test_cases = vec![("en", "Hello"), ("fr", "Bonjour"), ("de", "Hallo")];
+        let test_cases =
+            vec![("en", "Hello"), ("fr", "Bonjour"), ("de", "Hallo")];
         for (lang, expected) in test_cases {
             let translator = Translator::new(lang).unwrap();
-            assert_eq!(translator.translate("Hello").unwrap(), expected);
+            assert_eq!(
+                translator.translate("Hello").unwrap(),
+                expected
+            );
         }
     }
 
     #[test]
     fn test_unsupported_language() {
         let result = Translator::new("es");
-        assert!(matches!(result, Err(I18nError::UnsupportedLanguage(_))));
+        assert!(matches!(
+            result,
+            Err(I18nError::UnsupportedLanguage(_))
+        ));
     }
 
     #[test]
@@ -117,6 +126,9 @@ mod tests {
     #[test]
     fn test_display_implementation() {
         let translator = Translator::new("en").unwrap();
-        assert_eq!(format!("{}", translator), "Translator for language: en");
+        assert_eq!(
+            format!("{}", translator),
+            "Translator for language: en"
+        );
     }
 }

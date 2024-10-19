@@ -20,7 +20,9 @@ fn load_translations_from_dir(dir: &Path) -> TranslationMap {
             let path = entry.path();
             if let Some(extension) = path.extension() {
                 if extension == "po" {
-                    if let Some(lang_code) = path.file_stem().and_then(|s| s.to_str()) {
+                    if let Some(lang_code) =
+                        path.file_stem().and_then(|s| s.to_str())
+                    {
                         match load_translations(&path) {
                             Ok(translations) => {
                                 let _ = all_translations.insert(lang_code.to_lowercase(), translations);
@@ -36,7 +38,9 @@ fn load_translations_from_dir(dir: &Path) -> TranslationMap {
     all_translations
 }
 
-fn load_translations(file_path: &Path) -> Result<HashMap<String, String>, std::io::Error> {
+fn load_translations(
+    file_path: &Path,
+) -> Result<HashMap<String, String>, std::io::Error> {
     let file = fs::File::open(file_path)?;
     let reader = BufReader::new(file);
     let mut translations = HashMap::new();
@@ -51,7 +55,8 @@ fn load_translations(file_path: &Path) -> Result<HashMap<String, String>, std::i
         } else if line.starts_with("msgstr ") {
             let msgstr = parse_po_string(line, "msgstr ");
             if !current_msgid.is_empty() && !msgstr.is_empty() {
-                let _ = translations.insert(current_msgid.clone(), msgstr);
+                let _ =
+                    translations.insert(current_msgid.clone(), msgstr);
             }
             current_msgid.clear();
         }
@@ -61,7 +66,10 @@ fn load_translations(file_path: &Path) -> Result<HashMap<String, String>, std::i
 }
 
 fn load_all_translations() -> TranslationMap {
-    println!("Current working directory: {:?}", env::current_dir().unwrap());
+    println!(
+        "Current working directory: {:?}",
+        env::current_dir().unwrap()
+    );
 
     let locales_dir = env::current_dir().unwrap().join("locales");
     println!("Looking for locales in: {:?}", locales_dir);
@@ -98,8 +106,10 @@ fn parse_po_string(line: &str, prefix: &str) -> String {
 /// * `Ok(String)` - The translated string if found.
 /// * `Err(I18nError)` - An error if the translation fails or the language is unsupported.
 pub fn translate(lang: &str, key: &str) -> Result<String, I18nError> {
-    let translations = TRANSLATIONS.get(lang.to_lowercase().as_str())
-        .ok_or_else(|| I18nError::UnsupportedLanguage(lang.to_string()))?;
+    let translations =
+        TRANSLATIONS.get(lang.to_lowercase().as_str()).ok_or_else(
+            || I18nError::UnsupportedLanguage(lang.to_string()),
+        )?;
 
     // Try exact match first
     if let Some(translation) = translations.get(key) {
@@ -132,18 +142,29 @@ mod tests {
                 }
             }
         } else {
-            println!("Locales directory not found or is not a directory.");
+            println!(
+                "Locales directory not found or is not a directory."
+            );
         }
     }
 
     #[test]
     fn test_po_files_exist() {
         let locales_dir = env::current_dir().unwrap().join("locales");
-        assert!(locales_dir.exists(), "locales directory does not exist at {:?}", locales_dir);
+        assert!(
+            locales_dir.exists(),
+            "locales directory does not exist at {:?}",
+            locales_dir
+        );
 
         for lang in &["en", "fr", "de"] {
             let po_file = locales_dir.join(format!("{}.po", lang));
-            assert!(po_file.exists(), "{}.po file does not exist at {:?}", lang, po_file);
+            assert!(
+                po_file.exists(),
+                "{}.po file does not exist at {:?}",
+                lang,
+                po_file
+            );
         }
     }
 
@@ -162,7 +183,14 @@ mod tests {
     #[test]
     fn test_all_languages() {
         let languages = vec!["en", "fr", "de"];
-        let test_keys = vec!["Hello", "Goodbye", "Yes", "No", "Thank you", "Please"];
+        let test_keys = vec![
+            "Hello",
+            "Goodbye",
+            "Yes",
+            "No",
+            "Thank you",
+            "Please",
+        ];
 
         for lang in languages {
             for key in &test_keys {
@@ -185,9 +213,15 @@ mod tests {
 
     #[test]
     fn test_logger_messages() {
-        assert!(translate("en", "main_logger_msg").unwrap().contains("Please run `ssg --help`"));
-        assert!(translate("fr", "lib_banner_log_msg").unwrap().contains("Bannière imprimée"));
-        assert!(translate("de", "lib_server_log_msg").unwrap().contains("Server erfolgreich gestartet"));
+        assert!(translate("en", "main_logger_msg")
+            .unwrap()
+            .contains("Please run `ssg --help`"));
+        assert!(translate("fr", "lib_banner_log_msg")
+            .unwrap()
+            .contains("Bannière imprimée"));
+        assert!(translate("de", "lib_server_log_msg")
+            .unwrap()
+            .contains("Server erfolgreich gestartet"));
     }
 
     #[test]

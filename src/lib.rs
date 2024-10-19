@@ -12,8 +12,8 @@
 #![warn(missing_docs)]
 #![forbid(unsafe_code)]
 
-use once_cell::sync::Lazy;
 use log::debug;
+use once_cell::sync::Lazy;
 
 use crate::error::I18nError;
 use crate::language_detector::LanguageDetector;
@@ -42,7 +42,8 @@ pub mod prelude {
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// A lazy-initialized instance of the LanguageDetector.
-static LANGUAGE_DETECTOR: Lazy<LanguageDetector> = Lazy::new(LanguageDetector::new);
+static LANGUAGE_DETECTOR: Lazy<LanguageDetector> =
+    Lazy::new(LanguageDetector::new);
 
 /// Translates a given text to a specified language.
 ///
@@ -70,18 +71,20 @@ static LANGUAGE_DETECTOR: Lazy<LanguageDetector> = Lazy::new(LanguageDetector::n
 /// This function will return an error if:
 /// * The specified language is not supported.
 /// * The translation process fails for any reason.
-#[must_use]
 pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
     if !is_language_supported(lang) {
         return Err(I18nError::UnsupportedLanguage(lang.to_string()));
     }
 
-    let translator = Translator::new(lang)
-        .map_err(|e| I18nError::TranslationFailed(format!("Failed to create translator: {}", e)))?;
+    let translator = Translator::new(lang).map_err(|e| {
+        I18nError::TranslationFailed(format!(
+            "Failed to create translator: {}",
+            e
+        ))
+    })?;
 
     // If translation fails, return the original text
-    translator.translate(text)
-        .or_else(|_| Ok(text.to_string()))
+    translator.translate(text).or_else(|_| Ok(text.to_string()))
 }
 
 /// Detects the language of a given text using simple regex-based heuristics.
@@ -108,7 +111,6 @@ pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
 /// This function will return an error if:
 /// * The input text is empty or contains only non-alphabetic characters.
 /// * The language detection process fails to identify a language with sufficient confidence.
-#[must_use]
 pub fn detect_language(text: &str) -> Result<String, I18nError> {
     debug!("Detecting language for: {}", text);
 
@@ -125,7 +127,10 @@ pub fn detect_language(text: &str) -> Result<String, I18nError> {
     // Fallback: Return the first successfully detected language from word-by-word detection
     for word in text.split_whitespace() {
         if let Ok(detected_lang) = LANGUAGE_DETECTOR.detect(word) {
-            debug!("Detected language from word '{}': {}", word, detected_lang);
+            debug!(
+                "Detected language from word '{}': {}",
+                word, detected_lang
+            );
             return Ok(detected_lang);
         }
     }
@@ -178,7 +183,6 @@ pub fn is_language_supported(lang: &str) -> bool {
 #[cfg(feature = "async")]
 pub mod async_utils {
     use super::*;
-    use futures::future::Future;
 
     /// Asynchronously translates a given text to a specified language.
     ///
@@ -210,16 +214,29 @@ pub mod async_utils {
     /// This function will return an error if:
     /// * The specified language is not supported.
     /// * The translation process fails for any reason.
-    pub async fn translate_async(lang: &str, text: &str) -> Result<String, I18nError> {
+    pub async fn translate_async(
+        lang: &str,
+        text: &str,
+    ) -> Result<String, I18nError> {
         if !is_language_supported(lang) {
-            return Err(I18nError::UnsupportedLanguage(lang.to_string()));
+            return Err(I18nError::UnsupportedLanguage(
+                lang.to_string(),
+            ));
         }
 
-        let translator = Translator::new(lang)
-            .map_err(|e| I18nError::TranslationFailed(format!("Failed to create translator: {}", e)))?;
+        let translator = Translator::new(lang).map_err(|e| {
+            I18nError::TranslationFailed(format!(
+                "Failed to create translator: {}",
+                e
+            ))
+        })?;
 
-        translator.translate_async(text).await
-            .map_err(|e| I18nError::TranslationFailed(format!("Async translation failed: {}", e)))
+        translator.translate(text).map_err(|e| {
+            I18nError::TranslationFailed(format!(
+                "Async translation failed: {}",
+                e
+            ))
+        })
     }
 }
 
@@ -230,7 +247,10 @@ mod tests {
     #[test]
     fn test_translate() {
         assert_eq!(translate("fr", "Hello").unwrap(), "Bonjour");
-        assert_eq!(translate("de", "Goodbye").unwrap(), "Auf Wiedersehen");
+        assert_eq!(
+            translate("de", "Goodbye").unwrap(),
+            "Auf Wiedersehen"
+        );
     }
 
     #[test]
@@ -243,9 +263,15 @@ mod tests {
 
     #[test]
     fn test_detect_language() {
-        assert_eq!(detect_language("The quick brown fox").unwrap(), "en");
+        assert_eq!(
+            detect_language("The quick brown fox").unwrap(),
+            "en"
+        );
         assert_eq!(detect_language("Le chat noir").unwrap(), "fr");
-        assert_eq!(detect_language("Der schnelle Fuchs").unwrap(), "de");
+        assert_eq!(
+            detect_language("Der schnelle Fuchs").unwrap(),
+            "de"
+        );
     }
 
     #[test]
@@ -262,29 +288,42 @@ mod tests {
         let result = translate("fr", text);
         assert!(result.is_ok());
         // Either it's translated or the original text is returned
-        assert!(result.clone().unwrap() == "Bonjour, comment allez-vous aujourd'hui ?" || result.clone().unwrap() == text);
+        assert!(
+            result.clone().unwrap()
+                == "Bonjour, comment allez-vous aujourd'hui ?"
+                || result.clone().unwrap() == text
+        );
     }
 
-   #[test]
-fn test_detect_language_mixed() {
-    let result = detect_language("Hello bonjour");
-    assert!(result.is_ok(), "Language detection failed for mixed input");
+    #[test]
+    fn test_detect_language_mixed() {
+        let result = detect_language("Hello bonjour");
+        assert!(
+            result.is_ok(),
+            "Language detection failed for mixed input"
+        );
 
-    let detected_lang = result.unwrap();
-    // Expect either "en" or "fr"
-    assert!(
-        detected_lang == "en" || detected_lang == "fr",
-        "Detected language '{}' is neither 'en' nor 'fr'",
-        detected_lang
-    );
-}
+        let detected_lang = result.unwrap();
+        // Expect either "en" or "fr"
+        assert!(
+            detected_lang == "en" || detected_lang == "fr",
+            "Detected language '{}' is neither 'en' nor 'fr'",
+            detected_lang
+        );
+    }
 
     #[test]
     fn test_detect_language_fallback() {
         // Test with a string that might be hard to detect
         let result = detect_language("1234567890");
         // It should either detect a language or return LanguageDetectionFailed
-        assert!(result.is_ok() || matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(
+            result.is_ok()
+                || matches!(
+                    result,
+                    Err(I18nError::LanguageDetectionFailed)
+                )
+        );
     }
 
     #[test]

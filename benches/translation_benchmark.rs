@@ -8,18 +8,16 @@
 //! This benchmark measures the performance of the translation functionality in the `langweave` library using the `criterion` crate.
 //!
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use langweave::translator::Translator;
+use criterion::{
+    black_box, criterion_group, criterion_main, BenchmarkId, Criterion,
+};
 use langweave::error::I18nError;
+use langweave::translator::Translator;
 
 /// Benchmark the translation of various strings using the `langweave` library.
 fn benchmark_translation(c: &mut Criterion) {
-    let languages = ["fr", "de", "en"];  // Removed "es" as it's not supported
-    let texts = [
-        "Hello",
-        "Goodbye",
-        "Thank you",
-    ];
+    let languages = ["fr", "de", "en"]; // Removed "es" as it's not supported
+    let texts = ["Hello", "Goodbye", "Thank you"];
 
     let mut group = c.benchmark_group("translations");
     for lang in languages.iter() {
@@ -31,7 +29,9 @@ fn benchmark_translation(c: &mut Criterion) {
                         text,
                         |b, text| {
                             b.iter(|| {
-                                match translator.translate(black_box(text)) {
+                                match translator
+                                    .translate(black_box(text))
+                                {
                                     Ok(translated) => translated,
                                     Err(_) => String::from(*text),
                                 }
@@ -39,12 +39,15 @@ fn benchmark_translation(c: &mut Criterion) {
                         },
                     );
                 }
-            },
+            }
             Err(I18nError::UnsupportedLanguage(_)) => {
                 println!("Skipping unsupported language: {}", lang);
-            },
+            }
             Err(e) => {
-                panic!("Unexpected error creating translator for {}: {:?}", lang, e);
+                panic!(
+                    "Unexpected error creating translator for {}: {:?}",
+                    lang, e
+                );
             }
         }
     }
