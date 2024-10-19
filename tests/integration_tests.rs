@@ -9,11 +9,17 @@ fn test_translation() {
     assert!(translate("invalid", "Hello").is_err());
 }
 
-#[test]
-fn test_language_detection() {
-    assert_eq!(detect_language("The quick brown fox").unwrap(), "en");
-    assert_eq!(detect_language("Le chat noir").unwrap(), "fr");
-    assert_eq!(detect_language("Der schnelle Fuchs").unwrap(), "de");
+#[tokio::test]
+async fn test_language_detection() {
+    assert_eq!(
+        detect_language("The quick brown fox").await.unwrap(),
+        "en"
+    );
+    assert_eq!(detect_language("Le chat noir").await.unwrap(), "fr");
+    assert_eq!(
+        detect_language("Der schnelle Fuchs").await.unwrap(),
+        "de"
+    );
 }
 
 #[test]

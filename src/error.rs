@@ -93,4 +93,134 @@ mod tests {
             "unexpected error"
         );
     }
+
+    #[test]
+    fn test_error_equality() {
+        assert_eq!(
+            I18nError::TranslationFailed("error".to_string()),
+            I18nError::TranslationFailed("error".to_string())
+        );
+        assert_ne!(
+            I18nError::TranslationFailed("error1".to_string()),
+            I18nError::TranslationFailed("error2".to_string())
+        );
+        assert_eq!(
+            I18nError::UnsupportedLanguage("en".to_string()),
+            I18nError::UnsupportedLanguage("en".to_string())
+        );
+        assert_ne!(
+            I18nError::UnsupportedLanguage("en".to_string()),
+            I18nError::UnsupportedLanguage("fr".to_string())
+        );
+        assert_eq!(
+            I18nError::UnexpectedError("oops".to_string()),
+            I18nError::UnexpectedError("oops".to_string())
+        );
+        assert_ne!(
+            I18nError::UnexpectedError("oops1".to_string()),
+            I18nError::UnexpectedError("oops2".to_string())
+        );
+    }
+
+    #[test]
+    fn test_error_clone() {
+        let error = I18nError::TranslationFailed("test".to_string());
+        let cloned_error = error.clone();
+        assert_eq!(error, cloned_error);
+
+        let error = I18nError::UnsupportedLanguage("xyz".to_string());
+        let cloned_error = error.clone();
+        assert_eq!(error, cloned_error);
+
+        let error =
+            I18nError::UnexpectedError("unexpected".to_string());
+        let cloned_error = error.clone();
+        assert_eq!(error, cloned_error);
+    }
+
+    #[test]
+    fn test_error_debug() {
+        let error = I18nError::TranslationFailed("test".to_string());
+        assert_eq!(
+            format!("{:?}", error),
+            "TranslationFailed(\"test\")"
+        );
+
+        let error = I18nError::UnsupportedLanguage("xyz".to_string());
+        assert_eq!(
+            format!("{:?}", error),
+            "UnsupportedLanguage(\"xyz\")"
+        );
+
+        let error =
+            I18nError::UnexpectedError("unexpected".to_string());
+        assert_eq!(
+            format!("{:?}", error),
+            "UnexpectedError(\"unexpected\")"
+        );
+    }
+
+    #[test]
+    fn test_error_partial_eq() {
+        let error1 = I18nError::TranslationFailed("test".to_string());
+        let error2 = I18nError::TranslationFailed("test".to_string());
+        let error3 =
+            I18nError::TranslationFailed("different".to_string());
+
+        assert!(error1 == error2);
+        assert!(error1 != error3);
+
+        let error1 = I18nError::UnsupportedLanguage("en".to_string());
+        let error2 = I18nError::UnsupportedLanguage("en".to_string());
+        let error3 = I18nError::UnsupportedLanguage("fr".to_string());
+
+        assert!(error1 == error2);
+        assert!(error1 != error3);
+
+        let error1 = I18nError::UnexpectedError("oops".to_string());
+        let error2 = I18nError::UnexpectedError("oops".to_string());
+        let error3 =
+            I18nError::UnexpectedError("different".to_string());
+
+        assert!(error1 == error2);
+        assert!(error1 != error3);
+    }
+
+    #[test]
+    fn test_error_non_exhaustive() {
+        // This test demonstrates that we can match on all current variants
+        // without a wildcard pattern, proving that #[non_exhaustive] doesn't
+        // affect matching within the same crate.
+        fn use_error(error: I18nError) {
+            match error {
+                I18nError::LanguageDetectionFailed => {}
+                I18nError::TranslationFailed(_) => {}
+                I18nError::UnsupportedLanguage(_) => {}
+                I18nError::UnexpectedError(_) => {}
+            }
+        }
+
+        // Use the function to avoid unused function warning
+        use_error(I18nError::LanguageDetectionFailed);
+    }
+
+    #[test]
+    fn test_error_variants() {
+        // This test ensures that all expected variants are present
+        let errors = vec![
+            I18nError::LanguageDetectionFailed,
+            I18nError::TranslationFailed("test".to_string()),
+            I18nError::UnsupportedLanguage("en".to_string()),
+            I18nError::UnexpectedError("oops".to_string()),
+        ];
+
+        for error in errors {
+            match error {
+                I18nError::LanguageDetectionFailed => {}
+                I18nError::TranslationFailed(_) => {}
+                I18nError::UnsupportedLanguage(_) => {}
+                I18nError::UnexpectedError(_) => {}
+            }
+        }
+    }
 }

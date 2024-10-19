@@ -48,13 +48,15 @@ Here's a basic example of how to use `langweave`:
 ```rust
 use langweave::language_detector::LanguageDetector;
 use langweave::error::I18nError;
+use langweave::language_detector_trait::LanguageDetectorTrait;
 
-fn main() -> Result<(), I18nError> {
+#[tokio::main]
+async fn main() -> Result<(), I18nError> {
     // Create a new language detector
     let detector = LanguageDetector::new();
 
     // Detect language
-    let lang = detector.detect("Hello, world!")?;
+    let lang = detector.detect_async("Hello, world!").await?;
     println!("Detected language: {}", lang);
 
     // Use the detected language for further processing
