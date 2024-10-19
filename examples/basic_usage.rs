@@ -6,13 +6,13 @@
 use langweave::translator::Translator;
 use langweave::{detect_language, translate};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Basic translation
     let translated_text = translate("fr", "Hello")?;
     println!("Translated: {}", translated_text);
 
-    // Language detection
-    let detected_language = detect_language("Le chat noir")?;
+    let detected_language = detect_language("Le chat noir").await?;
     println!("Detected language: {}", detected_language);
 
     // Custom Translator usage

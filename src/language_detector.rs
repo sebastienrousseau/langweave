@@ -1,8 +1,6 @@
 // Copyright © 2024 LangWeave. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-// src/language_detector.rs
-
 //! # Language Detection Module
 //!
 //! This module provides mechanisms to detect the language of given text using
@@ -16,37 +14,55 @@
 //! - Custom pattern matching for common languages
 //! - Fallback to statistical detection using `whatlang`
 //! - Support for a wide range of languages and scripts
+//! - Implements the `LanguageDetectorTrait` for extensibility
 //!
 //! ## Examples
 //!
-//! Synchronous usage:
+//! ### Basic Usage
 //!
 //! ```
 //! use langweave::language_detector::LanguageDetector;
+//! use langweave::language_detector_trait::LanguageDetectorTrait;
 //!
 //! let detector = LanguageDetector::new();
+//!
+//! // Detect English
 //! let result = detector.detect("Hello, world!");
 //! assert_eq!(result.unwrap(), "en");
+//!
+//! // Detect French
+//! let result = detector.detect("Bonjour le monde!");
+//! assert_eq!(result.unwrap(), "fr");
+//!
+//! // Detect German
+//! let result = detector.detect("Hallo Welt!");
+//! assert_eq!(result.unwrap(), "de");
 //! ```
 //!
-//! Asynchronous usage:
+//! ### Asynchronous Detection
 //!
 //! ```
 //! use langweave::language_detector::LanguageDetector;
+//! use langweave::language_detector_trait::LanguageDetectorTrait;
 //!
 //! #[tokio::main]
 //! async fn main() {
 //!     let detector = LanguageDetector::new();
-//!     let result = detector.detect_async("Bonjour le monde!").await;
-//!     assert_eq!(result.unwrap(), "fr");
+//!
+//!     // Detect Spanish asynchronously
+//!     let result = detector.detect_async("¡Hola mundo!").await;
+//!     assert_eq!(result.unwrap(), "es");
 //! }
 //! ```
 
 use crate::error::I18nError;
+use crate::language_detector_trait::LanguageDetectorTrait;
+use async_trait::async_trait;
 use log::{debug, error};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::sync::Arc;
+use tokio::task;
 use whatlang::{detect, Lang};
 
 /// A thread-safe struct for detecting the language of a given text.
@@ -127,8 +143,12 @@ impl LanguageDetector {
     ///
     /// ```
     /// use langweave::language_detector::LanguageDetector;
+    /// use whatlang::Lang;
     ///
     /// let detector = LanguageDetector::new();
+    /// assert_eq!(detector.convert_lang_code(Lang::Eng), "en");
+    /// assert_eq!(detector.convert_lang_code(Lang::Fra), "fr");
+    /// assert_eq!(detector.convert_lang_code(Lang::Deu), "de");
     /// ```
     #[must_use]
     pub fn new() -> Self {
@@ -137,6 +157,51 @@ impl LanguageDetector {
         }
     }
 
+    /// Converts `whatlang`'s language codes to the desired format.
+    ///
+    /// This function maps `whatlang`'s internal `Lang` enum values to their ISO 639-1
+    /// equivalents or other common language codes used by the application.
+    ///
+    /// # Arguments
+    ///
+    /// * `lang` - The `Lang` enum from `whatlang`.
+    ///
+    /// # Returns
+    ///
+    /// * `String` - The standardized language code (e.g., "en", "fr").
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use langweave::language_detector::LanguageDetector;
+    /// use whatlang::Lang;
+    ///
+    /// let detector = LanguageDetector::new();
+    /// assert_eq!(detector.convert_lang_code(Lang::Eng), "en");
+    /// assert_eq!(detector.convert_lang_code(Lang::Fra), "fr");
+    /// assert_eq!(detector.convert_lang_code(Lang::Deu), "de");
+    /// ```
+    pub fn convert_lang_code(&self, lang: Lang) -> String {
+        match lang {
+            Lang::Eng => "en",
+            Lang::Fra => "fr",
+            Lang::Deu => "de",
+            Lang::Spa => "es",
+            Lang::Por => "pt",
+            Lang::Jpn => "ja",
+            Lang::Cmn => "zh",
+            Lang::Ara => "ar",
+            Lang::Hin => "hi",
+            Lang::Kor => "ko",
+            Lang::Rus => "ru",
+            _ => lang.code(),
+        }
+        .to_string()
+    }
+}
+
+#[async_trait]
+impl LanguageDetectorTrait for LanguageDetector {
     /// Detects the language of the given text synchronously.
     ///
     /// This method first attempts to detect the language using custom regular expression patterns
@@ -154,10 +219,21 @@ impl LanguageDetector {
     ///
     /// ```
     /// use langweave::language_detector::LanguageDetector;
+    /// use langweave::language_detector_trait::LanguageDetectorTrait;
     ///
     /// let detector = LanguageDetector::new();
+    ///
+    /// // Detect English
     /// let result = detector.detect("The quick brown fox");
     /// assert_eq!(result.unwrap(), "en");
+    ///
+    /// // Detect French
+    /// let result = detector.detect("Le chat noir");
+    /// assert_eq!(result.unwrap(), "fr");
+    ///
+    /// // Detect German
+    /// let result = detector.detect("Der schnelle braune Fuchs");
+    /// assert_eq!(result.unwrap(), "de");
     /// ```
     ///
     /// # Errors
@@ -165,7 +241,7 @@ impl LanguageDetector {
     /// This function will return an `I18nError::LanguageDetectionFailed` if:
     /// - The input text is empty or contains only non-alphabetic characters.
     /// - The language detection process fails to identify a language with sufficient confidence.
-    pub fn detect(&self, text: &str) -> Result<String, I18nError> {
+    fn detect(&self, text: &str) -> Result<String, I18nError> {
         let normalized_text = text.trim();
 
         // Reject empty or non-alphabetic input
@@ -220,12 +296,19 @@ impl LanguageDetector {
     ///
     /// ```
     /// use langweave::language_detector::LanguageDetector;
+    /// use langweave::language_detector_trait::LanguageDetectorTrait;
     ///
     /// #[tokio::main]
     /// async fn main() {
     ///     let detector = LanguageDetector::new();
-    ///     let result = detector.detect_async("Le chat noir").await;
-    ///     assert_eq!(result.unwrap(), "fr");
+    ///
+    ///     // Detect Spanish asynchronously
+    ///     let result = detector.detect_async("El gato negro").await;
+    ///     assert_eq!(result.unwrap(), "es");
+    ///
+    ///     // Detect Portuguese asynchronously
+    ///     let result = detector.detect_async("O gato preto").await;
+    ///     assert_eq!(result.unwrap(), "pt");
     /// }
     /// ```
     ///
@@ -234,14 +317,14 @@ impl LanguageDetector {
     /// This function will return an `I18nError::LanguageDetectionFailed` if:
     /// - The input text is empty or contains only non-alphabetic characters.
     /// - The language detection process fails to identify a language with sufficient confidence.
-    pub async fn detect_async(
+    async fn detect_async(
         &self,
         text: &str,
     ) -> Result<String, I18nError> {
         let text = text.to_string();
         let patterns = Arc::clone(&self.patterns);
 
-        tokio::task::spawn_blocking(move || {
+        task::spawn_blocking(move || {
             let detector = LanguageDetector { patterns };
             detector.detect(&text)
         })
@@ -250,36 +333,6 @@ impl LanguageDetector {
             error!("Async language detection task failed: {:?}", e);
             I18nError::LanguageDetectionFailed
         })?
-    }
-
-    /// Converts `whatlang`'s language codes to the desired format.
-    ///
-    /// This function maps `whatlang`'s internal `Lang` enum values to their ISO 639-1
-    /// equivalents or other common language codes used by the application.
-    ///
-    /// # Arguments
-    ///
-    /// * `lang` - The `Lang` enum from `whatlang`.
-    ///
-    /// # Returns
-    ///
-    /// * `String` - The standardized language code (e.g., "en", "fr").
-    fn convert_lang_code(&self, lang: Lang) -> String {
-        match lang {
-            Lang::Eng => "en",
-            Lang::Fra => "fr",
-            Lang::Deu => "de",
-            Lang::Spa => "es",
-            Lang::Por => "pt",
-            Lang::Jpn => "ja",
-            Lang::Cmn => "zh",
-            Lang::Ara => "ar",
-            Lang::Hin => "hi",
-            Lang::Kor => "ko",
-            Lang::Rus => "ru",
-            _ => lang.code(),
-        }
-        .to_string()
     }
 }
 
@@ -291,6 +344,17 @@ impl Default for LanguageDetector {
     /// * `LanguageDetector` - A default instance using predefined patterns for common languages.
     ///
     /// This method allows the `LanguageDetector` to be initialized easily with default patterns.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use langweave::language_detector::LanguageDetector;
+    /// use langweave::language_detector_trait::LanguageDetectorTrait;
+    ///
+    /// let detector = LanguageDetector::default();
+    /// let result = detector.detect("Hello, world!");
+    /// assert_eq!(result.unwrap(), "en");
+    /// ```
     fn default() -> Self {
         Self::new()
     }
@@ -299,7 +363,7 @@ impl Default for LanguageDetector {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokio;
+    use std::sync::Arc;
 
     #[test]
     fn test_language_detection() {
@@ -315,6 +379,7 @@ mod tests {
             ("مرحبا", "ar"),
             ("नमस्ते", "hi"),
             ("안녕하세요", "ko"),
+            ("Здравствуйте", "ru"),
         ];
 
         for (text, expected_lang) in test_cases {
@@ -346,6 +411,7 @@ mod tests {
             ("مرحبا", "ar"),
             ("नमस्ते", "hi"),
             ("안녕하세요", "ko"),
+            ("Здравствуйте", "ru"),
         ];
 
         for (text, expected_lang) in test_cases {

@@ -86,6 +86,7 @@ tempfile = "3.2"                            # Temporary file creation for testin
 
 [dependencies]
 # Dependencies required for building and running the project.
+async-trait = "0.1"
 thiserror = "1.0"
 anyhow = "1.0.90"
 serde = { version = "1.0", features = ["derive"] }
