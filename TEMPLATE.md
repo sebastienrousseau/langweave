@@ -44,7 +44,7 @@ A powerful Rust library for seamless internationalization and localization.
 [09]: https://github.com/sebastienrousseau/langweave
 
 [build-badge]: https://img.shields.io/github/actions/workflow/status/sebastienrousseau/langweave/release.yml?branch=main&style=for-the-badge&logo=github
-[codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/langweave?style=for-the-badge&token=psbZ8MASWj&logo=codecov
+[codecov-badge]: https://img.shields.io/codecov/c/github/sebastienrousseau/langweave?style=for-the-badge&token=CfYfWg8UHf&logo=codecov
 [crates-badge]: https://img.shields.io/crates/v/langweave.svg?style=for-the-badge&color=fc8d62&logo=rust
 [docs-badge]: https://img.shields.io/badge/docs.rs-langweave-66c2a5?style=for-the-badge&labelColor=555555&logo=docs.rs
 [github-badge]: https://img.shields.io/badge/github-sebastienrousseau/langweave-8da0cb?style=for-the-badge&labelColor=555555&logo=github
