@@ -184,51 +184,62 @@ pub fn is_language_supported(lang: &str) -> bool {
 pub mod async_utils {
     use super::*;
 
-   /// Asynchronously translates a given text to a specified language.
-///
-/// # Arguments
-///
-/// * `lang` - A string slice that holds the target language code (e.g., "en", "fr").
-/// * `text` - A string slice that holds the text to be translated.
-///
-/// # Returns
-///
-/// A Future that resolves to:
-/// * `Ok(String)` - The translated text.
-/// * `Err(I18nError)` - An error if the translation fails.
-///
-/// # Examples
-///
-/// ```
-/// use langweave::async_utils::translate_async;
-/// use langweave::error::I18nError;
-///
-/// // This is a synchronous wrapper to demonstrate the usage
-/// fn translate_sync(lang: &str, text: &str) -> Result<String, I18nError> {
-///     use futures::executor::block_on;
-///     block_on(translate_async(lang, text))
-/// }
-///
-/// let result = translate_sync("fr", "Hello");
-/// assert_eq!(result.unwrap(), "Bonjour");
-/// ```
-///
-/// # Errors
-///
-/// This function will return an error if:
-/// * The specified language is not supported.
-/// * The translation process fails for any reason.
-pub async fn translate_async(lang: &str, text: &str) -> Result<String, I18nError> {
-    if !is_language_supported(lang) {
-        return Err(I18nError::UnsupportedLanguage(lang.to_string()));
+    /// Asynchronously translates a given text to a specified language.
+    ///
+    /// # Arguments
+    ///
+    /// * `lang` - A string slice that holds the target language code (e.g., "en", "fr").
+    /// * `text` - A string slice that holds the text to be translated.
+    ///
+    /// # Returns
+    ///
+    /// A Future that resolves to:
+    /// * `Ok(String)` - The translated text.
+    /// * `Err(I18nError)` - An error if the translation fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use langweave::async_utils::translate_async;
+    /// use langweave::error::I18nError;
+    ///
+    /// async fn example() -> Result<(), I18nError> {
+    ///     let result = translate_async("fr", "Hello").await?;
+    ///     assert_eq!(result, "Bonjour");
+    ///     Ok(())
+    /// }
+    ///
+    /// // Note: In a real application, you would run this async function
+    /// // using an async runtime like tokio or async-std.
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if:
+    /// * The specified language is not supported.
+    /// * The translation process fails for any reason.
+    pub async fn translate_async(
+        lang: &str,
+        text: &str,
+    ) -> Result<String, I18nError> {
+        if !is_language_supported(lang) {
+            return Err(I18nError::UnsupportedLanguage(
+                lang.to_string(),
+            ));
+        }
+        let translator = Translator::new(lang).map_err(|e| {
+            I18nError::TranslationFailed(format!(
+                "Failed to create translator: {}",
+                e
+            ))
+        })?;
+        translator.translate(text).map_err(|e| {
+            I18nError::TranslationFailed(format!(
+                "Async translation failed: {}",
+                e
+            ))
+        })
     }
-    let translator = Translator::new(lang).map_err(|e| {
-        I18nError::TranslationFailed(format!("Failed to create translator: {}", e))
-    })?;
-    translator.translate(text).map_err(|e| {
-        I18nError::TranslationFailed(format!("Async translation failed: {}", e))
-    })
-}
 }
 
 #[cfg(test)]
