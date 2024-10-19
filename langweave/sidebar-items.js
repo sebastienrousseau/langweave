@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["VERSION"],"fn":["detect_language","is_language_supported","supported_languages","translate"],"mod":["async_utils","error","language_detector","prelude","translations","translator"]};
