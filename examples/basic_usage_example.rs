@@ -6,8 +6,19 @@
 use langweave::translator::Translator;
 use langweave::{detect_language, translate};
 
+/// This is the main function for the basic usage example of the `langweave` library.
+/// It demonstrates how to use the `langweave` library for language detection and translation in a basic static site generation workflow.
+///
+/// # Arguments
+///
+/// * None
+///
+/// # Returns
+///
+/// * `Result<(), Box<dyn std::error::Error>>`: A `Result` indicating whether the execution was successful or an error occurred.
+///
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Basic translation
     let translated_text = translate("fr", "Hello")?;
     println!("Translated: {}", translated_text);

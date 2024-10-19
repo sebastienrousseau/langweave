@@ -101,6 +101,49 @@ tokio = { version = "1.0", features = ["full"] }
 whatlang = "0.16"
 
 # -----------------------------------------------------------------------------
+# Examples
+# -----------------------------------------------------------------------------
+[[example]]
+# Example code demonstrating the basic usage of the library.
+name = "basic_usage_example"                    # Name of the example
+path = "examples/basic_usage_example.rs"        # Path to the example code
+
+[[example]]
+# Example code demonstrating the error handling in the library.
+name = "error_example"                          # Name of the example
+path = "examples/error_example.rs"              # Path to the example code
+
+[[example]]
+# Example code demonstrating all the library features.
+name = "full_example"                           # Name of the example
+path = "examples/full_example.rs"               # Path to the example code
+
+[[example]]
+# Example code demonstrating the language detection examples.
+name = "language_detector_example"              # Name of the example
+path = "examples/language_detector_example.rs"  # Path to the example code
+
+[[example]]
+# Example code demonstrating the language detection trait examples.
+name = "language_detector_trait_example"        # Name of the example
+path = "examples/language_detector_trait_example.rs"  # Path to the example code
+
+[[example]]
+# Example code demonstrating the library usage.
+name = "lib_example"                            # Name of the example
+path = "examples/lib_example.rs"                # Path to the example code
+
+[[example]]
+# Example code demonstrating the translation examples.
+name = "translations_example"                   # Name of the example
+path = "examples/translations_example.rs"       # Path to the example code
+
+[[example]]
+# Example code demonstrating the translator examples.
+name = "translator_example"                   # Name of the example
+path = "examples/translator_example.rs"       # Path to the example code
+
+# -----------------------------------------------------------------------------
 # Criterion Benchmark
 # -----------------------------------------------------------------------------
 [[bench]]

@@ -66,13 +66,7 @@ fn load_translations(
 }
 
 fn load_all_translations() -> TranslationMap {
-    println!(
-        "Current working directory: {:?}",
-        env::current_dir().unwrap()
-    );
-
     let locales_dir = env::current_dir().unwrap().join("locales");
-    println!("Looking for locales in: {:?}", locales_dir);
 
     if locales_dir.exists() && locales_dir.is_dir() {
         println!("Locales directory found. Contents:");
@@ -83,7 +77,6 @@ fn load_all_translations() -> TranslationMap {
         }
         load_translations_from_dir(&locales_dir)
     } else {
-        println!("Locales directory not found or is not a directory.");
         TranslationMap::new()
     }
 }
