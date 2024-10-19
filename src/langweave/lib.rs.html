@@ -344,7 +344,27 @@
 <a href="#343" id="343">343</a>
 <a href="#344" id="344">344</a>
 <a href="#345" id="345">345</a>
-<a href="#346" id="346">346</a></pre></div><pre class="rust"><code><span class="comment">// Copyright © 2024 LangWeave. All rights reserved.
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a></pre></div><pre class="rust"><code><span class="comment">// Copyright © 2024 LangWeave. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 </span><span class="attr">#![doc = <span class="macro">include_str!</span>(<span class="string">"../README.md"</span>)]
@@ -358,7 +378,8 @@
 #![warn(missing_docs)]
 #![forbid(unsafe_code)]
 
-</span><span class="kw">use </span>log::debug;
+</span><span class="kw">use </span>language_detector_trait::LanguageDetectorTrait;
+<span class="kw">use </span>log::debug;
 <span class="kw">use </span>once_cell::sync::Lazy;
 
 <span class="kw">use </span><span class="kw">crate</span>::error::I18nError;
@@ -369,6 +390,8 @@
 </span><span class="kw">pub mod </span>error;
 <span class="doccomment">/// The `language_detector` module contains a simple regex-based language detector.
 </span><span class="kw">pub mod </span>language_detector;
+<span class="doccomment">/// The `language_detector_trait` module contains the `LanguageDetectorTrait` trait for extensibility.
+</span><span class="kw">pub mod </span>language_detector_trait;
 <span class="doccomment">/// The `translations` module contains translation functions for different languages.
 </span><span class="kw">pub mod </span>translations;
 <span class="doccomment">/// The `translator` module contains a simple translation service using a predefined dictionary.
@@ -433,7 +456,7 @@
     </span>translator.translate(text).or_else(|<span class="kw">_</span>| <span class="prelude-val">Ok</span>(text.to_string()))
 }
 
-<span class="doccomment">/// Detects the language of a given text using simple regex-based heuristics.
+<span class="doccomment">/// Detects the language of a given text using the composite language detector.
 ///
 /// # Arguments
 ///
@@ -446,10 +469,20 @@
 /// # Examples
 ///
 /// ```
-/// use langweave::detect_language;
+/// use langweave::language_detector::LanguageDetector;
+/// use langweave::error::I18nError;
+/// use langweave::language_detector_trait::LanguageDetectorTrait;
 ///
-/// let result = detect_language("The quick brown fox jumps over the lazy dog.");
-/// assert_eq!(result.unwrap(), "en");
+/// async fn detect_language() -&gt; Result&lt;(), I18nError&gt; {
+///     // Create a new language detector
+///     let detector = LanguageDetector::new();
+///
+///     // Detect language
+///     let lang = detector.detect_async("Hello, world!").await?;
+///     println!("Detected language: {}", lang);
+///
+///     Ok(())
+/// }
 /// ```
 ///
 /// # Errors
@@ -457,7 +490,7 @@
 /// This function will return an error if:
 /// * The input text is empty or contains only non-alphabetic characters.
 /// * The language detection process fails to identify a language with sufficient confidence.
-</span><span class="kw">pub fn </span>detect_language(text: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, I18nError&gt; {
+</span><span class="kw">pub async fn </span>detect_language(text: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;String, I18nError&gt; {
     <span class="macro">debug!</span>(<span class="string">"Detecting language for: {}"</span>, text);
 
     <span class="kw">if </span>text.trim().is_empty() {
@@ -465,14 +498,18 @@
     }
 
     <span class="comment">// Try detecting the language for the whole text first
-    </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(detected_lang) = LANGUAGE_DETECTOR.detect(text) {
+    </span><span class="kw">if let </span><span class="prelude-val">Ok</span>(detected_lang) =
+        LANGUAGE_DETECTOR.detect_async(text).<span class="kw">await
+    </span>{
         <span class="macro">debug!</span>(<span class="string">"Detected language: {}"</span>, detected_lang);
         <span class="kw">return </span><span class="prelude-val">Ok</span>(detected_lang);
     }
 
     <span class="comment">// Fallback: Return the first successfully detected language from word-by-word detection
     </span><span class="kw">for </span>word <span class="kw">in </span>text.split_whitespace() {
-        <span class="kw">if let </span><span class="prelude-val">Ok</span>(detected_lang) = LANGUAGE_DETECTOR.detect(word) {
+        <span class="kw">if let </span><span class="prelude-val">Ok</span>(detected_lang) =
+            LANGUAGE_DETECTOR.detect_async(word).<span class="kw">await
+        </span>{
             <span class="macro">debug!</span>(
                 <span class="string">"Detected language from word '{}': {}"</span>,
                 word, detected_lang
@@ -609,23 +646,26 @@
         ));
     }
 
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_detect_language() {
+    <span class="attr">#[tokio::test]
+    </span><span class="kw">async fn </span>test_detect_language() {
         <span class="macro">assert_eq!</span>(
-            detect_language(<span class="string">"The quick brown fox"</span>).unwrap(),
+            detect_language(<span class="string">"The quick brown fox"</span>).<span class="kw">await</span>.unwrap(),
             <span class="string">"en"
         </span>);
-        <span class="macro">assert_eq!</span>(detect_language(<span class="string">"Le chat noir"</span>).unwrap(), <span class="string">"fr"</span>);
         <span class="macro">assert_eq!</span>(
-            detect_language(<span class="string">"Der schnelle Fuchs"</span>).unwrap(),
+            detect_language(<span class="string">"Le chat noir"</span>).<span class="kw">await</span>.unwrap(),
+            <span class="string">"fr"
+        </span>);
+        <span class="macro">assert_eq!</span>(
+            detect_language(<span class="string">"Der schnelle Fuchs"</span>).<span class="kw">await</span>.unwrap(),
             <span class="string">"de"
         </span>);
     }
 
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_detect_language_error() {
+    <span class="attr">#[tokio::test]
+    </span><span class="kw">async fn </span>test_detect_language_error() {
         <span class="macro">assert!</span>(<span class="macro">matches!</span>(
-            detect_language(<span class="string">""</span>),
+            detect_language(<span class="string">""</span>).<span class="kw">await</span>,
             <span class="prelude-val">Err</span>(I18nError::LanguageDetectionFailed)
         ));
     }
@@ -643,9 +683,9 @@
         );
     }
 
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_detect_language_mixed() {
-        <span class="kw">let </span>result = detect_language(<span class="string">"Hello bonjour"</span>);
+    <span class="attr">#[tokio::test]
+    </span><span class="kw">async fn </span>test_detect_language_mixed() {
+        <span class="kw">let </span>result = detect_language(<span class="string">"Hello bonjour"</span>).<span class="kw">await</span>;
         <span class="macro">assert!</span>(
             result.is_ok(),
             <span class="string">"Language detection failed for mixed input"
@@ -660,10 +700,10 @@
         );
     }
 
-    <span class="attr">#[test]
-    </span><span class="kw">fn </span>test_detect_language_fallback() {
+    <span class="attr">#[tokio::test]
+    </span><span class="kw">async fn </span>test_detect_language_fallback() {
         <span class="comment">// Test with a string that might be hard to detect
-        </span><span class="kw">let </span>result = detect_language(<span class="string">"1234567890"</span>);
+        </span><span class="kw">let </span>result = detect_language(<span class="string">"1234567890"</span>).<span class="kw">await</span>;
         <span class="comment">// It should either detect a language or return LanguageDetectionFailed
         </span><span class="macro">assert!</span>(
             result.is_ok()
