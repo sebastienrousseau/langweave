@@ -80,7 +80,7 @@ version_check = "0.9"                       # Ensures that a compatible Rust ver
 [dev-dependencies]
 # Dependencies required for testing and development.
 assert_fs = "1.0"                           # Filesystem assertions for testing
-criterion = "0.5"                           # Benchmarking library to test performance
+criterion = "0.7"                           # Benchmarking library to test performance
 predicates = "3.0"                          # Filesystem predicates for testing
 tempfile = "3.2"                            # Temporary file creation for testing
 
