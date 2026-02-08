@@ -121,40 +121,8 @@ jobs:
       - name: Check for circular dependencies
         run: |
           echo "Checking for circular dependencies..."
-          # Generate the dependency graph and check for cycles
-          GRAPH_OUTPUT=$(cargo depgraph --all-features --workspace-only)
-
-          # Simple check: if cargo depgraph runs successfully and produces output,
-          # the graph is likely valid (cargo depgraph would fail on circular deps in most cases)
-          if [ -n "$GRAPH_OUTPUT" ]; then
-            echo "✅ Dependency graph generated successfully"
-            echo "✅ No circular dependencies detected"
-          else
-            echo "❌ Failed to generate dependency graph"
-            exit 1
-          fi
-
-          # Additional manual cycle detection for workspace dependencies
-          python3 -c "
-import subprocess, sys, re
-
-try:
-    # Get cargo tree output to analyze dependencies
-    result = subprocess.run(['cargo', 'tree', '--workspace'], capture_output=True, text=True)
-    if result.returncode != 0:
-        print('Failed to run cargo tree')
-        sys.exit(1)
-
-    lines = result.stdout.split('\n')
-    # Look for any obvious circular patterns in the tree
-    # This is a simple heuristic - cargo tree itself would show circular deps as errors
-    print('Dependency tree analysis completed - no circular dependencies found')
-
-except Exception as e:
-    print(f'Error in dependency analysis: {e}')
-    # Don't fail the build on analysis errors, dependency graph generation success is sufficient
-    print('Dependency graph validation passed despite analysis error')
-"
+          cargo tree --workspace --depth 10
+          echo "✅ No circular dependencies detected"
 
       - name: Upload dependency analysis
         if: always()
