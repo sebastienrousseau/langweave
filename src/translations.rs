@@ -414,4 +414,49 @@ mod tests {
         assert_eq!(translate("en", "hello").unwrap(), "Hello");
         assert_eq!(translate("fr", "GOODBYE").unwrap(), "Au revoir");
     }
+
+    #[test]
+    fn test_load_translations_nonexistent_file() {
+        let result = load_translations(Path::new(
+            "/tmp/langweave_test_nonexistent_file.po",
+        ));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_load_translations_from_dir_with_mixed_files() {
+        let test_dir =
+            Path::new("/tmp/langweave_test_mixed_dir");
+        let _ = fs::create_dir_all(test_dir);
+        // Non-.po file (triggers else on extension == "po")
+        let _ = fs::write(
+            test_dir.join("readme.txt"),
+            "not a po file",
+        );
+        // File without extension (triggers None on path.extension())
+        let _ = fs::write(test_dir.join("noext"), "no extension");
+        let result = load_translations_from_dir(test_dir);
+        assert!(result.is_empty());
+        let _ = fs::remove_dir_all(test_dir);
+    }
+
+    #[test]
+    fn test_load_translations_from_dir_with_bad_po() {
+        let test_dir =
+            Path::new("/tmp/langweave_test_error_dir");
+        let _ = fs::create_dir_all(test_dir);
+        // Directory named "bad.po" — File::open will fail
+        let _ = fs::create_dir(test_dir.join("bad.po"));
+        let result = load_translations_from_dir(test_dir);
+        assert!(result.is_empty());
+        let _ = fs::remove_dir_all(test_dir);
+    }
+
+    #[test]
+    fn test_load_translations_from_nonexistent_dir() {
+        let result = load_translations_from_dir(Path::new(
+            "/tmp/langweave_test_no_such_dir_exists",
+        ));
+        assert!(result.is_empty());
+    }
 }

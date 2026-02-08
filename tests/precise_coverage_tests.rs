@@ -136,14 +136,7 @@ mod precise_async_coverage {
     async fn test_translate_async_force_translation_error() {
         // Force translation error in async function
         let result = translate_async("fr", "nonexistent_key_xyz_123").await;
-
-        if let Err(I18nError::TranslationFailed(msg)) = result {
-            // Verify the error message contains "Async translation failed"
-            assert!(msg.contains("Async translation failed"));
-        } else {
-            // If it didn't fail as expected, that's also a valid outcome
-            // as long as we exercised the code path
-        }
+        assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
     }
 
     #[tokio::test]

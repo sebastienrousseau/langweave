@@ -80,28 +80,26 @@ pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
         return Err(I18nError::UnsupportedLanguage(lang.to_string()));
     }
 
-    let translator = Translator::new(lang).map_err(|e| {
-        I18nError::TranslationFailed(format!(
-            "Failed to create translator: {}",
-            e
-        ))
-    })?;
+    let translator = Translator::new(lang)?;
 
     // Try to translate, but fallback to original text if translation fails
     // Only fallback for simple keys (single word, no punctuation except basic ones)
     match translator.translate(text) {
         Ok(translation) => Ok(translation),
-        Err(I18nError::TranslationFailed(_)) => {
-            // Simple heuristic: if text contains spaces, commas, or question marks, it's likely a phrase
-            // and should fail rather than fallback
-            if text.contains(' ') || text.contains(',') || text.contains('?') || text.contains('!') {
-                Err(I18nError::TranslationFailed(format!("Complex phrase translation not found: {}", text)))
+        Err(_) => {
+            if text.contains(' ')
+                || text.contains(',')
+                || text.contains('?')
+                || text.contains('!')
+            {
+                Err(I18nError::TranslationFailed(format!(
+                    "Complex phrase translation not found: {}",
+                    text
+                )))
             } else {
-                // Simple key - return original text as fallback
                 Ok(text.to_string())
             }
         }
-        Err(other_error) => Err(other_error),
     }
 }
 
@@ -146,29 +144,12 @@ pub async fn detect_language(text: &str) -> Result<String, I18nError> {
         return Err(I18nError::LanguageDetectionFailed);
     }
 
-    // Try detecting the language for the whole text first
-    if let Ok(detected_lang) =
-        LANGUAGE_DETECTOR.detect_async(text).await
-    {
-        debug!("Detected language: {}", detected_lang);
-        return Ok(detected_lang);
-    }
-
-    // Fallback: Return the first successfully detected language from word-by-word detection
-    for word in text.split_whitespace() {
-        if let Ok(detected_lang) =
-            LANGUAGE_DETECTOR.detect_async(word).await
-        {
-            debug!(
-                "Detected language from word '{}': {}",
-                word, detected_lang
-            );
-            return Ok(detected_lang);
-        }
-    }
-
-    // If no language is detected, return an error
-    Err(I18nError::LanguageDetectionFailed)
+    // Delegate to the composite language detector, which handles
+    // regex pattern matching and word-by-word whatlang detection internally
+    let detected_lang =
+        LANGUAGE_DETECTOR.detect_async(text).await?;
+    debug!("Detected language: {}", detected_lang);
+    Ok(detected_lang)
 }
 
 /// Returns a list of supported language codes.
@@ -259,18 +240,8 @@ pub mod async_utils {
                 lang.to_string(),
             ));
         }
-        let translator = Translator::new(lang).map_err(|e| {
-            I18nError::TranslationFailed(format!(
-                "Failed to create translator: {}",
-                e
-            ))
-        })?;
-        translator.translate(text).map_err(|e| {
-            I18nError::TranslationFailed(format!(
-                "Async translation failed: {}",
-                e
-            ))
-        })
+        let translator = Translator::new(lang)?;
+        translator.translate(text)
     }
 }
 

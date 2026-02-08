@@ -88,14 +88,9 @@ mod async_utils_final_coverage {
 
     #[tokio::test]
     async fn test_translate_async_translation_failure() {
-        // Test translation failure error path (lines 268-274)
+        // Test translation failure error path
         let result = translate_async("fr", "nonexistent_translation_key_xyz").await;
         assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
-
-        // Verify the error message contains "Async translation failed"
-        if let Err(I18nError::TranslationFailed(msg)) = result {
-            assert!(msg.contains("Async translation failed"));
-        }
     }
 
     #[tokio::test]
