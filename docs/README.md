@@ -44,7 +44,7 @@ Technical documentation.
 
 **Web applications** → [Web Integration](guides/translation.md#web-application-integration)
 **CLI tools** → [CLI Integration](guides/language-detection.md#cli-tool-integration)
-**Batch processing** → [Batch Translation](guides/translation.md#batch-translation)
+**Library integration** → [Translation Guide](guides/translation.md)
 **Error recovery** → [Recovery Strategies](guides/error-handling.md#error-recovery-strategies)
 
 ## Workflows
@@ -52,14 +52,14 @@ Technical documentation.
 ### Language Detection
 1. [Install LangWeave](essentials/quick-start.md#installation)
 2. [Create detector](guides/language-detection.md#basic-detection)
-3. [Configure thresholds](guides/language-detection.md#advanced-configuration)
+3. [Handle detection errors](guides/language-detection.md#error-handling)
 4. [Handle errors](guides/error-handling.md#language-detection-errors)
 
 ### Translation
 1. [Setup translator](guides/translation.md#basic-translation)
-2. [Configure options](guides/translation.md#translation-configuration)
+2. [Handle translation errors](guides/translation.md#error-handling)
 3. [Add error handling](guides/error-handling.md#translation-errors)
-4. [Optimize performance](guides/translation.md#performance-optimization)
+4. [Best practices](guides/translation.md#best-practices)
 
 ### Integration
 1. [Review APIs](api-reference/index.md)
@@ -71,22 +71,16 @@ Technical documentation.
 
 ### Basic Usage
 ```rust
-use langweave::{
-    language_detector::{LanguageDetector, LanguageDetectorTrait},
-    translator::Translator,
-    error::I18nError
-};
+use langweave::{detect_language, translate, error::I18nError};
 
 #[tokio::main]
 async fn main() -> Result<(), I18nError> {
-    // Detect language
-    let detector = LanguageDetector::new();
-    let language = detector.detect_async("Bonjour le monde!").await?;
+    // Detect language using high-level API
+    let language = detect_language("Bonjour le monde!").await?;
     println!("Detected: {}", language); // "fr"
 
-    // Translate text
-    let translator = Translator::new("fr")?;
-    let translation = translator.translate("Hello")?;
+    // Translate text using high-level API
+    let translation = translate("fr", "Hello")?;
     println!("Translation: {}", translation); // "Bonjour"
 
     Ok(())
@@ -95,18 +89,16 @@ async fn main() -> Result<(), I18nError> {
 
 ### Error Handling
 ```rust
-use langweave::{language_detector::LanguageDetector, error::I18nError};
+use langweave::{detect_language, error::I18nError};
 
 async fn safe_detection(text: &str) -> Result<String, String> {
-    let detector = LanguageDetector::new();
-
-    match detector.detect_async(text).await {
+    match detect_language(text).await {
         Ok(language) => Ok(language),
-        Err(I18nError::EmptyInput) => {
-            Err("Cannot detect language of empty text".to_string())
+        Err(I18nError::LanguageDetectionFailed) => {
+            Err("Cannot detect language from provided text".to_string())
         }
-        Err(I18nError::ConfidenceTooLow) => {
-            Err("Detection confidence too low".to_string())
+        Err(I18nError::UnsupportedLanguage(lang)) => {
+            Err(format!("Unsupported language: {}", lang))
         }
         Err(e) => Err(format!("Detection failed: {}", e)),
     }

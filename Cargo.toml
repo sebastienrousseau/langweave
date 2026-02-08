@@ -8,7 +8,7 @@ name = "langweave"                          # The name of the library
 version = "0.0.1"                           # Initial version of the crate
 authors = ["LangWeave Contributors"]        # Library contributors
 edition = "2021"                            # Rust edition being used
-rust-version = "1.56.0"                     # Minimum supported Rust version
+rust-version = "1.66.0"                     # Minimum supported Rust version
 license = "MIT OR Apache-2.0"               # Dual licensing strategy
 description = """
 A Rust library for seamless internationalization (i18n) and localization.
@@ -80,6 +80,11 @@ version_check = "0.9"                       # Ensures that a compatible Rust ver
 [dev-dependencies]
 # Dependencies required for testing and development.
 criterion = "0.8"                           # Benchmarking library to test performance
+proptest = "1.5"                            # Property-based testing framework
+arbitrary = { version = "1.3", features = ["derive"] } # Arbitrary data generation for testing
+quickcheck = "1.0"                          # Alternative property-based testing
+quickcheck_macros = "1.0"                   # Macros for quickcheck
+tokio-test = "0.4"                          # Testing utilities for async code
 
 [dependencies]
 # Dependencies required for building and running the project.
@@ -190,7 +195,6 @@ future_incompatible = { level = "deny", priority = -1 } # Handle future compatib
 keyword_idents = { level = "deny", priority = -1 }      # Deny usage of keywords as identifiers
 macro_use_extern_crate = "deny"             # Deny macro use of `extern crate`
 meta_variable_misuse = "deny"               # Deny misuse of meta variables in macros
-missing_fragment_specifier = "deny"         # Deny missing fragment specifiers in macros
 noop_method_call = "deny"                   # Deny method calls that have no effect
 rust_2018_idioms = { level = "deny", priority = -1 }    # Enforce Rust 2018 idioms
 rust_2021_compatibility = { level = "deny", priority = -1 } # Enforce Rust 2021 compatibility

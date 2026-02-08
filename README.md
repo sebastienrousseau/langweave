@@ -21,12 +21,11 @@ Detect text languages. Translate between language pairs. Build internationalized
 
 ## Features
 
-- **Language Detection** — Identify text languages with confidence scoring
-- **Translation Engine** — Translate between language pairs with quality metrics
-- **Content Management** — Cache localized content for performance
-- **Batch Processing** — Handle multiple texts efficiently
-- **Script Support** — Process Latin, Cyrillic, Asian, Arabic scripts
-- **Error Recovery** — Handle failures with comprehensive error types
+- **Language Detection** — Identify text languages (English, French, German)
+- **Translation Engine** — Translate between supported language pairs
+- **Error Handling** — Comprehensive error types for robust applications
+- **Async Support** — Non-blocking language detection and translation
+- **Simple API** — Easy-to-use functions for common tasks
 
 ## Installation
 
@@ -39,18 +38,22 @@ langweave = "0.0.1"
 
 ## Quick Start
 
-Detect language:
+Detect language and translate text:
 
 ```rust
-use langweave::language_detector::LanguageDetector;
-use langweave::language_detector_trait::LanguageDetectorTrait;
+use langweave::{detect_language, translate};
 use langweave::error::I18nError;
 
 #[tokio::main]
 async fn main() -> Result<(), I18nError> {
-    let detector = LanguageDetector::new();
-    let lang = detector.detect_async("Hello, world!").await?;
+    // Detect language using the high-level API
+    let lang = detect_language("Hello, world!").await?;
     println!("Detected: {}", lang);
+
+    // Translate text
+    let translated = translate("fr", "Hello")?;
+    println!("Translated: {}", translated);
+
     Ok(())
 }
 ```

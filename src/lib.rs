@@ -9,7 +9,7 @@
 )]
 #![crate_name = "langweave"]
 #![crate_type = "lib"]
-#![warn(missing_docs)]
+#![deny(missing_docs)]
 #![forbid(unsafe_code)]
 
 use language_detector_trait::LanguageDetectorTrait;
@@ -73,7 +73,8 @@ static LANGUAGE_DETECTOR: Lazy<LanguageDetector> =
 ///
 /// This function will return an error if:
 /// * The specified language is not supported.
-/// * The translation process fails for any reason.
+/// * The translation key is not found in the language's translation dictionary.
+/// * The translation process fails for any other reason.
 pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
     if !is_language_supported(lang) {
         return Err(I18nError::UnsupportedLanguage(lang.to_string()));
@@ -86,8 +87,22 @@ pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
         ))
     })?;
 
-    // If translation fails, return the original text
-    translator.translate(text).or_else(|_| Ok(text.to_string()))
+    // Try to translate, but fallback to original text if translation fails
+    // Only fallback for simple keys (single word, no punctuation except basic ones)
+    match translator.translate(text) {
+        Ok(translation) => Ok(translation),
+        Err(I18nError::TranslationFailed(_)) => {
+            // Simple heuristic: if text contains spaces, commas, or question marks, it's likely a phrase
+            // and should fail rather than fallback
+            if text.contains(' ') || text.contains(',') || text.contains('?') || text.contains('!') {
+                Err(I18nError::TranslationFailed(format!("Complex phrase translation not found: {}", text)))
+            } else {
+                // Simple key - return original text as fallback
+                Ok(text.to_string())
+            }
+        }
+        Err(other_error) => Err(other_error),
+    }
 }
 
 /// Detects the language of a given text using the composite language detector.
@@ -308,13 +323,11 @@ mod tests {
     fn test_translate_complex() {
         let text = "Hello, how are you today?";
         let result = translate("fr", text);
-        assert!(result.is_ok());
-        // Either it's translated or the original text is returned
-        assert!(
-            result.clone().unwrap()
-                == "Bonjour, comment allez-vous aujourd'hui ?"
-                || result.clone().unwrap() == text
-        );
+        // Complex phrases not in the dictionary should return TranslationFailed error
+        assert!(matches!(
+            result,
+            Err(I18nError::TranslationFailed(_))
+        ));
     }
 
     #[tokio::test]

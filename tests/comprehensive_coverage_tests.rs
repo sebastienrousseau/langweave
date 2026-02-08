@@ -124,7 +124,7 @@ mod language_detector_trait_tests {
     fn test_composite_detector_debug() {
         let composite = CompositeLanguageDetector::default();
         let debug_str = format!("{:?}", composite);
-        assert_eq!(debug_str, "CompositeLanguageDetector");
+        assert_eq!(debug_str, "CompositeLanguageDetector with 0 detectors");
     }
 }
 

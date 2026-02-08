@@ -1,23 +1,26 @@
-name: 🧪 Lint
+# DEPRECATED: This workflow has been replaced by ci.yml
+# The new comprehensive CI pipeline includes enhanced linting functionality
+# with zero-warning policy enforcement across all platforms.
+
+name: 🧪 Lint (DEPRECATED)
 
 on:
-  push:
-    branches:
-      - feat/langweave
-  pull_request:
-    branches:
-      - feat/langweave
-  release:
-    types: [created]
+  # Disabled - replaced by ci.yml comprehensive pipeline
+  # push:
+  # pull_request:
 
 jobs:
-  all:
-    name: Lint
+  deprecated_notice:
+    name: Deprecated Notice
     runs-on: ubuntu-latest
     steps:
-      - uses: hecrj/setup-rust-action@v2
-        with:
-          components: clippy
-      - uses: actions/checkout@v6
-      - name: Check lints
-        run: cargo clippy --workspace --all-features --all-targets --no-deps -- -D warnings
+      - name: Notice
+        run: |
+          echo "⚠️ This workflow has been deprecated and replaced by ci.yml"
+          echo "The new CI pipeline provides enhanced linting with:"
+          echo "- Global warnings-as-errors enforcement via RUSTFLAGS"
+          echo "- Cross-platform linting (macOS + Linux)"
+          echo "- Integration with formatter and type checks"
+          echo "- Comprehensive clippy configuration from Cargo.toml"
+          echo ""
+          echo "Please refer to .github/workflows/ci.yml for the active pipeline."

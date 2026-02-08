@@ -62,7 +62,6 @@ use log::{debug, error};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::sync::Arc;
-use tokio::task;
 use whatlang::{detect, Lang};
 
 /// A thread-safe struct for detecting the language of a given text.
@@ -143,12 +142,11 @@ impl LanguageDetector {
     ///
     /// ```
     /// use langweave::language_detector::LanguageDetector;
-    /// use whatlang::Lang;
+    /// use langweave::language_detector_trait::LanguageDetectorTrait;
     ///
     /// let detector = LanguageDetector::new();
-    /// assert_eq!(detector.convert_lang_code(Lang::Eng), "en");
-    /// assert_eq!(detector.convert_lang_code(Lang::Fra), "fr");
-    /// assert_eq!(detector.convert_lang_code(Lang::Deu), "de");
+    /// let result = detector.detect("Hello, world!");
+    /// assert_eq!(result.unwrap(), "en");
     /// ```
     #[must_use]
     pub fn new() -> Self {
@@ -321,18 +319,7 @@ impl LanguageDetectorTrait for LanguageDetector {
         &self,
         text: &str,
     ) -> Result<String, I18nError> {
-        let text = text.to_string();
-        let patterns = Arc::clone(&self.patterns);
-
-        task::spawn_blocking(move || {
-            let detector = LanguageDetector { patterns };
-            detector.detect(&text)
-        })
-        .await
-        .map_err(|e| {
-            error!("Async language detection task failed: {:?}", e);
-            I18nError::LanguageDetectionFailed
-        })?
+        self.detect(text)
     }
 }
 

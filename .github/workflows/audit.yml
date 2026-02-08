@@ -24,5 +24,12 @@ jobs:
       - name: Resolve dependencies
         run: cargo update
 
-      - name: Audit vulnerabilities
-        run: cargo audit
+      - name: Audit vulnerabilities (strict enforcement)
+        run: |
+          echo "🔍 Running security audit with strict enforcement..."
+          cargo audit
+          if [ $? -ne 0 ]; then
+            echo "❌ Security vulnerabilities detected. Review and fix before proceeding."
+            exit 1
+          fi
+          echo "✅ No security vulnerabilities found."

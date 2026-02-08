@@ -7,62 +7,43 @@ Welcome to the LangWeave API Reference. This section provides detailed documenta
 ## Core Modules
 
 ### [`langweave::language_detector`](language_detector.md)
-Language detection functionality with configurable confidence thresholds and multiple detection strategies.
+Language detection functionality for English, French, and German.
 
 **Key Types:**
 - [`LanguageDetector`](language_detector.md#languagedetector) - Main language detection implementation
 - [`LanguageDetectorTrait`](language_detector.md#languagedetectortrait) - Common interface for language detectors
 
 ### [`langweave::translator`](translator.md)
-Text translation between multiple language pairs with quality assessment and batch processing.
+Text translation between supported language pairs (English, French, German).
 
 **Key Types:**
 - [`Translator`](translator.md#translator) - Main translation implementation
-- [`TranslationOptions`](translator.md#translationoptions) - Configuration for translation behavior
-- [`TranslationContext`](translator.md#translationcontext) - Contextual hints for better translations
 
 ### [`langweave::translations`](translations.md)
-Localized content management and retrieval system.
-
-**Key Types:**
-- [`Translations`](translations.md#translations) - Content management system
-- [`LocalizedContent`](translations.md#localizedcontent) - Individual localized content items
+Translation functions and utilities for supported languages.
 
 ### [`langweave::error`](error.md)
-Comprehensive error handling for all LangWeave operations.
+Error handling for all LangWeave operations.
 
 **Key Types:**
 - [`I18nError`](error.md#i18nerror) - Main error enumeration
-- [`ErrorKind`](error.md#errorkind) - Error categorization
 
 ## Quick Reference
 
 ### Common Patterns
 
 ```rust
-use langweave::{
-    language_detector::{LanguageDetector, LanguageDetectorTrait},
-    translator::Translator,
-    translate,
-    detect_language,
-    error::I18nError
-};
+use langweave::{translate, detect_language, error::I18nError};
 
 #[tokio::main]
 async fn main() -> Result<(), I18nError> {
-    // Language Detection
-    let detector = LanguageDetector::new();
-    let language = detector.detect_async("Hello, world!").await?;
-
-    // Or use global function
+    // Language Detection using high-level API
     let language = detect_language("Hello, world!").await?;
+    println!("Detected: {}", language);
 
-    // Translation using global function
+    // Translation using high-level API
     let translation = translate("fr", "Hello")?;
-
-    // Translation using Translator instance
-    let translator = Translator::new("fr")?;
-    let translation = translator.translate("Hello")?;
+    println!("Translation: {}", translation);
 
     Ok(())
 }
@@ -81,19 +62,14 @@ LangWeave supports optional features that can be enabled in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-langweave = { version = "0.0.1", features = ["full"] }
+langweave = "0.0.1"
 
-# Or enable specific features:
-langweave = { version = "0.0.1", features = ["translation", "caching"] }
+# Optional async support (enabled by default)
+langweave = { version = "0.0.1", features = ["async"] }
 ```
 
 **Available Features:**
-- `translation` - Translation functionality (enabled by default)
-- `detection` - Language detection (enabled by default)
-- `caching` - Result caching for better performance
-- `batch` - Batch processing capabilities
 - `async` - Async/await support (enabled by default)
-- `full` - All features enabled
 
 ## Type Hierarchy
 
@@ -103,15 +79,11 @@ langweave
 │   ├── LanguageDetector
 │   └── LanguageDetectorTrait
 ├── translator
-│   ├── Translator
-│   ├── TranslationOptions
-│   └── TranslationContext
+│   └── Translator
 ├── translations
-│   ├── Translations
-│   └── LocalizedContent
+│   └── (translation functions)
 └── error
-    ├── I18nError
-    └── ErrorKind
+    └── I18nError
 ```
 
 ## Compatibility
@@ -197,9 +169,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-### Batch Processing
+### Multiple Translations
 ```rust
-// See examples/batch_processing_example.rs
 use langweave::translate;
 
 fn translate_multiple(texts: &[&str], target_lang: &str) -> Result<Vec<String>, langweave::error::I18nError> {

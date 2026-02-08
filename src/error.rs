@@ -34,6 +34,28 @@ pub enum I18nError {
 
 impl I18nError {
     /// Returns a string slice describing the error.
+    ///
+    /// This method provides a short, human-readable description of the error type,
+    /// suitable for logging or displaying to users in a simplified format.
+    ///
+    /// # Returns
+    ///
+    /// A string slice containing a brief description of the error type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use langweave::error::I18nError;
+    ///
+    /// let error = I18nError::LanguageDetectionFailed;
+    /// assert_eq!(error.as_str(), "language detection failed");
+    ///
+    /// let error = I18nError::UnsupportedLanguage("xyz".to_string());
+    /// assert_eq!(error.as_str(), "unsupported language");
+    ///
+    /// let error = I18nError::TranslationFailed("missing key".to_string());
+    /// assert_eq!(error.as_str(), "translation failed");
+    /// ```
     pub fn as_str(&self) -> &str {
         match self {
             I18nError::LanguageDetectionFailed => {
