@@ -222,8 +222,11 @@ mod tests {
             }
         }
 
-        // Use the function to avoid unused function warning
+        // Use the function with all variants to ensure full coverage
         use_error(I18nError::LanguageDetectionFailed);
+        use_error(I18nError::TranslationFailed("test".to_string()));
+        use_error(I18nError::UnsupportedLanguage("test".to_string()));
+        use_error(I18nError::UnexpectedError("test".to_string()));
     }
 
     #[test]

@@ -36,7 +36,25 @@ jobs:
           key: linux-coverage-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Generate code coverage
-        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+        run: |
+          # Generate coverage report and capture summary
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+          cargo llvm-cov --all-features --workspace --summary-only > coverage_summary.txt
+
+      - name: Extract and enforce coverage threshold
+        run: |
+          # Extract line coverage percentage from TOTAL row (last column with %)
+          COVERAGE=$(grep "^TOTAL" coverage_summary.txt | grep -oE '[0-9]+\.[0-9]+%' | tail -1 | sed 's/%//')
+          echo "Current line coverage: ${COVERAGE}%"
+
+          # Check if coverage meets 95% threshold using awk for floating-point comparison
+          if awk "BEGIN {exit !($COVERAGE < 95)}"; then
+            echo "❌ Coverage ${COVERAGE}% is below required 95% threshold"
+            echo "Please add tests to improve coverage before merging"
+            exit 1
+          else
+            echo "✅ Coverage ${COVERAGE}% meets required 95% threshold"
+          fi
 
       - name: Upload to Codecov.io
         uses: codecov/codecov-action@v5
