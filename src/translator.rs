@@ -109,7 +109,7 @@ mod tests {
 
     #[test]
     fn test_unsupported_language() {
-        let result = Translator::new("es");
+        let result = Translator::new("zz");
         assert!(matches!(
             result,
             Err(I18nError::UnsupportedLanguage(_))

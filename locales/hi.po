@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: LangWeave\n"
+"Language: hi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello"
+msgstr "नमस्ते"
+
+msgid "Goodbye"
+msgstr "अलविदा"
+
+msgid "Yes"
+msgstr "हाँ"
+
+msgid "No"
+msgstr "नहीं"
+
+msgid "Thank you"
+msgstr "धन्यवाद"
+
+msgid "Please"
+msgstr "कृपया"
+
+msgid "Good morning"
+msgstr "सुप्रभात"
+
+msgid "Good night"
+msgstr "शुभ रात्रि"
+
+msgid "Sorry"
+msgstr "माफ करें"
+
+msgid "Help"
+msgstr "सहायता"
+
+msgid "Welcome"
+msgstr "स्वागतम्"
+
+msgid "Friend"
+msgstr "मित्र"
+
+msgid "Love"
+msgstr "प्रेम"
+
+msgid "Peace"
+msgstr "शांति"
+
+msgid "Happy"
+msgstr "खुश"
+
+msgid "main_logger_msg"
+msgstr "\nकृपया अधिक जानकारी के लिए `ssg --help` चलाएं।\n"
+
+msgid "lib_banner_log_msg"
+msgstr "बैनर सफलतापूर्वक प्रिंट किया गया"
+
+msgid "lib_args_log_msg"
+msgstr "आर्गुमेंट्स सफलतापूर्वक प्रोसेस किए गए"
+
+msgid "lib_server_log_msg"
+msgstr "सर्वर सफलतापूर्वक शुरू किया गया"

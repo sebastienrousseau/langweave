@@ -21,7 +21,7 @@ Detect text languages. Translate between language pairs. Build internationalized
 
 ## Features
 
-- **Language Detection** — Identify text languages (English, French, German)
+- **Language Detection** — Identify text languages across 15 supported languages including English, French, German, Spanish, Portuguese, Italian, Dutch, Russian, Arabic, Hebrew, Hindi, Japanese, Korean, Chinese, and Indonesian
 - **Translation Engine** — Translate between supported language pairs
 - **Error Handling** — Comprehensive error types for robust applications
 - **Async Support** — Non-blocking language detection and translation

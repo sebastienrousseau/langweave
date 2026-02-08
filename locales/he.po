@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: LangWeave\n"
+"Language: he\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello"
+msgstr "שלום"
+
+msgid "Goodbye"
+msgstr "להתראות"
+
+msgid "Yes"
+msgstr "כן"
+
+msgid "No"
+msgstr "לא"
+
+msgid "Thank you"
+msgstr "תודה"
+
+msgid "Please"
+msgstr "בבקשה"
+
+msgid "Good morning"
+msgstr "בוקר טוב"
+
+msgid "Good night"
+msgstr "לילה טוב"
+
+msgid "Sorry"
+msgstr "סליחה"
+
+msgid "Help"
+msgstr "עזרה"
+
+msgid "Welcome"
+msgstr "ברוך הבא"
+
+msgid "Friend"
+msgstr "חבר"
+
+msgid "Love"
+msgstr "אהבה"
+
+msgid "Peace"
+msgstr "שלום"
+
+msgid "Happy"
+msgstr "שמח"
+
+msgid "main_logger_msg"
+msgstr "\nאנא הרץ `ssg --help` למידע נוסף.\n"
+
+msgid "lib_banner_log_msg"
+msgstr "הבאנר הודפס בהצלחה"
+
+msgid "lib_args_log_msg"
+msgstr "הארגומנטים עובדו בהצלחה"
+
+msgid "lib_server_log_msg"
+msgstr "השרת הופעל בהצלחה"

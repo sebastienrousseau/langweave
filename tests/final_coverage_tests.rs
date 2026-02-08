@@ -133,9 +133,17 @@ mod edge_case_coverage {
     #[test]
     fn test_supported_languages_content() {
         let languages = supported_languages();
-        assert_eq!(languages.len(), 3);
-        assert!(languages.contains(&"en".to_string()));
-        assert!(languages.contains(&"fr".to_string()));
-        assert!(languages.contains(&"de".to_string()));
+        assert_eq!(languages.len(), 15);
+
+        // Test all 15 required languages
+        let expected_languages = vec![
+            "en", "fr", "de", "es", "pt", "it", "nl", "ru",
+            "ar", "he", "hi", "ja", "ko", "zh", "id"
+        ];
+
+        for lang in expected_languages {
+            assert!(languages.contains(&lang.to_string()),
+                   "Expected language '{}' not found in supported languages", lang);
+        }
     }
 }

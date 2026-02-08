@@ -287,10 +287,22 @@ mod language_detector_internals {
 #[test]
 fn test_supported_languages_content() {
     let languages = supported_languages();
-    assert_eq!(languages.len(), 3);
+    assert_eq!(languages.len(), 15);
     assert!(languages.contains(&"en".to_string()));
     assert!(languages.contains(&"fr".to_string()));
     assert!(languages.contains(&"de".to_string()));
+    assert!(languages.contains(&"es".to_string()));
+    assert!(languages.contains(&"pt".to_string()));
+    assert!(languages.contains(&"it".to_string()));
+    assert!(languages.contains(&"nl".to_string()));
+    assert!(languages.contains(&"ru".to_string()));
+    assert!(languages.contains(&"ar".to_string()));
+    assert!(languages.contains(&"he".to_string()));
+    assert!(languages.contains(&"hi".to_string()));
+    assert!(languages.contains(&"ja".to_string()));
+    assert!(languages.contains(&"ko".to_string()));
+    assert!(languages.contains(&"zh".to_string()));
+    assert!(languages.contains(&"id".to_string()));
 }
 
 /// Test is_language_supported with various inputs
@@ -301,12 +313,16 @@ fn test_is_language_supported_edge_cases() {
     assert!(is_language_supported("Fr"));
     assert!(is_language_supported("DE"));
 
-    // Test unsupported languages
-    assert!(!is_language_supported("es"));
-    assert!(!is_language_supported("pt"));
-    assert!(!is_language_supported("ja"));
+    // Test supported languages
+    assert!(is_language_supported("es"));
+    assert!(is_language_supported("pt"));
+    assert!(is_language_supported("ja"));
+
+    // Test truly unsupported languages
     assert!(!is_language_supported(""));
     assert!(!is_language_supported("invalid"));
+    assert!(!is_language_supported("zz"));
+    assert!(!is_language_supported("xx"));
 }
 
 /// Test error types completeness

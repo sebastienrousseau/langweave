@@ -154,6 +154,11 @@ pub async fn detect_language(text: &str) -> Result<String, I18nError> {
 
 /// Returns a list of supported language codes.
 ///
+/// This function returns all 15 languages that LangWeave supports:
+/// en (English), fr (French), de (German), es (Spanish), pt (Portuguese),
+/// it (Italian), nl (Dutch), ru (Russian), ar (Arabic), he (Hebrew),
+/// hi (Hindi), ja (Japanese), ko (Korean), zh (Chinese), id (Indonesian).
+///
 /// # Returns
 ///
 /// A vector of strings representing the supported language codes.
@@ -164,10 +169,30 @@ pub async fn detect_language(text: &str) -> Result<String, I18nError> {
 /// use langweave::supported_languages;
 ///
 /// let languages = supported_languages();
+/// assert_eq!(languages.len(), 15);
 /// assert!(languages.contains(&"en".to_string()));
+/// assert!(languages.contains(&"fr".to_string()));
+/// assert!(languages.contains(&"de".to_string()));
+/// assert!(languages.contains(&"es".to_string()));
 /// ```
 pub fn supported_languages() -> Vec<String> {
-    vec!["en".to_string(), "fr".to_string(), "de".to_string()]
+    vec![
+        "en".to_string(),
+        "fr".to_string(),
+        "de".to_string(),
+        "es".to_string(),
+        "pt".to_string(),
+        "it".to_string(),
+        "nl".to_string(),
+        "ru".to_string(),
+        "ar".to_string(),
+        "he".to_string(),
+        "hi".to_string(),
+        "ja".to_string(),
+        "ko".to_string(),
+        "zh".to_string(),
+        "id".to_string(),
+    ]
 }
 
 /// Validates if a given language code is supported.

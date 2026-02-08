@@ -125,6 +125,26 @@ static PATTERNS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
             Regex::new(r"(?i)\b(안녕하세요|안녕히 가세요|감사합니다|주세요)|[\p{Hangul}]+").expect("Failed to compile Korean regex"),
             "ko",
         ),
+        // Italian
+        (
+            Regex::new(r"(?i)\b(ciao|buongiorno|grazie|prego|arrivederci|il|la|lo|gli|le|un|una|in|di|per|con)\b").expect("Failed to compile Italian regex"),
+            "it",
+        ),
+        // Dutch
+        (
+            Regex::new(r"(?i)\b(hallo|goedemorgen|dank|alstublieft|tot ziens|de|het|een|van|in|op|voor|met)\b").expect("Failed to compile Dutch regex"),
+            "nl",
+        ),
+        // Hebrew (includes Hebrew script detection)
+        (
+            Regex::new(r"(?i)\b(שלום|להתראות|תודה|בבקשה)|[\p{Hebrew}]+").expect("Failed to compile Hebrew regex"),
+            "he",
+        ),
+        // Indonesian
+        (
+            Regex::new(r"(?i)\b(halo|selamat|terima kasih|tolong|sampai jumpa|yang|dan|atau|ini|itu|dengan|untuk)\b").expect("Failed to compile Indonesian regex"),
+            "id",
+        ),
     ]
 });
 
@@ -192,6 +212,10 @@ impl LanguageDetector {
             Lang::Hin => "hi",
             Lang::Kor => "ko",
             Lang::Rus => "ru",
+            Lang::Ita => "it",
+            Lang::Nld => "nl",
+            Lang::Heb => "he",
+            Lang::Ind => "id",
             _ => lang.code(),
         }
         .to_string()
@@ -519,8 +543,11 @@ mod tests {
         assert_eq!(detector.convert_lang_code(Lang::Hin), "hi");
         assert_eq!(detector.convert_lang_code(Lang::Kor), "ko");
         assert_eq!(detector.convert_lang_code(Lang::Rus), "ru");
-        // Test a language not explicitly handled
-        assert_eq!(detector.convert_lang_code(Lang::Ita), "ita");
+        // Test the newly added languages
+        assert_eq!(detector.convert_lang_code(Lang::Ita), "it");
+        assert_eq!(detector.convert_lang_code(Lang::Nld), "nl");
+        assert_eq!(detector.convert_lang_code(Lang::Heb), "he");
+        assert_eq!(detector.convert_lang_code(Lang::Ind), "id");
     }
 
     #[test]
