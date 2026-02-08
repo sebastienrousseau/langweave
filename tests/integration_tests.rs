@@ -1,3 +1,9 @@
+//! Integration tests for the langweave library
+//!
+//! This module contains integration tests to verify the correct functionality
+//! of the langweave library's public API including translation, language detection,
+//! and error handling.
+
 use langweave::error::I18nError;
 use langweave::translator::Translator;
 use langweave::{detect_language, translate};
