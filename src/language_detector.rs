@@ -391,6 +391,10 @@ mod tests {
             ("नमस्ते", "hi"),
             ("안녕하세요", "ko"),
             ("Здравствуйте", "ru"),
+            ("Ciao, buongiorno", "it"),
+            ("Dank je wel, alstublieft", "nl"),
+            ("שלום, תודה", "he"),
+            ("Halo, selamat pagi", "id"),
         ];
 
         for (text, expected_lang) in test_cases {
@@ -423,6 +427,10 @@ mod tests {
             ("नमस्ते", "hi"),
             ("안녕하세요", "ko"),
             ("Здравствуйте", "ru"),
+            ("Ciao, buongiorno", "it"),
+            ("Dank je wel, alstublieft", "nl"),
+            ("שלום, תודה", "he"),
+            ("Halo, selamat pagi", "id"),
         ];
 
         for (text, expected_lang) in test_cases {
