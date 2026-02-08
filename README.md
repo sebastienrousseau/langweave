@@ -1,11 +1,11 @@
+# LangWeave
+
 <!-- markdownlint-disable MD033 MD041 -->
 <img src="https://kura.pro/langweave/images/logos/langweave.svg"
 alt="LangWeave logo" height="66" align="right" />
 <!-- markdownlint-enable MD033 MD041 -->
 
-# `LangWeave`
-
-A powerful Rust library for seamless internationalization and localization.
+Detect text languages. Translate between language pairs. Build internationalized Rust applications.
 
 <!-- markdownlint-disable MD033 MD041 -->
 <center>
@@ -19,83 +19,66 @@ A powerful Rust library for seamless internationalization and localization.
 </center>
 <!-- markdownlint-enable MD033 MD041 -->
 
-## Overview
-
-`langweave` is a robust Rust library that provides efficient internationalization and localization capabilities. Designed for applications requiring multi-language support, it offers fast language detection, fluid translations, and intuitive multilingual content management.
-
 ## Features
 
-- **Instant Language Detection:** Quickly identify the language of input text.
-- **Efficient Translation:** Translate text between multiple languages.
-- **Flexible Content Management:** Easily manage and retrieve localized content.
-- **Performance Optimized:** Utilizes efficient algorithms for fast processing.
-- **Comprehensive Language Support:** Handles a wide range of languages, including non-Latin scripts.
-- **Error Handling:** Robust error management for reliable operation.
+- **Language Detection** — Identify text languages with confidence scoring
+- **Translation Engine** — Translate between language pairs with quality metrics
+- **Content Management** — Cache localized content for performance
+- **Batch Processing** — Handle multiple texts efficiently
+- **Script Support** — Process Latin, Cyrillic, Asian, Arabic scripts
+- **Error Recovery** — Handle failures with comprehensive error types
 
 ## Installation
 
-Add `langweave` to your `Cargo.toml`:
+Add to `Cargo.toml`:
 
 ```toml
 [dependencies]
 langweave = "0.0.1"
 ```
 
-## Usage
+## Quick Start
 
-Here's a basic example of how to use `langweave`:
+Detect language:
 
 ```rust
 use langweave::language_detector::LanguageDetector;
-use langweave::error::I18nError;
 use langweave::language_detector_trait::LanguageDetectorTrait;
+use langweave::error::I18nError;
 
 #[tokio::main]
 async fn main() -> Result<(), I18nError> {
-    // Create a new language detector
     let detector = LanguageDetector::new();
-
-    // Detect language
     let lang = detector.detect_async("Hello, world!").await?;
-    println!("Detected language: {}", lang);
-
-    // Use the detected language for further processing
-    // (e.g., translation, localization)
-
+    println!("Detected: {}", lang);
     Ok(())
 }
 ```
 
-This example demonstrates how to use LangWeave to detect the language of a given text.
+## Examples
+
+Run examples:
+
+```shell
+cargo run --example <example_name>
+```
 
 ## Documentation
 
-For full API documentation, please visit [docs.rs/langweave][04].
-
-## Examples
-
-To explore more examples, clone the repository and run the following command:
-
-```shell
-cargo run --example example_name
-```
+Browse complete API reference at [docs.rs/langweave][04].
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Read [Contributing Guidelines][05] before submitting changes.
 
 ## License
 
-This project is licensed under either of
+Choose either [Apache 2.0][10] or [MIT][11] license.
 
-- [Apache License, Version 2.0][10]
-- [MIT license][11]
+---
 
-at your option.
-
-## Acknowledgements
-
-Special thanks to all contributors who have helped build the `langweave` library.
+🎨 Designed by Sebastien Rousseau — https://sebastienrousseau.com/
+🚀 Engineered with Euxis — Enterprise Unified eXecution Intelligence System — https://euxis.co/
 
 
 [00]: https://langweave.com

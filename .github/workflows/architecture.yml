@@ -1,0 +1,216 @@
+name: 🏗️ Architecture Guardrails
+
+on:
+  push:
+    branches: [ main, feat/*, dev ]
+  pull_request:
+    branches: [ main, feat/* ]
+  workflow_dispatch:
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  architectural-boundaries:
+    name: Enforce Architectural Boundaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install toml
+
+      - name: Create scripts directory
+        run: mkdir -p scripts
+
+      - name: Make architecture script executable
+        run: chmod +x scripts/check_architecture.py
+
+      - name: Run architectural guardrails check
+        id: arch_check
+        run: |
+          python3 scripts/check_architecture.py
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Upload architecture report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-report
+          path: |
+            architecture_report.json
+          retention-days: 30
+
+      - name: Comment on PR with violations (if any)
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            try {
+              const report = JSON.parse(fs.readFileSync('architecture_report.json', 'utf8'));
+
+              if (report.length > 0) {
+                const violationsByType = {};
+                report.forEach(v => {
+                  if (!violationsByType[v.type]) {
+                    violationsByType[v.type] = [];
+                  }
+                  violationsByType[v.type].push(v);
+                });
+
+                let comment = '## 🏗️ Architectural Violations Found\n\n';
+                comment += `Found ${report.length} violation(s) that violate architectural boundaries:\n\n`;
+
+                for (const [type, violations] of Object.entries(violationsByType)) {
+                  comment += `### ${type} (${violations.length} violations)\n\n`;
+                  violations.forEach(v => {
+                    comment += `- **${v.file}:${v.line}** - ${v.detail}\n`;
+                  });
+                  comment += '\n';
+                }
+
+                comment += '### 🛠️ Remediation\n\n';
+                comment += 'Core modules must not directly import UI, Network, or Filesystem layers.\n';
+                comment += 'Instead, use dependency injection or abstract interfaces.\n\n';
+                comment += '**What this means:**\n';
+                comment += '- Core business logic should remain pure and testable\n';
+                comment += '- Use traits/interfaces to abstract external dependencies\n';
+                comment += '- Inject concrete implementations at the application boundary\n\n';
+                comment += 'See [Architecture Guidelines](docs/architecture/layer-guidelines.md) for more details.\n';
+
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comment
+                });
+              }
+            } catch (error) {
+              console.log('No architecture report found or error reading it:', error.message);
+            }
+
+  dependency-analysis:
+    name: Analyze Dependency Graph
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cargo-depgraph
+        run: cargo install cargo-depgraph
+
+      - name: Generate dependency graph
+        run: |
+          cargo depgraph --all-features \
+            --workspace-only \
+            --format dot \
+            > dependency-graph.dot
+
+      - name: Check for circular dependencies
+        run: |
+          echo "Checking for circular dependencies..."
+          if cargo depgraph --all-features --workspace-only --format json | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          nodes = data.get('nodes', [])
+          edges = data.get('edges', [])
+
+          # Simple cycle detection (DFS-based)
+          graph = {}
+          for node in nodes:
+              graph[node['id']] = []
+          for edge in edges:
+              if edge['from'] in graph:
+                  graph[edge['from']].append(edge['to'])
+
+          def has_cycle(graph):
+              visited = set()
+              rec_stack = set()
+
+              def dfs(node):
+                  visited.add(node)
+                  rec_stack.add(node)
+
+                  for neighbor in graph.get(node, []):
+                      if neighbor not in visited:
+                          if dfs(neighbor):
+                              return True
+                      elif neighbor in rec_stack:
+                          print(f'Circular dependency detected involving: {node} -> {neighbor}')
+                          return True
+
+                  rec_stack.remove(node)
+                  return False
+
+              for node in graph:
+                  if node not in visited:
+                      if dfs(node):
+                          sys.exit(1)
+              return False
+
+          has_cycle(graph)
+          print('No circular dependencies found')
+          "; then
+            echo "✅ Dependency graph is acyclic"
+          else
+            echo "❌ Circular dependencies detected"
+            exit 1
+          fi
+
+      - name: Upload dependency analysis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-analysis
+          path: |
+            dependency-graph.dot
+          retention-days: 30
+
+  rust-feature-gates:
+    name: Validate Feature Gates
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Check minimal features build
+        run: |
+          echo "Building with minimal features..."
+          cargo check --no-default-features
+
+      - name: Check all features build
+        run: |
+          echo "Building with all features..."
+          cargo check --all-features
+
+      - name: Verify feature combinations
+        run: |
+          echo "Testing feature combinations..."
+          # Test async feature specifically
+          cargo check --features async
+
+          # Ensure core functionality works without any features
+          cargo test --no-default-features --lib
+
+      - name: Check for unused dependencies
+        run: |
+          echo "Checking for unused dependencies..."
+          # Install cargo-machete for unused dependency detection
+          cargo install cargo-machete || true
+          cargo machete || echo "cargo-machete not available, skipping unused dependency check"

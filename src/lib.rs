@@ -103,16 +103,16 @@ pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
 /// # Examples
 ///
 /// ```
-/// use langweave::language_detector::LanguageDetector;
+/// use langweave::detect_language;
 /// use langweave::error::I18nError;
-/// use langweave::language_detector_trait::LanguageDetectorTrait;
 ///
-/// async fn detect_language() -> Result<(), I18nError> {
-///     // Create a new language detector
-///     let detector = LanguageDetector::new();
+/// async fn example() -> Result<(), I18nError> {
+///     // Detect language using the high-level function
+///     let lang = detect_language("Hello, world!").await?;
+///     println!("Detected language: {}", lang);
 ///
-///     // Detect language
-///     let lang = detector.detect_async("Hello, world!").await?;
+///     // Detect language for French text
+///     let lang = detect_language("Bonjour le monde!").await?;
 ///     println!("Detected language: {}", lang);
 ///
 ///     Ok(())

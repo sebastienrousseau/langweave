@@ -60,8 +60,20 @@ outdated: ensure-cargo-outdated ## Check for outdated dependencies for the root 
 	@echo "Checking for outdated dependencies..."
 	@cargo outdated --root-deps-only
 
+# Check architectural boundaries to prevent Core from importing UI/Network/Filesystem layers.
+.PHONY: arch-check
+arch-check: ## Check architectural layer boundaries.
+	@echo "Checking architectural boundaries..."
+	@python3 scripts/check_architecture_simple.py
+
+# Check full architectural compliance (requires external dependencies).
+.PHONY: arch-check-full
+arch-check-full: ensure-python-deps ## Check full architectural compliance.
+	@echo "Running full architectural analysis..."
+	@python3 scripts/check_architecture.py
+
 # Installation checks and setups
-.PHONY: ensure-clippy ensure-rustfmt ensure-cargo-fix ensure-cargo-deny ensure-cargo-outdated
+.PHONY: ensure-clippy ensure-rustfmt ensure-cargo-fix ensure-cargo-deny ensure-cargo-outdated ensure-python-deps
 ensure-clippy:
 	@cargo clippy --version || rustup component add clippy
 
@@ -76,6 +88,9 @@ ensure-cargo-deny:
 
 ensure-cargo-outdated:
 	@command -v cargo-outdated || cargo install cargo-outdated
+
+ensure-python-deps:
+	@python3 -c "import toml" 2>/dev/null || echo "Install toml: pip install toml"
 
 # Help target to display callable targets and their descriptions.
 .PHONY: help
