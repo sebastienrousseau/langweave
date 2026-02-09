@@ -36,7 +36,7 @@
 //! ```
 
 use crate::I18nError;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
@@ -49,13 +49,11 @@ use std::path::Path;
 /// The inner HashMap maps original text keys to translated strings.
 type TranslationMap = HashMap<String, HashMap<String, String>>;
 
-lazy_static! {
-    /// Global translation storage loaded at runtime from PO files.
-    ///
-    /// This static variable is initialized once when first accessed and contains
-    /// all available translations loaded from the `locales/` directory.
-    static ref TRANSLATIONS: TranslationMap = load_all_translations();
-}
+/// Global translation storage loaded at runtime from PO files.
+///
+/// This static variable is initialized once when first accessed and contains
+/// all available translations loaded from the `locales/` directory.
+static TRANSLATIONS: Lazy<TranslationMap> = Lazy::new(load_all_translations);
 
 /// Loads translations from all PO files in the specified directory.
 ///
@@ -293,6 +291,77 @@ pub fn translate(lang: &str, key: &str) -> Result<String, I18nError> {
     }
 
     Err(I18nError::TranslationFailed(format!("{}:{}", lang, key)))
+}
+
+/// Translates a given text with intelligent fallback handling.
+///
+/// This function attempts to translate text and applies fallback logic for simple keys.
+/// For simple keys (single words without complex punctuation), it falls back to the
+/// original text when translation is not found. For complex phrases, it returns an error.
+///
+/// # Arguments
+///
+/// * `lang` - A string slice that holds the language code (e.g., "en", "fr", "de")
+/// * `text` - A string slice that holds the text to be translated
+///
+/// # Returns
+///
+/// * `Ok(String)` - The translated text, or the original text for simple keys when translation fails
+/// * `Err(I18nError)` - An error if the language is unsupported or translation fails for complex phrases
+///
+/// # Fallback Logic
+///
+/// - **Simple keys** (no spaces, commas, question marks, or exclamation marks): Fall back to original text
+/// - **Complex phrases** (containing spaces or punctuation): Return TranslationFailed error
+///
+/// # Examples
+///
+/// ```
+/// use langweave::translations::translate_with_fallback;
+///
+/// // Successful translation
+/// let result = translate_with_fallback("fr", "Hello");
+/// assert_eq!(result.unwrap(), "Bonjour");
+///
+/// // Simple key fallback (if "SimpleKey" not in dictionary)
+/// let result = translate_with_fallback("fr", "SimpleKey");
+/// // Returns Ok("SimpleKey") - falls back to original
+///
+/// // Complex phrase error (if not in dictionary)
+/// let result = translate_with_fallback("fr", "Complex phrase with spaces");
+/// // Returns Err(I18nError::TranslationFailed(...))
+/// ```
+///
+/// # Errors
+///
+/// This function will return an error if:
+/// * The specified language is not supported
+/// * Translation fails for complex phrases (containing spaces or punctuation)
+pub fn translate_with_fallback(lang: &str, text: &str) -> Result<String, I18nError> {
+    // Try to translate first
+    match translate(lang, text) {
+        Ok(translation) => Ok(translation),
+        Err(I18nError::UnsupportedLanguage(lang_code)) => {
+            Err(I18nError::UnsupportedLanguage(lang_code))
+        }
+        Err(_) => {
+            // Translation failed - apply fallback logic
+            // Only fallback for simple keys (single word, no punctuation except basic ones)
+            if text.contains(' ')
+                || text.contains(',')
+                || text.contains('?')
+                || text.contains('!')
+            {
+                Err(I18nError::TranslationFailed(format!(
+                    "Complex phrase translation not found: {}",
+                    text
+                )))
+            } else {
+                // Simple key - fallback to original text
+                Ok(text.to_string())
+            }
+        }
+    }
 }
 
 #[cfg(test)]

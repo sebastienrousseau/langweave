@@ -70,82 +70,81 @@ pub struct LanguageDetector {
     patterns: Arc<Vec<(Regex, &'static str)>>,
 }
 
-/// A static list of language detection patterns for common languages.
-static PATTERNS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
-    vec![
+/// Safely compiles all language detection patterns without panicking.
+///
+/// This function attempts to compile all regex patterns for language detection.
+/// If any pattern fails to compile, it returns an error instead of panicking.
+///
+/// # Returns
+///
+/// * `Result<Vec<(Regex, &'static str)>, I18nError>` - Compiled patterns on success, or an error on failure.
+///
+/// # Errors
+///
+/// Returns `I18nError::UnexpectedError` if any pattern compilation fails.
+fn compile_language_patterns() -> Result<Vec<(Regex, &'static str)>, I18nError> {
+    let pattern_specs = vec![
         // English
-        (
-            Regex::new(r"(?i)\b(hello|hi|hey|goodbye|bye|thank you|thanks|please|the|a|an|in|on|at|for|to|of)\b").expect("Failed to compile English regex"),
-            "en",
-        ),
+        (r"(?i)\b(hello|hi|hey|goodbye|bye|thank you|thanks|please|the|a|an|in|on|at|for|to|of)\b", "en"),
         // French
-        (
-            Regex::new(r"(?i)\b(bonjour|salut|au revoir|merci|s'il vous plaît|le|la|les|un|une|des|dans|sur|pour|de)\b").expect("Failed to compile French regex"),
-            "fr",
-        ),
+        (r"(?i)\b(bonjour|salut|au revoir|merci|s'il vous plaît|le|la|les|un|une|des|dans|sur|pour|de)\b", "fr"),
         // German
-        (
-            Regex::new(r"(?i)\b(hallo|guten tag|auf wiedersehen|tschüss|danke|bitte|der|die|das|ein|eine|in|auf|für|zu|von)\b").expect("Failed to compile German regex"),
-            "de",
-        ),
+        (r"(?i)\b(hallo|guten tag|auf wiedersehen|tschüss|danke|bitte|der|die|das|ein|eine|in|auf|für|zu|von)\b", "de"),
         // Spanish
-        (
-            Regex::new(r"(?i)\b(hola|adiós|gracias|por favor|el|la|los|las|un|una|unos|unas|en|para|por)\b").expect("Failed to compile Spanish regex"),
-            "es",
-        ),
+        (r"(?i)\b(hola|adiós|gracias|por favor|el|la|los|las|un|una|unos|unas|en|para|por)\b", "es"),
         // Portuguese
-        (
-            Regex::new(r"(?i)\b(olá|adeus|obrigado|obrigada|por favor|o|a|os|as|um|uma|uns|umas|em|para|por)\b").expect("Failed to compile Portuguese regex"),
-            "pt",
-        ),
+        (r"(?i)\b(olá|adeus|obrigado|obrigada|por favor|o|a|os|as|um|uma|uns|umas|em|para|por)\b", "pt"),
         // Russian (includes Cyrillic script detection)
-        (
-            Regex::new(r"(?i)\b(здравствуйте|привет|до свидания|пока|спасибо|пожалуйста)|[\p{Cyrillic}]+").expect("Failed to compile Russian regex"),
-            "ru",
-        ),
+        (r"(?i)\b(здравствуйте|привет|до свидания|пока|спасибо|пожалуйста)|[\p{Cyrillic}]+", "ru"),
         // Arabic script detection
-        (Regex::new(r"[\p{Arabic}]+").expect("Failed to compile Arabic regex"), "ar"),
+        (r"[\p{Arabic}]+", "ar"),
         // Japanese (prioritize Hiragana and Katakana)
-        (
-            Regex::new(r"(?i)\b(こんにちは|さようなら|ありがとう|お願いします)|[\p{Hiragana}\p{Katakana}ー]+").expect("Failed to compile Japanese regex"),
-            "ja",
-        ),
+        (r"(?i)\b(こんにちは|さようなら|ありがとう|お願いします)|[\p{Hiragana}\p{Katakana}ー]+", "ja"),
         // Chinese (Han script detection, but exclude Japanese-specific characters)
-        (
-            Regex::new(r"(?i)\b(你好|再见|谢谢|请)|(?:[\p{Han}&&[^\p{Hiragana}\p{Katakana}ー]]+)").expect("Failed to compile Chinese regex"),
-            "zh",
-        ),
+        (r"(?i)\b(你好|再见|谢谢|请)|(?:[\p{Han}&&[^\p{Hiragana}\p{Katakana}ー]]+)", "zh"),
         // Hindi (includes Devanagari script detection)
-        (
-            Regex::new(r"(?i)\b(नमस्ते|अलविदा|धन्यवाद|कृपया)|[\p{Devanagari}]+").expect("Failed to compile Hindi regex"),
-            "hi",
-        ),
+        (r"(?i)\b(नमस्ते|अलविदा|धन्यवाद|कृपया)|[\p{Devanagari}]+", "hi"),
         // Korean (includes Hangul script detection)
-        (
-            Regex::new(r"(?i)\b(안녕하세요|안녕히 가세요|감사합니다|주세요)|[\p{Hangul}]+").expect("Failed to compile Korean regex"),
-            "ko",
-        ),
+        (r"(?i)\b(안녕하세요|안녕히 가세요|감사합니다|주세요)|[\p{Hangul}]+", "ko"),
         // Italian
-        (
-            Regex::new(r"(?i)\b(ciao|buongiorno|grazie|prego|arrivederci|il|la|lo|gli|le|un|una|in|di|per|con)\b").expect("Failed to compile Italian regex"),
-            "it",
-        ),
+        (r"(?i)\b(ciao|buongiorno|grazie|prego|arrivederci|il|la|lo|gli|le|un|una|in|di|per|con)\b", "it"),
         // Dutch
-        (
-            Regex::new(r"(?i)\b(hallo|goedemorgen|dank|alstublieft|tot ziens|de|het|een|van|in|op|voor|met)\b").expect("Failed to compile Dutch regex"),
-            "nl",
-        ),
+        (r"(?i)\b(hallo|goedemorgen|dank|alstublieft|tot ziens|de|het|een|van|in|op|voor|met)\b", "nl"),
         // Hebrew (includes Hebrew script detection)
-        (
-            Regex::new(r"(?i)\b(שלום|להתראות|תודה|בבקשה)|[\p{Hebrew}]+").expect("Failed to compile Hebrew regex"),
-            "he",
-        ),
+        (r"(?i)\b(שלום|להתראות|תודה|בבקשה)|[\p{Hebrew}]+", "he"),
         // Indonesian
-        (
-            Regex::new(r"(?i)\b(halo|selamat|terima kasih|tolong|sampai jumpa|yang|dan|atau|ini|itu|dengan|untuk)\b").expect("Failed to compile Indonesian regex"),
-            "id",
-        ),
-    ]
+        (r"(?i)\b(halo|selamat|terima kasih|tolong|sampai jumpa|yang|dan|atau|ini|itu|dengan|untuk)\b", "id"),
+    ];
+
+    let mut compiled_patterns = Vec::with_capacity(pattern_specs.len());
+    for (pattern_str, lang_code) in pattern_specs {
+        match Regex::new(pattern_str) {
+            Ok(regex) => compiled_patterns.push((regex, lang_code)),
+            Err(err) => {
+                error!("Failed to compile regex for language '{}': {}", lang_code, err);
+                return Err(I18nError::UnexpectedError(
+                    format!("Failed to compile regex for language '{}': {}", lang_code, err)
+                ));
+            }
+        }
+    }
+
+    Ok(compiled_patterns)
+}
+
+/// A static list of language detection patterns for common languages.
+///
+/// This uses lazy initialization with graceful error handling.
+/// Returns empty patterns if compilation fails, allowing the system to fall back to whatlang.
+/// For explicit error handling, use `LanguageDetector::try_new()` instead.
+static PATTERNS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
+    match compile_language_patterns() {
+        Ok(patterns) => patterns,
+        Err(err) => {
+            error!("Failed to compile language detection patterns, falling back to empty patterns: {}", err);
+            Vec::new()
+        }
+    }
 });
 
 impl LanguageDetector {
@@ -154,9 +153,16 @@ impl LanguageDetector {
     /// This constructor initializes the detector with predefined language detection patterns
     /// for multiple languages, allowing for quick detection based on common words and script patterns.
     ///
+    /// **Note**: This method will panic if any regex pattern fails to compile. For non-panicking
+    /// initialization, use [`LanguageDetector::try_new()`] instead.
+    ///
     /// # Returns
     ///
     /// * `LanguageDetector` - A new instance of the `LanguageDetector` struct.
+    ///
+    /// # Panics
+    ///
+    /// Panics if any language detection regex pattern fails to compile during static initialization.
     ///
     /// # Examples
     ///
@@ -173,6 +179,37 @@ impl LanguageDetector {
         LanguageDetector {
             patterns: Arc::new(PATTERNS.clone()),
         }
+    }
+
+    /// Creates a new instance of `LanguageDetector` without panicking on regex compilation failure.
+    ///
+    /// This constructor safely compiles all language detection patterns and returns an error
+    /// if any pattern fails to compile, instead of panicking at startup.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<LanguageDetector, I18nError>` - A new instance on success, or an error on failure.
+    ///
+    /// # Errors
+    ///
+    /// Returns `I18nError::UnexpectedError` if any language detection pattern fails to compile.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use langweave::language_detector::LanguageDetector;
+    /// use langweave::language_detector_trait::LanguageDetectorTrait;
+    ///
+    /// let detector = LanguageDetector::try_new()?;
+    /// let result = detector.detect("Hello, world!");
+    /// assert_eq!(result.unwrap(), "en");
+    /// # Ok::<(), langweave::error::I18nError>(())
+    /// ```
+    pub fn try_new() -> Result<Self, I18nError> {
+        let patterns = compile_language_patterns()?;
+        Ok(LanguageDetector {
+            patterns: Arc::new(patterns),
+        })
     }
 
     /// Converts `whatlang`'s language codes to the desired format.
@@ -350,11 +387,17 @@ impl LanguageDetectorTrait for LanguageDetector {
 impl Default for LanguageDetector {
     /// Provides a default instance of `LanguageDetector`.
     ///
+    /// **Note**: This method will panic if any regex pattern fails to compile. This behavior
+    /// maintains backward compatibility with the existing API. For non-panicking initialization,
+    /// use [`LanguageDetector::try_new()`] instead.
+    ///
     /// # Returns
     ///
     /// * `LanguageDetector` - A default instance using predefined patterns for common languages.
     ///
-    /// This method allows the `LanguageDetector` to be initialized easily with default patterns.
+    /// # Panics
+    ///
+    /// Panics if any language detection regex pattern fails to compile during static initialization.
     ///
     /// # Examples
     ///
@@ -566,6 +609,71 @@ mod tests {
             "en",
             "Default implementation should work correctly."
         );
+    }
+
+    #[test]
+    fn test_try_new_success() {
+        let detector = LanguageDetector::try_new();
+        assert!(
+            detector.is_ok(),
+            "try_new should succeed with valid regex patterns"
+        );
+
+        let detector = detector.unwrap();
+        assert_eq!(
+            detector.detect("Hello").unwrap(),
+            "en",
+            "Detector created with try_new should work correctly."
+        );
+    }
+
+    #[test]
+    fn test_compile_language_patterns() {
+        let patterns = compile_language_patterns();
+        assert!(
+            patterns.is_ok(),
+            "compile_language_patterns should succeed with valid patterns"
+        );
+
+        let patterns = patterns.unwrap();
+        assert_eq!(
+            patterns.len(),
+            15,
+            "Should compile all 15 language patterns"
+        );
+
+        // Verify all expected language codes are present
+        let lang_codes: std::collections::HashSet<&str> = patterns.iter().map(|(_, code)| *code).collect();
+        let expected_codes = vec!["en", "fr", "de", "es", "pt", "ru", "ar", "ja", "zh", "hi", "ko", "it", "nl", "he", "id"];
+        for code in expected_codes {
+            assert!(
+                lang_codes.contains(code),
+                "Missing language code: {}", code
+            );
+        }
+    }
+
+    #[test]
+    fn test_try_new_vs_new_equivalence() {
+        let detector_new = LanguageDetector::new();
+        let detector_try = LanguageDetector::try_new().unwrap();
+
+        let test_texts = vec![
+            "Hello world",
+            "Bonjour le monde",
+            "Hola mundo",
+            "こんにちは",
+            "你好",
+        ];
+
+        for text in test_texts {
+            let result_new = detector_new.detect(text);
+            let result_try = detector_try.detect(text);
+            assert_eq!(
+                result_new, result_try,
+                "Results should be equivalent for text: {}", text
+            );
+        }
     }
 
     #[tokio::test]

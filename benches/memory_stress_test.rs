@@ -2,6 +2,7 @@
 //!
 //! Tests memory usage patterns, allocation patterns, and leaks under sustained load.
 
+#![allow(unused_results)]
 #![allow(missing_docs)]
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};

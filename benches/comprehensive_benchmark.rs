@@ -4,6 +4,8 @@
 //! This benchmark suite provides detailed performance testing
 //! for all major LangWeave library operations.
 
+#![allow(unused_results)]
+
 use criterion::{
     criterion_group, criterion_main, BenchmarkId, Criterion, Throughput,
 };

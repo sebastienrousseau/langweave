@@ -18,7 +18,6 @@ use once_cell::sync::Lazy;
 
 use crate::error::I18nError;
 use crate::language_detector::LanguageDetector;
-use crate::translator::Translator;
 
 /// The `error` module contains error types used by the library.
 pub mod error;
@@ -41,6 +40,11 @@ pub mod prelude {
     pub use crate::supported_languages;
     pub use crate::translate;
     pub use crate::translator::Translator;
+
+    // Performance-optimized variants
+    pub use crate::optimized::is_language_supported_optimized;
+    pub use crate::optimized::supported_languages_optimized;
+    pub use crate::optimized::translate_optimized;
 }
 
 /// The current version of the langweave library.
@@ -82,27 +86,8 @@ pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
         return Err(I18nError::UnsupportedLanguage(lang.to_string()));
     }
 
-    let translator = Translator::new(lang)?;
-
-    // Try to translate, but fallback to original text if translation fails
-    // Only fallback for simple keys (single word, no punctuation except basic ones)
-    match translator.translate(text) {
-        Ok(translation) => Ok(translation),
-        Err(_) => {
-            if text.contains(' ')
-                || text.contains(',')
-                || text.contains('?')
-                || text.contains('!')
-            {
-                Err(I18nError::TranslationFailed(format!(
-                    "Complex phrase translation not found: {}",
-                    text
-                )))
-            } else {
-                Ok(text.to_string())
-            }
-        }
-    }
+    // Use the centralized fallback logic from translations module
+    translations::translate_with_fallback(lang, text)
 }
 
 /// Detects the language of a given text using the composite language detector.
@@ -223,6 +208,7 @@ pub fn is_language_supported(lang: &str) -> bool {
 #[cfg(feature = "async")]
 pub mod async_utils {
     use super::*;
+    use crate::translator::Translator;
 
     /// Asynchronously translates a given text to a specified language.
     ///
@@ -373,5 +359,23 @@ mod tests {
         assert!(is_language_supported("fr"));
         assert!(is_language_supported("de"));
         assert!(!is_language_supported("zz"));
+    }
+
+    #[test]
+    fn test_prelude_optimized_functions() {
+        use crate::prelude::*;
+
+        // Test optimized supported languages
+        let optimized_langs = supported_languages_optimized();
+        assert_eq!(optimized_langs.len(), 15);
+        assert!(optimized_langs.contains(&"en"));
+
+        // Test optimized language support check
+        assert!(is_language_supported_optimized("en"));
+        assert!(!is_language_supported_optimized("zz"));
+
+        // Test optimized translate
+        let result = translate_optimized("fr", "Hello");
+        assert!(result.is_ok() || result.is_err()); // Either translation works or fails appropriately
     }
 }

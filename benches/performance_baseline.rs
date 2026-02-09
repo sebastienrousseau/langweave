@@ -3,6 +3,7 @@
 //! This benchmark establishes baseline metrics for core performance paths
 //! and tests with scaling factors as requested.
 
+#![allow(unused_results)]
 #![allow(missing_docs)]
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};

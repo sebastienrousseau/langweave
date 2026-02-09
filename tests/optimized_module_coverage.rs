@@ -145,7 +145,7 @@ mod optimized_coverage_tests {
     }
 
     #[test]
-    fn test_lazy_static_initialization() {
+    fn test_lazy_initialization() {
         // This test ensures the Lazy static is properly initialized
         // The act of calling any function that uses LANGUAGE_SET will initialize it
 
