@@ -1,5 +1,7 @@
-// Targeted coverage tests to reach 95% line coverage
-// Specifically targeting uncovered lines in lib.rs
+//! Targeted coverage tests to reach 95% line coverage.
+//!
+//! Specifically targeting uncovered lines in lib.rs to ensure
+//! comprehensive test coverage for the LangWeave library.
 
 use langweave::{detect_language, translate, error::I18nError};
 

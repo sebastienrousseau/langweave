@@ -1,3 +1,8 @@
+//! Precise coverage tests for LangWeave library.
+//!
+//! This test suite provides targeted coverage for specific lines and edge cases
+//! to ensure comprehensive testing of the LangWeave internationalization library.
+
 use langweave::{detect_language, translate, error::I18nError};
 
 #[cfg(test)]

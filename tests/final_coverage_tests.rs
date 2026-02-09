@@ -1,3 +1,8 @@
+//! Final coverage validation tests for LangWeave library.
+//!
+//! This test suite provides comprehensive validation testing to ensure
+//! all code paths are properly covered and validated.
+
 use langweave::{detect_language, translate, error::I18nError};
 
 #[cfg(test)]

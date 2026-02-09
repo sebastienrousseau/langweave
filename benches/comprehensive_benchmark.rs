@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
-// Comprehensive performance benchmarks for LangWeave
+//! Comprehensive performance benchmarks for LangWeave.
+//!
+//! This benchmark suite provides detailed performance testing
+//! for all major LangWeave library operations.
 
 use criterion::{
     criterion_group, criterion_main, BenchmarkId, Criterion, Throughput,

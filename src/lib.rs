@@ -30,6 +30,10 @@ pub mod language_detector_trait;
 pub mod translations;
 /// The `translator` module contains a simple translation service using a predefined dictionary.
 pub mod translator;
+/// The `optimized` module contains zero-cost abstraction performance optimizations.
+pub mod optimized;
+/// Performance testing and comparison module.
+pub mod performance_test;
 
 /// A module that re-exports commonly used items for convenience.
 pub mod prelude {

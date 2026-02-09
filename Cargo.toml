@@ -5,7 +5,7 @@
 [package]
 # General project metadata
 name = "langweave"                          # The name of the library
-version = "0.0.1"                           # Initial version of the crate
+version = "0.0.2"                           # Current version for v0.0.2 certification
 authors = ["LangWeave Contributors"]        # Library contributors
 edition = "2021"                            # Rust edition being used
 rust-version = "1.66.0"                     # Minimum supported Rust version
@@ -168,7 +168,7 @@ targets = ["x86_64-unknown-linux-gnu"]      # Default target platform for the do
 
 ## Warnings
 missing_copy_implementations = "warn"       # Warn if types can implement `Copy` but don’t
-missing_docs = "warn"                       # Warn if public items lack documentation
+missing_docs = "deny"                       # Deny if public items lack documentation (library requirement)
 unstable_features = "warn"                  # Warn on the usage of unstable features
 unused_extern_crates = "warn"               # Warn about unused external crates
 unused_results = "warn"                     # Warn if a result type is unused (e.g., errors ignored)

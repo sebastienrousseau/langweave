@@ -33,7 +33,25 @@ Add to `Cargo.toml`:
 
 ```toml
 [dependencies]
-langweave = "0.0.1"
+langweave = "0.0.2"
+```
+
+## Requirements
+
+- **MSRV**: Rust 1.66.0 or later
+
+## Feature Flags
+
+| Feature | Description | Default |
+|---------|-------------|---------|
+| `default` | No optional features enabled | ✅ |
+| `async` | Enable async utilities for non-blocking operations | ❌ |
+
+Enable features in `Cargo.toml`:
+
+```toml
+[dependencies]
+langweave = { version = "0.0.2", features = ["async"] }
 ```
 
 ## Quick Start
@@ -80,8 +98,8 @@ Choose either [Apache 2.0][10] or [MIT][11] license.
 
 ---
 
-🎨 Designed by Sebastien Rousseau — https://sebastienrousseau.com/
-🚀 Engineered with Euxis — Enterprise Unified eXecution Intelligence System — https://euxis.co/
+🎨 Designed by Sebastien Rousseau — <https://sebastienrousseau.com/>
+🚀 Engineered with Euxis — Enterprise Unified eXecution Intelligence System — <https://euxis.co/>
 
 
 [00]: https://langweave.com
