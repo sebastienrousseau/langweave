@@ -23,13 +23,19 @@ use std::error::Error;
 fn main() -> Result<(), Box<dyn Error>> {
     println!("\n🦀 Running LangWeave Examples 🦀");
 
-    // Run all examples (async examples use #[tokio::main] internally)
+    // Run synchronous examples first
     translations_example::main()?;
     translator_example::main()?;
-    lib_example::main()?;
-    error_example::main()?;
-    language_detector_trait_example::main()?;
-    language_detector_example::main()?;
+
+    // Now, create a runtime for async examples
+    let runtime = tokio::runtime::Runtime::new()?;
+    runtime.block_on(async {
+        error_example::main()?;
+        language_detector_trait_example::main()?;
+        language_detector_example::main()?;
+        lib_example::main()?;
+        Ok::<_, Box<dyn Error>>(())
+    })?;
 
     println!("\n🎉 All LangWeave examples completed successfully!\n");
 

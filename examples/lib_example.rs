@@ -25,12 +25,13 @@ use langweave::translator::Translator;
 /// * `Result<(), Box<dyn std::error::Error>>`:
 ///   - `Ok(())`: If the LangWeave library example is executed successfully.
 ///   - `Err(e)`: If an error occurs during the execution of the LangWeave library example.
-pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[tokio::main]
+pub(crate) async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n🧪 LangWeave Library Example\n");
 
-    language_detection_example()?;
+    language_detection_example().await?;
     translation_example()?;
-    error_handling_example()?;
+    error_handling_example().await?;
     supported_languages_example()?;
 
     println!("\n🎉 LangWeave library example completed successfully!");
@@ -57,7 +58,7 @@ pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///
 
 /// Demonstrates language detection capabilities.
-pub(crate) fn language_detection_example(
+pub(crate) async fn language_detection_example(
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("🦀 Language Detection Example");
     println!("---------------------------------------------");
@@ -70,7 +71,7 @@ pub(crate) fn language_detection_example(
     ];
 
     for text in texts {
-        match detect_language(text) {
+        match detect_language(text).await {
             Ok(lang) => println!(
                 "    ✅ Detected language for '{}': {}",
                 text, lang
@@ -85,7 +86,7 @@ pub(crate) fn language_detection_example(
     // Using LanguageDetector directly
     let detector = LanguageDetector::new();
     let mixed_text = "Hello mundo";
-    match detector.detect(mixed_text) {
+    match detector.detect_async(mixed_text).await {
         Ok(lang) => println!(
             "    ✅ Detected language for mixed text '{}': {}",
             mixed_text, lang
@@ -155,7 +156,7 @@ fn translation_example() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Demonstrates error handling in various scenarios.
-fn error_handling_example(
+async fn error_handling_example(
 ) -> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Error Handling Example");
     println!("---------------------------------------------");
@@ -172,7 +173,7 @@ fn error_handling_example(
     }
 
     // Empty text for language detection
-    match detect_language("") {
+    match detect_language("").await {
         Ok(_) => println!(
             "    ❓ Unexpected success for empty text detection"
         ),
