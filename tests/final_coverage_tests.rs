@@ -3,7 +3,7 @@
 //! This test suite provides comprehensive validation testing to ensure
 //! all code paths are properly covered and validated.
 
-use langweave::{detect_language_async, translate, error::I18nError};
+use langweave::{detect_language_async, error::I18nError, translate};
 
 #[cfg(test)]
 mod lib_final_coverage {
@@ -43,7 +43,10 @@ mod lib_final_coverage {
         // Test other error types being propagated (line 104)
         // This requires triggering UnsupportedLanguage from translator, not from lang check
         let result = translate("", "test"); // Empty language should trigger UnsupportedLanguage
-        assert!(matches!(result, Err(I18nError::UnsupportedLanguage(_))));
+        assert!(matches!(
+            result,
+            Err(I18nError::UnsupportedLanguage(_))
+        ));
     }
 
     #[tokio::test]
@@ -61,16 +64,23 @@ mod lib_final_coverage {
     async fn test_detect_language_no_detection_possible() {
         // Test case where no language is detected at all (line 171)
         let result = detect_language_async("123456 !@#$%^ 789").await;
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
 
         let result = detect_language_async("   ").await; // Only whitespace
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
     }
 
     #[tokio::test]
     async fn test_detect_language_debug_logging_paths() {
         // Test debug logging paths (lines 143, 153, 162-165)
-        let result = detect_language_async("The quick brown fox jumps").await;
+        let result =
+            detect_language_async("The quick brown fox jumps").await;
         assert!(result.is_ok()); // Should trigger debug log at line 153
 
         let result = detect_language_async("xyz hello").await;
@@ -87,14 +97,20 @@ mod async_utils_final_coverage {
     #[tokio::test]
     async fn test_translate_async_translator_creation_failure() {
         // Test translator creation error path (lines 262-267)
-        let result = translate_async("invalid_lang_for_creation", "test").await;
-        assert!(matches!(result, Err(I18nError::UnsupportedLanguage(_))));
+        let result =
+            translate_async("invalid_lang_for_creation", "test").await;
+        assert!(matches!(
+            result,
+            Err(I18nError::UnsupportedLanguage(_))
+        ));
     }
 
     #[tokio::test]
     async fn test_translate_async_translation_failure() {
         // Test translation failure error path
-        let result = translate_async("fr", "nonexistent_translation_key_xyz").await;
+        let result =
+            translate_async("fr", "nonexistent_translation_key_xyz")
+                .await;
         assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
     }
 
@@ -102,7 +118,10 @@ mod async_utils_final_coverage {
     async fn test_translate_async_unsupported_language() {
         // Test unsupported language error path (lines 257-261)
         let result = translate_async("xyz", "Hello").await;
-        assert!(matches!(result, Err(I18nError::UnsupportedLanguage(_))));
+        assert!(matches!(
+            result,
+            Err(I18nError::UnsupportedLanguage(_))
+        ));
 
         if let Err(I18nError::UnsupportedLanguage(lang)) = result {
             assert_eq!(lang, "xyz");
@@ -112,14 +131,19 @@ mod async_utils_final_coverage {
 
 #[cfg(test)]
 mod edge_case_coverage {
-    use langweave::{is_language_supported, supported_languages, translate};
     use langweave::error::I18nError;
+    use langweave::{
+        is_language_supported, supported_languages, translate,
+    };
 
     #[test]
     fn test_translate_error_propagation_paths() {
         // Test various error propagation scenarios
         let result = translate("zz", "test");
-        assert!(matches!(result, Err(I18nError::UnsupportedLanguage(_))));
+        assert!(matches!(
+            result,
+            Err(I18nError::UnsupportedLanguage(_))
+        ));
     }
 
     #[test]
@@ -142,8 +166,8 @@ mod edge_case_coverage {
 
         // Test all 15 required languages
         let expected_languages = vec![
-            "en", "fr", "de", "es", "pt", "it", "nl", "ru",
-            "ar", "he", "hi", "ja", "ko", "zh", "id"
+            "en", "fr", "de", "es", "pt", "it", "nl", "ru", "ar", "he",
+            "hi", "ja", "ko", "zh", "id",
         ];
 
         for lang in expected_languages {

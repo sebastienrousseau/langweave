@@ -6,12 +6,13 @@
 #![allow(unused_results)]
 #![allow(missing_docs)]
 
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{
+    criterion_group, criterion_main, BenchmarkId, Criterion, Throughput,
+};
 use langweave::{
-    supported_languages, is_language_supported, translate,
-    language_detector::LanguageDetector,
+    is_language_supported, language_detector::LanguageDetector,
     language_detector_trait::LanguageDetectorTrait,
-    translator::Translator,
+    supported_languages, translate, translator::Translator,
 };
 use std::hint::black_box;
 
@@ -84,11 +85,9 @@ fn bench_allocation_hotspots(c: &mut Criterion) {
 
     // HOTSPOT 4: Translator creation + validation
     group.bench_function("translator_creation_cost", |b| {
-        b.iter(|| {
-            match Translator::new(black_box("fr")) {
-                Ok(t) => Some(t),
-                Err(_) => None,
-            }
+        b.iter(|| match Translator::new(black_box("fr")) {
+            Ok(t) => Some(t),
+            Err(_) => None,
         });
     });
 
@@ -110,9 +109,7 @@ fn bench_async_overhead(c: &mut Criterion) {
     // Async with runtime overhead
     group.bench_function("async_with_runtime", |b| {
         let rt = tokio::runtime::Runtime::new().unwrap();
-        b.iter(|| {
-            rt.block_on(detector.detect_async(black_box(text)))
-        });
+        b.iter(|| rt.block_on(detector.detect_async(black_box(text))));
     });
 
     group.finish();

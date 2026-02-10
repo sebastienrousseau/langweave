@@ -4,8 +4,8 @@
 
 #[cfg(test)]
 mod optimized_coverage_tests {
-    use langweave::optimized::*;
     use langweave::error::I18nError;
+    use langweave::optimized::*;
 
     #[test]
     fn test_translate_optimized_success_cases() {
@@ -21,7 +21,10 @@ mod optimized_coverage_tests {
     fn test_translate_optimized_error_cases() {
         // Test error propagation through optimized path
         let result = translate_optimized("invalid_lang", "Hello");
-        assert!(matches!(result, Err(I18nError::UnsupportedLanguage(_))));
+        assert!(matches!(
+            result,
+            Err(I18nError::UnsupportedLanguage(_))
+        ));
 
         // Test with empty language
         let result = translate_optimized("", "Hello");
@@ -139,8 +142,17 @@ mod optimized_coverage_tests {
         // Test ordering and uniqueness
         let mut unique_set = std::collections::HashSet::new();
         for &lang in SUPPORTED_LANGUAGE_CODES {
-            assert!(unique_set.insert(lang), "Duplicate language code: {}", lang);
-            assert_eq!(lang.len(), 2, "Language code should be 2 characters: {}", lang);
+            assert!(
+                unique_set.insert(lang),
+                "Duplicate language code: {}",
+                lang
+            );
+            assert_eq!(
+                lang.len(),
+                2,
+                "Language code should be 2 characters: {}",
+                lang
+            );
         }
     }
 
@@ -174,7 +186,9 @@ mod optimized_coverage_tests {
 
         let borrowed_from_vec = vec!["de".to_string()];
         assert!(is_language_supported_optimized(&borrowed_from_vec[0]));
-        assert!(is_language_supported_zero_alloc(&borrowed_from_vec[0]));
+        assert!(is_language_supported_zero_alloc(
+            &borrowed_from_vec[0]
+        ));
     }
 }
 
@@ -195,7 +209,10 @@ mod performance_verification_tests {
         let optimized_time = start.elapsed();
 
         // Should complete very quickly since it's just returning a static reference
-        assert!(optimized_time.as_millis() < 100, "Optimized function too slow");
+        assert!(
+            optimized_time.as_millis() < 100,
+            "Optimized function too slow"
+        );
 
         // Test that language support check is fast
         let start = Instant::now();
@@ -204,6 +221,9 @@ mod performance_verification_tests {
         }
         let check_time = start.elapsed();
 
-        assert!(check_time.as_millis() < 100, "Language support check too slow");
+        assert!(
+            check_time.as_millis() < 100,
+            "Language support check too slow"
+        );
     }
 }

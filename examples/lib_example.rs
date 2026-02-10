@@ -155,8 +155,7 @@ fn translation_example() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Demonstrates error handling in various scenarios.
-fn error_handling_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+fn error_handling_example() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Error Handling Example");
     println!("---------------------------------------------");
 

@@ -4,21 +4,20 @@
 #![allow(unused_results)]
 #![allow(missing_docs)]
 
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{
+    criterion_group, criterion_main, BenchmarkId, Criterion, Throughput,
+};
 use langweave::{
-    is_language_supported, supported_languages,
-    language_detector::LanguageDetector,
+    is_language_supported, language_detector::LanguageDetector,
     language_detector_trait::LanguageDetectorTrait,
-    translator::Translator,
+    supported_languages, translator::Translator,
 };
 use std::hint::black_box;
 
 /// Benchmark the inefficient supported_languages() function
 fn bench_supported_languages(c: &mut Criterion) {
     c.bench_function("supported_languages", |b| {
-        b.iter(|| {
-            black_box(supported_languages())
-        })
+        b.iter(|| black_box(supported_languages()))
     });
 }
 
@@ -31,11 +30,7 @@ fn bench_is_language_supported(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(lang),
             lang,
-            |b, lang| {
-                b.iter(|| {
-                    black_box(is_language_supported(lang))
-                })
-            },
+            |b, lang| b.iter(|| black_box(is_language_supported(lang))),
         );
     }
     group.finish();
@@ -50,11 +45,7 @@ fn bench_translator_creation(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(lang),
             lang,
-            |b, lang| {
-                b.iter(|| {
-                    black_box(Translator::new(lang))
-                })
-            },
+            |b, lang| b.iter(|| black_box(Translator::new(lang))),
         );
     }
     group.finish();
@@ -64,7 +55,8 @@ fn bench_translator_creation(c: &mut Criterion) {
 fn bench_language_detection(c: &mut Criterion) {
     let detector = LanguageDetector::new();
 
-    let long_text = "The quick brown fox jumps over the lazy dog. ".repeat(50);
+    let long_text =
+        "The quick brown fox jumps over the lazy dog. ".repeat(50);
     let test_cases = vec![
         ("short_en", "Hello world"),
         ("medium_en", "The quick brown fox jumps over the lazy dog. This is a longer sentence to test detection."),
@@ -80,11 +72,7 @@ fn bench_language_detection(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(name),
             text,
-            |b, text| {
-                b.iter(|| {
-                    black_box(detector.detect(text))
-                })
-            },
+            |b, text| b.iter(|| black_box(detector.detect(text))),
         );
     }
     group.finish();
@@ -95,7 +83,7 @@ fn bench_translation_fallback(c: &mut Criterion) {
     let translator = Translator::new("fr").unwrap();
     let test_cases = vec![
         ("exact_match", "Hello"),
-        ("case_mismatch", "HELLO"),  // Forces case-insensitive search
+        ("case_mismatch", "HELLO"), // Forces case-insensitive search
         ("not_found", "NonexistentKey"),
     ];
 
@@ -104,11 +92,7 @@ fn bench_translation_fallback(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(name),
             key,
-            |b, key| {
-                b.iter(|| {
-                    black_box(translator.translate(key))
-                })
-            },
+            |b, key| b.iter(|| black_box(translator.translate(key))),
         );
     }
     group.finish();
@@ -131,11 +115,7 @@ fn bench_word_by_word_detection(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::from_parameter(name),
             text,
-            |b, text| {
-                b.iter(|| {
-                    black_box(detector.detect(text))
-                })
-            },
+            |b, text| b.iter(|| black_box(detector.detect(text))),
         );
     }
     group.finish();

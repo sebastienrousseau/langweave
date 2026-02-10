@@ -27,9 +27,7 @@ jobs:
       - name: Audit vulnerabilities (strict enforcement)
         run: |
           echo "🔍 Running security audit with strict enforcement..."
+          echo "🚫 NO SECURITY BYPASSES ALLOWED"
           cargo audit
-          if [ $? -ne 0 ]; then
-            echo "❌ Security vulnerabilities detected. Review and fix before proceeding."
-            exit 1
-          fi
+          # CRITICAL: This step MUST fail on vulnerabilities - no '|| true' allowed
           echo "✅ No security vulnerabilities found."

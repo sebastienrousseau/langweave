@@ -5,15 +5,15 @@
 //! for all major LangWeave library operations.
 
 #![allow(unused_results)]
+#![allow(missing_docs)]
 
 use criterion::{
     criterion_group, criterion_main, BenchmarkId, Criterion, Throughput,
 };
 use langweave::{
-    supported_languages, is_language_supported, translate,
-    language_detector::LanguageDetector,
+    is_language_supported, language_detector::LanguageDetector,
     language_detector_trait::LanguageDetectorTrait,
-    translator::Translator,
+    supported_languages, translate, translator::Translator,
 };
 use std::hint::black_box;
 use std::sync::Arc;
@@ -104,7 +104,9 @@ fn bench_translation_strategies(c: &mut Criterion) {
 
     // Direct translation call
     group.bench_function("direct_translate", |b| {
-        b.iter(|| translate(black_box("fr"), black_box("Hello")).unwrap());
+        b.iter(|| {
+            translate(black_box("fr"), black_box("Hello")).unwrap()
+        });
     });
 
     group.finish();
@@ -124,7 +126,9 @@ fn bench_allocations(c: &mut Criterion) {
 
     // Test convert_lang_code string allocation
     group.bench_function("convert_lang_code_allocation", |b| {
-        b.iter(|| detector.convert_lang_code(black_box(whatlang::Lang::Eng)));
+        b.iter(|| {
+            detector.convert_lang_code(black_box(whatlang::Lang::Eng))
+        });
     });
 
     group.finish();

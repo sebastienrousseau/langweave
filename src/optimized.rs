@@ -6,21 +6,21 @@
 //! - Borrowed strings to eliminate clones
 //! - Stack-based data structures where possible
 
-use std::collections::HashSet;
-use once_cell::sync::Lazy;
 use crate::I18nError;
+use once_cell::sync::Lazy;
+use std::collections::HashSet;
 
 /// Compile-time constant array of supported language codes
 /// This replaces the heap-allocated `Vec<String>` from supported_languages()
 pub const SUPPORTED_LANGUAGE_CODES: &[&str] = &[
-    "en", "fr", "de", "es", "pt", "it", "nl", "ru", "ar", "he", "hi", "ja", "ko", "zh", "id",
+    "en", "fr", "de", "es", "pt", "it", "nl", "ru", "ar", "he", "hi",
+    "ja", "ko", "zh", "id",
 ];
 
 /// Static HashSet for O(1) language support checking
 /// This replaces the O(n) linear search in is_language_supported()
-static LANGUAGE_SET: Lazy<HashSet<&'static str>> = Lazy::new(|| {
-    SUPPORTED_LANGUAGE_CODES.iter().copied().collect()
-});
+static LANGUAGE_SET: Lazy<HashSet<&'static str>> =
+    Lazy::new(|| SUPPORTED_LANGUAGE_CODES.iter().copied().collect());
 
 /// Optimized version of supported_languages() that returns borrowed string slices
 /// instead of heap-allocated Strings.
@@ -96,7 +96,8 @@ pub fn is_language_supported_optimized(lang: &str) -> bool {
 pub fn is_language_supported_zero_alloc(lang: &str) -> bool {
     // Use a match for common cases to enable compile-time optimization
     match lang {
-        "en" | "fr" | "de" | "es" | "pt" | "it" | "nl" | "ru" | "ar" | "he" | "hi" | "ja" | "ko" | "zh" | "id" => true,
+        "en" | "fr" | "de" | "es" | "pt" | "it" | "nl" | "ru"
+        | "ar" | "he" | "hi" | "ja" | "ko" | "zh" | "id" => true,
         _ => {
             // Fallback for case-insensitive check
             let lower = lang.to_lowercase();
@@ -134,7 +135,10 @@ pub fn is_language_supported_zero_alloc(lang: &str) -> bool {
 /// This function will return an error if:
 /// * The specified language is not supported.
 /// * The translation key is not found in the language's translation dictionary.
-pub fn translate_optimized(lang: &str, key: &str) -> Result<String, I18nError> {
+pub fn translate_optimized(
+    lang: &str,
+    key: &str,
+) -> Result<String, I18nError> {
     // Direct call to the underlying translation system
     crate::translations::translate(lang, key)
 }

@@ -16,9 +16,12 @@ mod error_coverage_tests {
     fn test_error_equality_edge_cases() {
         // Test cross-variant inequality to cover lines 197-199
         let detection_failed = I18nError::LanguageDetectionFailed;
-        let translation_failed = I18nError::TranslationFailed("test".to_string());
-        let unsupported_lang = I18nError::UnsupportedLanguage("en".to_string());
-        let unexpected_error = I18nError::UnexpectedError("oops".to_string());
+        let translation_failed =
+            I18nError::TranslationFailed("test".to_string());
+        let unsupported_lang =
+            I18nError::UnsupportedLanguage("en".to_string());
+        let unexpected_error =
+            I18nError::UnexpectedError("oops".to_string());
 
         // Cross-variant comparisons to ensure all inequality paths are covered
         assert_ne!(detection_failed, translation_failed);
@@ -29,9 +32,12 @@ mod error_coverage_tests {
         assert_ne!(unsupported_lang, unexpected_error);
 
         // Test UnexpectedError variant specifically for missed lines
-        let unexpected1 = I18nError::UnexpectedError("error1".to_string());
-        let unexpected2 = I18nError::UnexpectedError("error2".to_string());
-        let unexpected3 = I18nError::UnexpectedError("error1".to_string());
+        let unexpected1 =
+            I18nError::UnexpectedError("error1".to_string());
+        let unexpected2 =
+            I18nError::UnexpectedError("error2".to_string());
+        let unexpected3 =
+            I18nError::UnexpectedError("error1".to_string());
 
         assert_eq!(unexpected1, unexpected3);
         assert_ne!(unexpected1, unexpected2);
@@ -44,7 +50,10 @@ mod error_coverage_tests {
         assert_eq!(error.as_str(), "unexpected error");
 
         // Test the Display implementation for completeness
-        assert_eq!(error.to_string(), "An unexpected error occurred: test");
+        assert_eq!(
+            error.to_string(),
+            "An unexpected error occurred: test"
+        );
     }
 }
 
@@ -62,7 +71,13 @@ mod lib_coverage_tests {
         // Test fallback logic lines 94-105: when translation fails but not due to unsupported language
         let result = translate("en", "SomeKeyThatDoesNotExist");
         // This should either succeed with fallback or fail with TranslationFailed
-        assert!(result.is_ok() || matches!(result, Err(I18nError::TranslationFailed(_))));
+        assert!(
+            result.is_ok()
+                || matches!(
+                    result,
+                    Err(I18nError::TranslationFailed(_))
+                )
+        );
     }
 
     #[test]
@@ -70,7 +85,10 @@ mod lib_coverage_tests {
         // Test lines 94-105: Complex phrase handling vs simple key fallback
 
         // Complex phrase with punctuation - should fail rather than fallback
-        let result = translate("fr", "This is a complex sentence, with punctuation!");
+        let result = translate(
+            "fr",
+            "This is a complex sentence, with punctuation!",
+        );
         assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
 
         // Complex phrase with question mark - should fail
@@ -83,21 +101,31 @@ mod lib_coverage_tests {
 
         // Test "other_error" path in line 104
         let result = translate("invalid", "Hello");
-        assert!(matches!(result, Err(I18nError::UnsupportedLanguage(_))));
+        assert!(matches!(
+            result,
+            Err(I18nError::UnsupportedLanguage(_))
+        ));
     }
 
     #[tokio::test]
     async fn test_detect_language_empty_scenarios() {
         // Test line 131: empty input after trim
         let result = detect_language_async("   ").await;
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
 
         // Test line 146: completely empty string
         let result = detect_language_async("").await;
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
 
         // Test lines 150-155: successful detection on first try
-        let result = detect_language_async("The quick brown fox jumps").await;
+        let result =
+            detect_language_async("The quick brown fox jumps").await;
         assert!(result.is_ok());
     }
 
@@ -107,12 +135,24 @@ mod lib_coverage_tests {
         // Create input that might fail full-text detection but succeed word-by-word
         let result = detect_language_async("123 hello 456").await;
         // Should either succeed with detection or fail completely
-        assert!(result.is_ok() || matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(
+            result.is_ok()
+                || matches!(
+                    result,
+                    Err(I18nError::LanguageDetectionFailed)
+                )
+        );
 
         // Test line 171: complete failure case
         let result = detect_language_async("12345 67890").await;
         // Numbers only should likely fail detection
-        assert!(result.is_ok() || matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(
+            result.is_ok()
+                || matches!(
+                    result,
+                    Err(I18nError::LanguageDetectionFailed)
+                )
+        );
     }
 
     #[test]
@@ -165,16 +205,26 @@ mod async_utils_coverage_tests {
 
             // Test unsupported language - lines 257-261
             let result = translate_async("zz", "Hello").await;
-            assert!(matches!(result, Err(I18nError::UnsupportedLanguage(_))));
+            assert!(matches!(
+                result,
+                Err(I18nError::UnsupportedLanguage(_))
+            ));
 
             // Test translation failure - lines 268-273
             let result = translate_async("fr", "NonExistentKey").await;
-            assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
+            assert!(matches!(
+                result,
+                Err(I18nError::TranslationFailed(_))
+            ));
 
             // Test with all supported languages
             for lang in &["en", "fr", "de"] {
                 let result = translate_async(lang, "Hello").await;
-                assert!(result.is_ok(), "Failed to translate 'Hello' to {}", lang);
+                assert!(
+                    result.is_ok(),
+                    "Failed to translate 'Hello' to {}",
+                    lang
+                );
             }
         }
     }
@@ -194,8 +244,15 @@ mod async_utils_coverage_tests {
             }
 
             // Test translation failed error formatting
-            let result = translate_async("en", "definitely_nonexistent_key_12345").await;
-            assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
+            let result = translate_async(
+                "en",
+                "definitely_nonexistent_key_12345",
+            )
+            .await;
+            assert!(matches!(
+                result,
+                Err(I18nError::TranslationFailed(_))
+            ));
         }
     }
 }
@@ -257,25 +314,32 @@ mod translator_coverage_tests {
         // Test Display implementation
         let translator = Translator::new("fr").unwrap();
         let display_str = format!("{}", translator);
-        assert!(display_str.contains("fr") || display_str.contains("Translator"));
+        assert!(
+            display_str.contains("fr")
+                || display_str.contains("Translator")
+        );
     }
 }
 
 /// Tests for translations.rs uncovered lines
 #[cfg(test)]
 mod translations_coverage_tests {
-    use langweave::translations;
     use langweave::error::I18nError;
+    use langweave::translations;
 
     #[test]
     fn test_translations_error_paths() {
         // Test missing translation scenarios
-        let result = translations::translate("en", "definitely_missing_key_xyz");
+        let result =
+            translations::translate("en", "definitely_missing_key_xyz");
         assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
 
         // Test invalid language
         let result = translations::translate("invalid_lang", "Hello");
-        assert!(matches!(result, Err(I18nError::UnsupportedLanguage(_))));
+        assert!(matches!(
+            result,
+            Err(I18nError::UnsupportedLanguage(_))
+        ));
 
         // Test case insensitive matching
         let result = translations::translate("EN", "hello");
@@ -287,8 +351,8 @@ mod translations_coverage_tests {
 /// Integration tests to exercise cross-module functionality
 #[cfg(test)]
 mod integration_coverage_tests {
-    use langweave::*;
     use langweave::error::I18nError;
+    use langweave::*;
 
     #[tokio::test]
     async fn test_full_workflow_edge_cases() {
@@ -296,7 +360,10 @@ mod integration_coverage_tests {
 
         // Empty input detection
         let result = detect_language_async("").await;
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
 
         // Translation of empty string (if supported)
         let result = translate("fr", "");
@@ -304,14 +371,18 @@ mod integration_coverage_tests {
         assert!(result.is_ok() || result.is_err());
 
         // Complex phrase translation
-        let result = translate("fr", "This is a very complex sentence with multiple clauses!");
+        let result = translate(
+            "fr",
+            "This is a very complex sentence with multiple clauses!",
+        );
         assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
 
         // Test async translation only if feature is available
         #[cfg(feature = "async")]
         {
             use langweave::async_utils::translate_async;
-            let result: Result<String, I18nError> = translate_async("de", "").await;
+            let result: Result<String, I18nError> =
+                translate_async("de", "").await;
             assert!(result.is_ok() || result.is_err());
         }
     }

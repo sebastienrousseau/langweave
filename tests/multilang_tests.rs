@@ -4,8 +4,11 @@
 //! language support verification, translation capabilities, common key translations,
 //! language detection, and supported language count validation.
 
-use langweave::{detect_language_async, is_language_supported, supported_languages, translate};
 use langweave::error::I18nError;
+use langweave::{
+    detect_language_async, is_language_supported, supported_languages,
+    translate,
+};
 use tokio;
 
 /// All 15 languages that should be supported by LangWeave
@@ -28,20 +31,20 @@ const ALL_LANGUAGES: &[&str] = &[
 ];
 
 /// Common translation keys that should be available in all languages
-const COMMON_KEYS: &[&str] = &[
-    "Hello",
-    "Goodbye",
-    "Yes",
-    "No",
-    "Thank you",
-    "Please",
-];
+const COMMON_KEYS: &[&str] =
+    &["Hello", "Goodbye", "Yes", "No", "Thank you", "Please"];
 
 /// Sample text for language detection testing in each language
 const LANGUAGE_SAMPLES: &[(&str, &str)] = &[
     ("en", "The quick brown fox jumps over the lazy dog"),
-    ("fr", "Le renard brun rapide saute par-dessus le chien paresseux"),
-    ("de", "Der schnelle braune Fuchs springt über den faulen Hund"),
+    (
+        "fr",
+        "Le renard brun rapide saute par-dessus le chien paresseux",
+    ),
+    (
+        "de",
+        "Der schnelle braune Fuchs springt über den faulen Hund",
+    ),
     ("es", "El rápido zorro marrón salta sobre el perro perezoso"),
     ("pt", "A raposa marrom rápida pula sobre o cão preguiçoso"),
     ("it", "La volpe marrone veloce salta sopra il cane pigro"),
@@ -53,7 +56,10 @@ const LANGUAGE_SAMPLES: &[(&str, &str)] = &[
     ("ja", "素早い茶色のキツネが怠けている犬を飛び越える"),
     ("ko", "빠른 갈색 여우가 게으른 개를 뛰어넘는다"),
     ("zh", "敏捷的棕色狐狸跳过懒惰的狗"),
-    ("id", "Rubah coklat yang cepat melompat melewati anjing yang malas"),
+    (
+        "id",
+        "Rubah coklat yang cepat melompat melewati anjing yang malas",
+    ),
 ];
 
 /// Test that all 15 languages return true for is_language_supported
@@ -71,7 +77,11 @@ fn test_all_15_languages_supported() {
     }
 
     // Print diagnostic information
-    println!("Supported languages: {}/{}", supported_count, ALL_LANGUAGES.len());
+    println!(
+        "Supported languages: {}/{}",
+        supported_count,
+        ALL_LANGUAGES.len()
+    );
     if !unsupported_languages.is_empty() {
         println!("Unsupported languages: {:?}", unsupported_languages);
     }
@@ -98,13 +108,21 @@ fn test_translate_all_15_languages() {
             }
             Err(e) => {
                 failed_translations.push((lang, e));
-                println!("✗ {} -> Hello: {:?}", lang, failed_translations.last().unwrap().1);
+                println!(
+                    "✗ {} -> Hello: {:?}",
+                    lang,
+                    failed_translations.last().unwrap().1
+                );
             }
         }
     }
 
     // Print summary
-    println!("Successful Hello translations: {}/{}", successful_translations, ALL_LANGUAGES.len());
+    println!(
+        "Successful Hello translations: {}/{}",
+        successful_translations,
+        ALL_LANGUAGES.len()
+    );
 
     // All 15 languages should work
     assert_eq!(
@@ -176,16 +194,35 @@ async fn test_detect_language_all_scripts() {
             Ok(detected_lang) => {
                 if &detected_lang == expected_lang {
                     successful_detections += 1;
-                    let preview = sample_text.chars().take(50).collect::<String>();
-                    println!("✓ Correctly detected {} for: {}", detected_lang, preview);
+                    let preview = sample_text
+                        .chars()
+                        .take(50)
+                        .collect::<String>();
+                    println!(
+                        "✓ Correctly detected {} for: {}",
+                        detected_lang, preview
+                    );
                 } else {
-                    let preview = sample_text.chars().take(50).collect::<String>();
-                    println!("? Expected {}, got {} for: {}", expected_lang, detected_lang, preview);
-                    incorrect_detections.push((expected_lang, detected_lang, sample_text));
+                    let preview = sample_text
+                        .chars()
+                        .take(50)
+                        .collect::<String>();
+                    println!(
+                        "? Expected {}, got {} for: {}",
+                        expected_lang, detected_lang, preview
+                    );
+                    incorrect_detections.push((
+                        expected_lang,
+                        detected_lang,
+                        sample_text,
+                    ));
                 }
             }
             Err(e) => {
-                println!("✗ Detection failed for {}: {:?}", expected_lang, e);
+                println!(
+                    "✗ Detection failed for {}: {:?}",
+                    expected_lang, e
+                );
                 failed_detections.push((expected_lang, e, sample_text));
             }
         }
@@ -208,7 +245,10 @@ async fn test_detect_language_all_scripts() {
 
     // Test specific languages that should work based on current implementation
     for expected_lang in &["en", "fr", "de"] {
-        if let Some((_lang, sample)) = LANGUAGE_SAMPLES.iter().find(|(lang, _)| lang == expected_lang) {
+        if let Some((_lang, sample)) = LANGUAGE_SAMPLES
+            .iter()
+            .find(|(lang, _)| lang == expected_lang)
+        {
             let result = detect_language_async(sample).await;
             assert!(
                 result.is_ok(),
@@ -229,7 +269,8 @@ fn test_supported_languages_count() {
 
     // All 15 languages should be supported now
     assert_eq!(
-        languages.len(), 15,
+        languages.len(),
+        15,
         "Should return exactly 15 supported languages, got {}",
         languages.len()
     );
@@ -261,7 +302,10 @@ fn test_unsupported_language_errors() {
         // translate should return UnsupportedLanguage error
         match translate(lang, "Hello") {
             Err(I18nError::UnsupportedLanguage(returned_lang)) => {
-                assert_eq!(returned_lang, lang, "Error should contain the correct language code");
+                assert_eq!(
+                    returned_lang, lang,
+                    "Error should contain the correct language code"
+                );
             }
             other => {
                 panic!(
@@ -279,7 +323,10 @@ fn test_edge_cases() {
     // Test empty string translation
     for lang in &["en", "fr", "de"] {
         match translate(lang, "") {
-            Ok(result) => assert_eq!(result, "", "Empty string should return empty string"),
+            Ok(result) => assert_eq!(
+                result, "",
+                "Empty string should return empty string"
+            ),
             Err(_) => {
                 // Empty string might not be in translation dictionary, this is acceptable
                 println!("Empty string translation failed for {} (acceptable)", lang);
@@ -303,8 +350,13 @@ fn test_edge_cases() {
         let result = translate(lang, &long_text);
         // Should either succeed or fail gracefully, not panic
         match result {
-            Ok(_) => println!("Long text translation succeeded for {}", lang),
-            Err(_) => println!("Long text translation failed for {} (expected)", lang),
+            Ok(_) => {
+                println!("Long text translation succeeded for {}", lang)
+            }
+            Err(_) => println!(
+                "Long text translation failed for {} (expected)",
+                lang
+            ),
         }
     }
 }
@@ -345,8 +397,12 @@ async fn test_language_detection_edge_cases() {
     let mixed_text = "Hello 世界 مرحبا";
     let result = detect_language_async(mixed_text).await;
     match result {
-        Ok(lang) => println!("Detected language for mixed text: {}", lang),
-        Err(_) => println!("Mixed script detection failed (may be expected)"),
+        Ok(lang) => {
+            println!("Detected language for mixed text: {}", lang)
+        }
+        Err(_) => {
+            println!("Mixed script detection failed (may be expected)")
+        }
     }
 }
 
@@ -395,7 +451,10 @@ async fn test_full_workflow() {
         // Step 1: Detect language
         match detect_language_async(sample_text).await {
             Ok(detected_lang) => {
-                println!("Detected language: {} for text: {}", detected_lang, sample_text);
+                println!(
+                    "Detected language: {} for text: {}",
+                    detected_lang, sample_text
+                );
 
                 // Step 2: Verify it's supported
                 if is_language_supported(&detected_lang) {
@@ -405,7 +464,10 @@ async fn test_full_workflow() {
                             println!("Full workflow success: {} -> Hello -> {}", detected_lang, translation);
                         }
                         Err(e) => {
-                            println!("Translation failed in workflow: {:?}", e);
+                            println!(
+                                "Translation failed in workflow: {:?}",
+                                e
+                            );
                         }
                     }
                 } else {
@@ -413,7 +475,10 @@ async fn test_full_workflow() {
                 }
             }
             Err(e) => {
-                println!("Language detection failed for {}: {:?}", sample_text, e);
+                println!(
+                    "Language detection failed for {}: {:?}",
+                    sample_text, e
+                );
             }
         }
     }

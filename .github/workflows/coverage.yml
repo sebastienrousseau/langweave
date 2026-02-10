@@ -47,13 +47,14 @@ jobs:
           COVERAGE=$(grep "^TOTAL" coverage_summary.txt | grep -oE '[0-9]+\.[0-9]+%' | tail -1 | sed 's/%//')
           echo "Current line coverage: ${COVERAGE}%"
 
-          # Check if coverage meets 95% threshold using awk for floating-point comparison
-          if awk "BEGIN {exit !($COVERAGE < 95)}"; then
-            echo "❌ Coverage ${COVERAGE}% is below required 95% threshold"
+          # Check if coverage meets 100% threshold using awk for floating-point comparison
+          if awk "BEGIN {exit !($COVERAGE < 100)}"; then
+            echo "❌ Coverage ${COVERAGE}% is below required 100% threshold"
+            echo "🎯 CRITICAL: All code must be covered by tests for v0.0.2 compliance"
             echo "Please add tests to improve coverage before merging"
             exit 1
           else
-            echo "✅ Coverage ${COVERAGE}% meets required 95% threshold"
+            echo "✅ Coverage ${COVERAGE}% meets required 100% threshold"
           fi
 
       - name: Upload to Codecov.io

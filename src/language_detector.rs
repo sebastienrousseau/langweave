@@ -82,38 +82,75 @@ pub struct LanguageDetector {
 /// # Errors
 ///
 /// Returns `I18nError::UnexpectedError` if any pattern compilation fails.
-fn compile_language_patterns() -> Result<Vec<(Regex, &'static str)>, I18nError> {
+fn compile_language_patterns(
+) -> Result<Vec<(Regex, &'static str)>, I18nError> {
     let pattern_specs = vec![
         // English
-        (r"(?i)\b(hello|hi|hey|goodbye|bye|thank you|thanks|please|the|a|an|in|on|at|for|to|of)\b", "en"),
+        (
+            r"(?i)\b(hello|hi|hey|goodbye|bye|thank you|thanks|please|the|a|an|in|on|at|for|to|of)\b",
+            "en",
+        ),
         // French
-        (r"(?i)\b(bonjour|salut|au revoir|merci|s'il vous plaît|le|la|les|un|une|des|dans|sur|pour|de)\b", "fr"),
+        (
+            r"(?i)\b(bonjour|salut|au revoir|merci|s'il vous plaît|le|la|les|un|une|des|dans|sur|pour|de)\b",
+            "fr",
+        ),
         // German
-        (r"(?i)\b(hallo|guten tag|auf wiedersehen|tschüss|danke|bitte|der|die|das|ein|eine|in|auf|für|zu|von)\b", "de"),
+        (
+            r"(?i)\b(hallo|guten tag|auf wiedersehen|tschüss|danke|bitte|der|die|das|ein|eine|in|auf|für|zu|von)\b",
+            "de",
+        ),
         // Spanish
-        (r"(?i)\b(hola|adiós|gracias|por favor|el|la|los|las|un|una|unos|unas|en|para|por)\b", "es"),
+        (
+            r"(?i)\b(hola|adiós|gracias|por favor|el|la|los|las|un|una|unos|unas|en|para|por)\b",
+            "es",
+        ),
         // Portuguese
-        (r"(?i)\b(olá|adeus|obrigado|obrigada|por favor|o|a|os|as|um|uma|uns|umas|em|para|por)\b", "pt"),
+        (
+            r"(?i)\b(olá|adeus|obrigado|obrigada|por favor|o|a|os|as|um|uma|uns|umas|em|para|por)\b",
+            "pt",
+        ),
         // Russian (includes Cyrillic script detection)
-        (r"(?i)\b(здравствуйте|привет|до свидания|пока|спасибо|пожалуйста)|[\p{Cyrillic}]+", "ru"),
+        (
+            r"(?i)\b(здравствуйте|привет|до свидания|пока|спасибо|пожалуйста)|[\p{Cyrillic}]+",
+            "ru",
+        ),
         // Arabic script detection
         (r"[\p{Arabic}]+", "ar"),
         // Japanese (prioritize Hiragana and Katakana)
-        (r"(?i)\b(こんにちは|さようなら|ありがとう|お願いします)|[\p{Hiragana}\p{Katakana}ー]+", "ja"),
+        (
+            r"(?i)\b(こんにちは|さようなら|ありがとう|お願いします)|[\p{Hiragana}\p{Katakana}ー]+",
+            "ja",
+        ),
         // Chinese (Han script detection, but exclude Japanese-specific characters)
-        (r"(?i)\b(你好|再见|谢谢|请)|(?:[\p{Han}&&[^\p{Hiragana}\p{Katakana}ー]]+)", "zh"),
+        (
+            r"(?i)\b(你好|再见|谢谢|请)|(?:[\p{Han}&&[^\p{Hiragana}\p{Katakana}ー]]+)",
+            "zh",
+        ),
         // Hindi (includes Devanagari script detection)
         (r"(?i)\b(नमस्ते|अलविदा|धन्यवाद|कृपया)|[\p{Devanagari}]+", "hi"),
         // Korean (includes Hangul script detection)
-        (r"(?i)\b(안녕하세요|안녕히 가세요|감사합니다|주세요)|[\p{Hangul}]+", "ko"),
+        (
+            r"(?i)\b(안녕하세요|안녕히 가세요|감사합니다|주세요)|[\p{Hangul}]+",
+            "ko",
+        ),
         // Italian
-        (r"(?i)\b(ciao|buongiorno|grazie|prego|arrivederci|il|la|lo|gli|le|un|una|in|di|per|con)\b", "it"),
+        (
+            r"(?i)\b(ciao|buongiorno|grazie|prego|arrivederci|il|la|lo|gli|le|un|una|in|di|per|con)\b",
+            "it",
+        ),
         // Dutch
-        (r"(?i)\b(hallo|goedemorgen|dank|alstublieft|tot ziens|de|het|een|van|in|op|voor|met)\b", "nl"),
+        (
+            r"(?i)\b(hallo|goedemorgen|dank|alstublieft|tot ziens|de|het|een|van|in|op|voor|met)\b",
+            "nl",
+        ),
         // Hebrew (includes Hebrew script detection)
         (r"(?i)\b(שלום|להתראות|תודה|בבקשה)|[\p{Hebrew}]+", "he"),
         // Indonesian
-        (r"(?i)\b(halo|selamat|terima kasih|tolong|sampai jumpa|yang|dan|atau|ini|itu|dengan|untuk)\b", "id"),
+        (
+            r"(?i)\b(halo|selamat|terima kasih|tolong|sampai jumpa|yang|dan|atau|ini|itu|dengan|untuk)\b",
+            "id",
+        ),
     ];
 
     let mut compiled_patterns = Vec::with_capacity(pattern_specs.len());
@@ -121,10 +158,14 @@ fn compile_language_patterns() -> Result<Vec<(Regex, &'static str)>, I18nError> 
         match Regex::new(pattern_str) {
             Ok(regex) => compiled_patterns.push((regex, lang_code)),
             Err(err) => {
-                error!("Failed to compile regex for language '{}': {}", lang_code, err);
-                return Err(I18nError::UnexpectedError(
-                    format!("Failed to compile regex for language '{}': {}", lang_code, err)
-                ));
+                error!(
+                    "Failed to compile regex for language '{}': {}",
+                    lang_code, err
+                );
+                return Err(I18nError::UnexpectedError(format!(
+                    "Failed to compile regex for language '{}': {}",
+                    lang_code, err
+                )));
             }
         }
     }
@@ -643,12 +684,17 @@ mod tests {
         );
 
         // Verify all expected language codes are present
-        let lang_codes: std::collections::HashSet<&str> = patterns.iter().map(|(_, code)| *code).collect();
-        let expected_codes = vec!["en", "fr", "de", "es", "pt", "ru", "ar", "ja", "zh", "hi", "ko", "it", "nl", "he", "id"];
+        let lang_codes: std::collections::HashSet<&str> =
+            patterns.iter().map(|(_, code)| *code).collect();
+        let expected_codes = vec![
+            "en", "fr", "de", "es", "pt", "ru", "ar", "ja", "zh", "hi",
+            "ko", "it", "nl", "he", "id",
+        ];
         for code in expected_codes {
             assert!(
                 lang_codes.contains(code),
-                "Missing language code: {}", code
+                "Missing language code: {}",
+                code
             );
         }
     }
@@ -671,7 +717,8 @@ mod tests {
             let result_try = detector_try.detect(text);
             assert_eq!(
                 result_new, result_try,
-                "Results should be equivalent for text: {}", text
+                "Results should be equivalent for text: {}",
+                text
             );
         }
     }

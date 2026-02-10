@@ -53,7 +53,8 @@ type TranslationMap = HashMap<String, HashMap<String, String>>;
 ///
 /// This static variable is initialized once when first accessed and contains
 /// all available translations loaded from the `locales/` directory.
-static TRANSLATIONS: Lazy<TranslationMap> = Lazy::new(load_all_translations);
+static TRANSLATIONS: Lazy<TranslationMap> =
+    Lazy::new(load_all_translations);
 
 /// Loads translations from all PO files in the specified directory.
 ///
@@ -337,7 +338,10 @@ pub fn translate(lang: &str, key: &str) -> Result<String, I18nError> {
 /// This function will return an error if:
 /// * The specified language is not supported
 /// * Translation fails for complex phrases (containing spaces or punctuation)
-pub fn translate_with_fallback(lang: &str, text: &str) -> Result<String, I18nError> {
+pub fn translate_with_fallback(
+    lang: &str,
+    text: &str,
+) -> Result<String, I18nError> {
     // Try to translate first
     match translate(lang, text) {
         Ok(translation) => Ok(translation),
@@ -494,14 +498,10 @@ mod tests {
 
     #[test]
     fn test_load_translations_from_dir_with_mixed_files() {
-        let test_dir =
-            Path::new("/tmp/langweave_test_mixed_dir");
+        let test_dir = Path::new("/tmp/langweave_test_mixed_dir");
         let _ = fs::create_dir_all(test_dir);
         // Non-.po file (triggers else on extension == "po")
-        let _ = fs::write(
-            test_dir.join("readme.txt"),
-            "not a po file",
-        );
+        let _ = fs::write(test_dir.join("readme.txt"), "not a po file");
         // File without extension (triggers None on path.extension())
         let _ = fs::write(test_dir.join("noext"), "no extension");
         let result = load_translations_from_dir(test_dir);
@@ -511,8 +511,7 @@ mod tests {
 
     #[test]
     fn test_load_translations_from_dir_with_bad_po() {
-        let test_dir =
-            Path::new("/tmp/langweave_test_error_dir");
+        let test_dir = Path::new("/tmp/langweave_test_error_dir");
         let _ = fs::create_dir_all(test_dir);
         // Directory named "bad.po" — File::open will fail
         let _ = fs::create_dir(test_dir.join("bad.po"));

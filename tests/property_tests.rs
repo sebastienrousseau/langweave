@@ -7,7 +7,10 @@ use langweave::error::I18nError;
 use langweave::language_detector::LanguageDetector;
 use langweave::language_detector_trait::LanguageDetectorTrait;
 use langweave::translator::Translator;
-use langweave::{detect_language_async, translate, is_language_supported, supported_languages};
+use langweave::{
+    detect_language_async, is_language_supported, supported_languages,
+    translate,
+};
 use proptest::prelude::*;
 
 /// Test strategy for generating arbitrary text inputs
@@ -17,15 +20,14 @@ fn arbitrary_text() -> impl Strategy<Value = String> {
         Just(String::new()),
         Just("   ".to_string()),
         Just("\n\t\r ".to_string()),
-
         // ASCII text
         "[a-zA-Z0-9 .,!?-]{0,1000}",
-
         // Unicode text with various scripts
         "\\PC{0,100}",
-
         // Control characters and edge cases
-        prop::collection::vec(0u8..=255, 0..100).prop_map(|bytes| String::from_utf8_lossy(&bytes).to_string()),
+        prop::collection::vec(0u8..=255, 0..100).prop_map(|bytes| {
+            String::from_utf8_lossy(&bytes).to_string()
+        }),
     ]
 }
 
@@ -44,11 +46,9 @@ fn arbitrary_language_code() -> impl Strategy<Value = String> {
         Just("ar".to_string()),
         Just("hi".to_string()),
         Just("ko".to_string()),
-
         // Invalid/unsupported codes
         "[a-z]{1,10}",
         "[A-Z]{1,10}",
-
         // Edge cases
         Just(String::new()),
         Just("123".to_string()),

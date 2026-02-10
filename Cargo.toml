@@ -79,7 +79,7 @@ version_check = "0.9"                       # Ensures that a compatible Rust ver
 # -----------------------------------------------------------------------------
 [dev-dependencies]
 # Dependencies required for testing and development.
-criterion = "0.8"                           # Benchmarking library to test performance
+criterion = { version = "0.5", features = ["async_tokio"] }  # Benchmarking library with async support
 proptest = "1.5"                            # Property-based testing framework
 arbitrary = { version = "1.3", features = ["derive"] } # Arbitrary data generation for testing
 quickcheck = "1.0"                          # Alternative property-based testing
@@ -148,6 +148,11 @@ path = "examples/translator_example.rs"       # Path to the example code
 [[bench]]
 # Benchmarking configuration for performance testing.
 name = "translation_benchmark"              # Name of the benchmark
+harness = false                             # Disable the default benchmark harness (used by Criterion)
+
+[[bench]]
+# Comprehensive stress test and performance baseline establishment
+name = "comprehensive_stress_test"          # Performance baselines and stress testing
 harness = false                             # Disable the default benchmark harness (used by Criterion)
 
 # -----------------------------------------------------------------------------

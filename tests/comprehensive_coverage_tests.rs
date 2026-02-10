@@ -5,9 +5,14 @@
 
 use langweave::error::I18nError;
 use langweave::language_detector::LanguageDetector;
-use langweave::language_detector_trait::{CompositeLanguageDetector, LanguageDetectorTrait};
+use langweave::language_detector_trait::{
+    CompositeLanguageDetector, LanguageDetectorTrait,
+};
 use langweave::translator::Translator;
-use langweave::{detect_language_async, is_language_supported, supported_languages, translate};
+use langweave::{
+    detect_language_async, is_language_supported, supported_languages,
+    translate,
+};
 
 #[cfg(feature = "async")]
 use langweave::async_utils::translate_async;
@@ -81,7 +86,10 @@ mod language_detector_trait_tests {
             Err(I18nError::LanguageDetectionFailed)
         }
 
-        async fn detect_async(&self, _text: &str) -> Result<String, I18nError> {
+        async fn detect_async(
+            &self,
+            _text: &str,
+        ) -> Result<String, I18nError> {
             Err(I18nError::LanguageDetectionFailed)
         }
     }
@@ -90,14 +98,20 @@ mod language_detector_trait_tests {
     fn test_composite_detector_no_detectors() {
         let composite = CompositeLanguageDetector::new();
         let result = composite.detect("Hello world");
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
     }
 
     #[tokio::test]
     async fn test_composite_detector_no_detectors_async() {
         let composite = CompositeLanguageDetector::new();
         let result = composite.detect_async("Hello world").await;
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
     }
 
     #[test]
@@ -107,7 +121,10 @@ mod language_detector_trait_tests {
         composite.add_detector(Box::new(FailingDetector));
 
         let result = composite.detect("Hello world");
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
     }
 
     #[tokio::test]
@@ -117,14 +134,20 @@ mod language_detector_trait_tests {
         composite.add_detector(Box::new(FailingDetector));
 
         let result = composite.detect_async("Hello world").await;
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
     }
 
     #[test]
     fn test_composite_detector_debug() {
         let composite = CompositeLanguageDetector::default();
         let debug_str = format!("{:?}", composite);
-        assert_eq!(debug_str, "CompositeLanguageDetector with 0 detectors");
+        assert_eq!(
+            debug_str,
+            "CompositeLanguageDetector with 0 detectors"
+        );
     }
 }
 
@@ -136,7 +159,9 @@ mod translator_tests {
     fn test_translator_new_with_other_error() {
         // This test simulates the case where translations::translate returns an error other than UnsupportedLanguage
         // In the current implementation, this would be hard to trigger directly, but we test the error propagation
-        let result = Translator::new("invalid_really_long_unsupported_language_code");
+        let result = Translator::new(
+            "invalid_really_long_unsupported_language_code",
+        );
         assert!(result.is_err());
     }
 
@@ -144,7 +169,8 @@ mod translator_tests {
     fn test_translator_translation_error_propagation() {
         let translator = Translator::new("en").unwrap();
         // Test with a key that doesn't exist to test error propagation
-        let result = translator.translate("SomeVerySpecificNonExistentKey");
+        let result =
+            translator.translate("SomeVerySpecificNonExistentKey");
         // Should return an error for non-existent keys
         assert!(result.is_err());
     }
@@ -157,27 +183,47 @@ mod language_detection_tests {
     #[tokio::test]
     async fn test_detect_language_whitespace_only() {
         let result = detect_language_async("   \t\n   ").await;
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
     }
 
     #[tokio::test]
     async fn test_detect_language_empty_string() {
         let result = detect_language_async("").await;
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
     }
 
     #[tokio::test]
     async fn test_detect_language_numbers_only() {
         let result = detect_language_async("123456789").await;
         // This should either detect a language or fail
-        assert!(result.is_ok() || matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(
+            result.is_ok()
+                || matches!(
+                    result,
+                    Err(I18nError::LanguageDetectionFailed)
+                )
+        );
     }
 
     #[tokio::test]
     async fn test_detect_language_special_characters() {
-        let result = detect_language_async("!@#$%^&*()_+-=[]{}|;':\",./<>?`~").await;
+        let result =
+            detect_language_async("!@#$%^&*()_+-=[]{}|;':\",./<>?`~")
+                .await;
         // This should either detect a language or fail
-        assert!(result.is_ok() || matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(
+            result.is_ok()
+                || matches!(
+                    result,
+                    Err(I18nError::LanguageDetectionFailed)
+                )
+        );
     }
 
     #[tokio::test]
@@ -212,13 +258,17 @@ mod translations_tests {
 
     #[test]
     fn test_translate_nonexistent_key() {
-        let result = translations::translate("en", "NonExistentTranslationKey12345");
+        let result = translations::translate(
+            "en",
+            "NonExistentTranslationKey12345",
+        );
         assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
     }
 
     #[test]
     fn test_translate_unsupported_language_error_message() {
-        let result = translations::translate("unsupported_lang", "Hello");
+        let result =
+            translations::translate("unsupported_lang", "Hello");
         if let Err(I18nError::UnsupportedLanguage(lang)) = result {
             assert_eq!(lang, "unsupported_lang");
         } else {
@@ -279,7 +329,13 @@ mod language_detector_internals {
         let result = detector.detect_async(&very_long_text).await;
 
         // Should either succeed or fail gracefully
-        assert!(result.is_ok() || matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(
+            result.is_ok()
+                || matches!(
+                    result,
+                    Err(I18nError::LanguageDetectionFailed)
+                )
+        );
     }
 }
 
@@ -331,9 +387,11 @@ mod error_tests {
 
     #[test]
     fn test_error_display_implementations() {
-        let unsupported_err = I18nError::UnsupportedLanguage("test".to_string());
+        let unsupported_err =
+            I18nError::UnsupportedLanguage("test".to_string());
         let detection_err = I18nError::LanguageDetectionFailed;
-        let translation_err = I18nError::TranslationFailed("test error".to_string());
+        let translation_err =
+            I18nError::TranslationFailed("test error".to_string());
 
         // Test Display implementations
         assert!(format!("{}", unsupported_err).contains("test"));
@@ -343,9 +401,11 @@ mod error_tests {
 
     #[test]
     fn test_error_source_methods() {
-        let unsupported_err = I18nError::UnsupportedLanguage("test".to_string());
+        let unsupported_err =
+            I18nError::UnsupportedLanguage("test".to_string());
         let detection_err = I18nError::LanguageDetectionFailed;
-        let translation_err = I18nError::TranslationFailed("test error".to_string());
+        let translation_err =
+            I18nError::TranslationFailed("test error".to_string());
 
         // Test source methods (for Error trait)
         assert!(std::error::Error::source(&unsupported_err).is_none());

@@ -4,20 +4,22 @@
 #![allow(unused_results, unused_must_use)]
 #![allow(missing_docs)]
 
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{
+    criterion_group, criterion_main, BenchmarkId, Criterion, Throughput,
+};
 use langweave::{
-    is_language_supported, supported_languages, translate, detect_language_async,
+    detect_language_async, is_language_supported,
     language_detector::LanguageDetector,
     language_detector_trait::LanguageDetectorTrait,
-    translator::Translator,
+    supported_languages, translate, translator::Translator,
 };
 use std::hint::black_box;
 use tokio::runtime::Runtime;
 
 /// All 15 supported languages for comprehensive testing
 const ALL_LANGUAGES: &[&str] = &[
-    "en", "fr", "de", "es", "pt", "it", "nl", "ru",
-    "ar", "he", "hi", "ja", "ko", "zh", "id"
+    "en", "fr", "de", "es", "pt", "it", "nl", "ru", "ar", "he", "hi",
+    "ja", "ko", "zh", "id",
 ];
 
 /// Test phrases in each language for translation benchmarks
@@ -77,9 +79,7 @@ fn bench_translation_all_languages(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::new("translator_creation", lang),
             &lang,
-            |b, &lang| {
-                b.iter(|| black_box(Translator::new(lang)))
-            },
+            |b, &lang| b.iter(|| black_box(Translator::new(lang))),
         );
 
         // Benchmark actual translation
@@ -109,9 +109,7 @@ fn bench_language_detection_all(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::new("detect_sync", lang),
             &phrase,
-            |b, &phrase| {
-                b.iter(|| black_box(detector.detect(phrase)))
-            },
+            |b, &phrase| b.iter(|| black_box(detector.detect(phrase))),
         );
 
         // Async detection (blocking in benchmark)
@@ -317,7 +315,8 @@ fn bench_sustained_load(c: &mut Criterion) {
     // Simulate sustained translation load
     group.bench_function("sustained_translation_load", |b| {
         // Pre-create translators to avoid creation overhead
-        let translators: Vec<_> = ALL_LANGUAGES.iter()
+        let translators: Vec<_> = ALL_LANGUAGES
+            .iter()
             .filter_map(|&lang| Translator::new(lang).ok())
             .collect();
 

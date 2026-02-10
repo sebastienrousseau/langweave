@@ -5,9 +5,11 @@
 #![allow(unused_results)]
 #![allow(clippy::empty_line_after_doc_comments)]
 
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use std::hint::black_box;
+use criterion::{
+    criterion_group, criterion_main, BenchmarkId, Criterion,
+};
 use std::collections::HashMap;
+use std::hint::black_box;
 use std::sync::Arc;
 
 /// Current implementation problems and optimized solutions
@@ -31,7 +33,9 @@ fn current_is_supported(lang: &str) -> bool {
 
 // Optimization 2: Direct slice check, avoid allocation
 fn optimized_is_supported(lang: &str) -> bool {
-    SUPPORTED_LANGS.iter().any(|&l| l.eq_ignore_ascii_case(lang))
+    SUPPORTED_LANGS
+        .iter()
+        .any(|&l| l.eq_ignore_ascii_case(lang))
 }
 
 // Problem 3: Language detector patterns cloned on every new()
@@ -43,11 +47,8 @@ struct CurrentDetector {
 
 impl CurrentDetector {
     fn new() -> Self {
-        static PATTERNS: &[(&str, &str)] = &[
-            ("hello", "en"),
-            ("bonjour", "fr"),
-            ("hallo", "de"),
-        ];
+        static PATTERNS: &[(&str, &str)] =
+            &[("hello", "en"), ("bonjour", "fr"), ("hallo", "de")];
         Self {
             patterns: Arc::new(PATTERNS.to_vec()), // Clone on every new()
         }
@@ -62,11 +63,8 @@ struct OptimizedDetector {
 
 impl OptimizedDetector {
     fn new() -> Self {
-        static PATTERNS: &[(&str, &str)] = &[
-            ("hello", "en"),
-            ("bonjour", "fr"),
-            ("hallo", "de"),
-        ];
+        static PATTERNS: &[(&str, &str)] =
+            &[("hello", "en"), ("bonjour", "fr"), ("hallo", "de")];
         Self { patterns: PATTERNS }
     }
 }
@@ -78,7 +76,8 @@ fn current_convert_lang_code(code: u32) -> String {
         2 => "fr",
         3 => "de",
         _ => "unknown",
-    }.to_string()
+    }
+    .to_string()
 }
 
 // Optimization 4: Return static str, use Cow for flexibility
@@ -103,17 +102,26 @@ fn cow_convert_lang_code(code: u32) -> Cow<'static, str> {
 }
 
 // Problem 5: Translation lookup clones strings unnecessarily
-fn current_translate_lookup(translations: &HashMap<String, String>, key: &str) -> Option<String> {
+fn current_translate_lookup(
+    translations: &HashMap<String, String>,
+    key: &str,
+) -> Option<String> {
     translations.get(key).map(|v| v.clone())
 }
 
 // Optimization 5: Return reference, avoid clone
-fn optimized_translate_lookup<'a>(translations: &'a HashMap<String, String>, key: &str) -> Option<&'a str> {
+fn optimized_translate_lookup<'a>(
+    translations: &'a HashMap<String, String>,
+    key: &str,
+) -> Option<&'a str> {
     translations.get(key).map(|v| v.as_str())
 }
 
 // Problem 6: Case-insensitive search does full linear scan
-fn current_case_insensitive_lookup(translations: &HashMap<String, String>, key: &str) -> Option<String> {
+fn current_case_insensitive_lookup(
+    translations: &HashMap<String, String>,
+    key: &str,
+) -> Option<String> {
     for (k, v) in translations {
         if k.to_lowercase() == key.to_lowercase() {
             return Some(v.clone());
@@ -179,7 +187,9 @@ fn bench_language_support_allocation(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::new("optimized_is_supported", lang),
             lang,
-            |b, lang| b.iter(|| optimized_is_supported(black_box(lang))),
+            |b, lang| {
+                b.iter(|| optimized_is_supported(black_box(lang)))
+            },
         );
     }
 
@@ -210,19 +220,25 @@ fn bench_string_allocation(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::new("current_convert", code),
             code,
-            |b, code| b.iter(|| current_convert_lang_code(black_box(*code))),
+            |b, code| {
+                b.iter(|| current_convert_lang_code(black_box(*code)))
+            },
         );
 
         group.bench_with_input(
             BenchmarkId::new("optimized_convert", code),
             code,
-            |b, code| b.iter(|| optimized_convert_lang_code(black_box(*code))),
+            |b, code| {
+                b.iter(|| optimized_convert_lang_code(black_box(*code)))
+            },
         );
 
         group.bench_with_input(
             BenchmarkId::new("cow_convert", code),
             code,
-            |b, code| b.iter(|| cow_convert_lang_code(black_box(*code))),
+            |b, code| {
+                b.iter(|| cow_convert_lang_code(black_box(*code)))
+            },
         );
     }
 
@@ -245,19 +261,40 @@ fn bench_translation_lookup(c: &mut Criterion) {
         group.bench_with_input(
             BenchmarkId::new("current_exact_lookup", key),
             key,
-            |b, key| b.iter(|| current_translate_lookup(black_box(&translations), black_box(key))),
+            |b, key| {
+                b.iter(|| {
+                    current_translate_lookup(
+                        black_box(&translations),
+                        black_box(key),
+                    )
+                })
+            },
         );
 
         group.bench_with_input(
             BenchmarkId::new("optimized_exact_lookup", key),
             key,
-            |b, key| b.iter(|| optimized_translate_lookup(black_box(&translations), black_box(key))),
+            |b, key| {
+                b.iter(|| {
+                    optimized_translate_lookup(
+                        black_box(&translations),
+                        black_box(key),
+                    )
+                })
+            },
         );
 
         group.bench_with_input(
             BenchmarkId::new("current_case_insensitive", key),
             key,
-            |b, key| b.iter(|| current_case_insensitive_lookup(black_box(&translations), black_box(key))),
+            |b, key| {
+                b.iter(|| {
+                    current_case_insensitive_lookup(
+                        black_box(&translations),
+                        black_box(key),
+                    )
+                })
+            },
         );
 
         group.bench_with_input(
@@ -275,7 +312,8 @@ fn bench_memory_usage(c: &mut Criterion) {
 
     // Test memory allocation patterns
     group.bench_function("vec_vs_slice_iteration", |b| {
-        let vec_data = vec!["en".to_string(), "fr".to_string(), "de".to_string()];
+        let vec_data =
+            vec!["en".to_string(), "fr".to_string(), "de".to_string()];
         let slice_data = ["en", "fr", "de"];
 
         b.iter(|| {

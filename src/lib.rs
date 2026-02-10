@@ -25,12 +25,12 @@ pub mod error;
 pub mod language_detector;
 /// The `language_detector_trait` module contains the `LanguageDetectorTrait` trait for extensibility.
 pub mod language_detector_trait;
+/// The `optimized` module contains zero-cost abstraction performance optimizations.
+pub mod optimized;
 /// The `translations` module contains translation functions for different languages.
 pub mod translations;
 /// The `translator` module contains a simple translation service using a predefined dictionary.
 pub mod translator;
-/// The `optimized` module contains zero-cost abstraction performance optimizations.
-pub mod optimized;
 
 /// A module that re-exports commonly used items for convenience.
 pub mod prelude {
@@ -186,7 +186,9 @@ pub fn detect_language(text: &str) -> Result<String, I18nError> {
 /// This function will return an error if:
 /// * The input text is empty or contains only non-alphabetic characters.
 /// * The language detection process fails to identify a language with sufficient confidence.
-pub async fn detect_language_async(text: &str) -> Result<String, I18nError> {
+pub async fn detect_language_async(
+    text: &str,
+) -> Result<String, I18nError> {
     debug!("Detecting language for: {}", text);
 
     if text.trim().is_empty() {
@@ -195,8 +197,7 @@ pub async fn detect_language_async(text: &str) -> Result<String, I18nError> {
 
     // Delegate to the composite language detector, which handles
     // regex pattern matching and word-by-word whatlang detection internally
-    let detected_lang =
-        LANGUAGE_DETECTOR.detect_async(text).await?;
+    let detected_lang = LANGUAGE_DETECTOR.detect_async(text).await?;
     debug!("Detected language: {}", detected_lang);
     Ok(detected_lang)
 }
@@ -347,10 +348,7 @@ mod tests {
             detect_language("The quick brown fox").unwrap(),
             "en"
         );
-        assert_eq!(
-            detect_language("Le chat noir").unwrap(),
-            "fr"
-        );
+        assert_eq!(detect_language("Le chat noir").unwrap(), "fr");
         assert_eq!(
             detect_language("Der schnelle Fuchs").unwrap(),
             "de"
@@ -394,10 +392,7 @@ mod tests {
         let text = "Hello, how are you today?";
         let result = translate("fr", text);
         // Complex phrases not in the dictionary should return TranslationFailed error
-        assert!(matches!(
-            result,
-            Err(I18nError::TranslationFailed(_))
-        ));
+        assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
     }
 
     #[test]

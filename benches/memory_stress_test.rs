@@ -5,11 +5,13 @@
 #![allow(unused_results)]
 #![allow(missing_docs)]
 
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use criterion::{
+    criterion_group, criterion_main, BenchmarkId, Criterion, Throughput,
+};
 use langweave::{
     language_detector::LanguageDetector,
     language_detector_trait::LanguageDetectorTrait,
-    translate, supported_languages,
+    supported_languages, translate,
 };
 use std::hint::black_box;
 use std::sync::Arc;
@@ -58,7 +60,8 @@ fn bench_concurrent_memory_usage(c: &mut Criterion) {
                 b.iter(|| {
                     rt.block_on(async {
                         let detector = detector.clone();
-                        let mut handles = Vec::with_capacity(thread_count);
+                        let mut handles =
+                            Vec::with_capacity(thread_count);
 
                         for i in 0..thread_count {
                             let detector = detector.clone();
@@ -68,7 +71,7 @@ fn bench_concurrent_memory_usage(c: &mut Criterion) {
                                     "Hello world",
                                     "Bonjour monde",
                                     "Hallo Welt",
-                                    "Hola mundo"
+                                    "Hola mundo",
                                 ];
                                 let text = texts[i % texts.len()];
                                 detector.detect_async(text).await
@@ -101,7 +104,10 @@ fn bench_large_input_memory(c: &mut Criterion) {
 
         group.throughput(Throughput::Bytes(text_size as u64));
         group.bench_with_input(
-            BenchmarkId::new("large_text", format!("{}KB", text_size / 1024)),
+            BenchmarkId::new(
+                "large_text",
+                format!("{}KB", text_size / 1024),
+            ),
             &large_text,
             |b, text| {
                 b.iter(|| {
@@ -187,16 +193,19 @@ fn bench_thread_memory_contention(c: &mut Criterion) {
         let detector = Arc::new(LanguageDetector::new());
 
         b.iter(|| {
-            let handles: Vec<_> = (0..8).map(|i| {
-                let detector = detector.clone();
-                thread::spawn(move || {
-                    let texts = ["Hello", "Bonjour", "Hallo", "Hola"];
-                    let text = texts[i % texts.len()];
-                    for _ in 0..100 {
-                        let _ = detector.detect(text);
-                    }
+            let handles: Vec<_> = (0..8)
+                .map(|i| {
+                    let detector = detector.clone();
+                    thread::spawn(move || {
+                        let texts =
+                            ["Hello", "Bonjour", "Hallo", "Hola"];
+                        let text = texts[i % texts.len()];
+                        for _ in 0..100 {
+                            let _ = detector.detect(text);
+                        }
+                    })
                 })
-            }).collect();
+                .collect();
 
             for handle in handles {
                 handle.join().unwrap();

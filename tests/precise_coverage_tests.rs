@@ -3,7 +3,7 @@
 //! This test suite provides targeted coverage for specific lines and edge cases
 //! to ensure comprehensive testing of the LangWeave internationalization library.
 
-use langweave::{detect_language_async, translate, error::I18nError};
+use langweave::{detect_language_async, error::I18nError, translate};
 
 #[cfg(test)]
 mod precise_lib_coverage {
@@ -19,7 +19,7 @@ mod precise_lib_coverage {
         // Try to create a scenario where language check passes but translator creation fails
         // Since the implementation is black box, let's try edge cases
         let result = translate("en\0", "test"); // null byte in language
-        // This should either trigger UnsupportedLanguage or TranslationFailed from translator creation
+                                                // This should either trigger UnsupportedLanguage or TranslationFailed from translator creation
         assert!(result.is_err());
     }
 
@@ -29,7 +29,7 @@ mod precise_lib_coverage {
         let test_cases = vec![
             "en ", // with space
             " en", // leading space
-            "EN", // uppercase (should be normalized)
+            "EN",  // uppercase (should be normalized)
         ];
 
         for lang in test_cases {
@@ -68,9 +68,13 @@ mod precise_lib_coverage {
     #[tokio::test]
     async fn test_detect_language_force_all_word_detection_failure() {
         // Target line 171: when all word detection fails
-        let result = detect_language_async("12345 67890 !@#$% ^&*()").await;
+        let result =
+            detect_language_async("12345 67890 !@#$% ^&*()").await;
         // This should fail both full and word-by-word detection
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
     }
 
     // Target line 104: other error type propagation in translate
@@ -81,7 +85,7 @@ mod precise_lib_coverage {
 
         let result = translate("fr", ""); // empty text
         match result {
-            Ok(_) => {}, // Empty text translated successfully
+            Ok(_) => {} // Empty text translated successfully
             Err(e) => {
                 // We exercised an error path
                 let _ = e; // Exercise error path
@@ -102,7 +106,7 @@ mod precise_lib_coverage {
     fn test_translate_special_characters() {
         // Test with special characters that might trigger different paths
         let special_cases = vec![
-            "hello\n\t\r", // with whitespace
+            "hello\n\t\r",  // with whitespace
             "hello\0world", // with null byte
             "hello🌍world", // with emoji
             "hello\\world", // with backslash
@@ -140,7 +144,8 @@ mod precise_async_coverage {
     #[tokio::test]
     async fn test_translate_async_force_translation_error() {
         // Force translation error in async function
-        let result = translate_async("fr", "nonexistent_key_xyz_123").await;
+        let result =
+            translate_async("fr", "nonexistent_key_xyz_123").await;
         assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
     }
 
