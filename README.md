@@ -19,6 +19,16 @@ Detect text languages. Translate between language pairs. Build internationalized
 </center>
 <!-- markdownlint-enable MD033 MD041 -->
 
+## Status
+
+**Experimental** — This library is under active development. API may change in future versions.
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| 0.0.x | Experimental | API subject to change |
+| 0.1.x | Beta (planned) | API stabilization |
+| 1.0.x | Stable (planned) | Stable API, semver guarantees |
+
 ## Features
 
 - **Language Detection** — Identify text languages across 15 supported languages including English, French, German, Spanish, Portuguese, Italian, Dutch, Russian, Arabic, Hebrew, Hindi, Japanese, Korean, Chinese, and Indonesian
@@ -26,6 +36,7 @@ Detect text languages. Translate between language pairs. Build internationalized
 - **Error Handling** — Comprehensive error types for robust applications
 - **Async Support** — Non-blocking language detection and translation
 - **Simple API** — Easy-to-use functions for common tasks
+- **Safety** — Built with `#![forbid(unsafe_code)]` in library code
 
 ## Installation
 
@@ -82,6 +93,13 @@ Run examples:
 ```shell
 cargo run --example <example_name>
 ```
+
+## Known Limitations
+
+- **Short text detection** — Very short texts (< 10 characters) may not have enough signal for accurate language detection
+- **Mixed-language content** — Text containing multiple languages may only detect the dominant language
+- **Romanized scripts** — Languages written in non-native scripts (e.g., Japanese in romaji) may not be detected correctly
+- **Translation coverage** — Not all phrases have translations; the library falls back to the original text for unknown keys
 
 ## Documentation
 

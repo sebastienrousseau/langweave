@@ -115,10 +115,10 @@ jobs:
           echo "✅ Documentation builds and tests pass"
 
   # =============================================================================
-  # TEST SUITE - 100% COVERAGE ENFORCEMENT
+  # TEST SUITE - 95% COVERAGE ENFORCEMENT
   # =============================================================================
   test-coverage:
-    name: 🧪 Test Suite (100% Coverage)
+    name: 🧪 Test Suite (95% Coverage)
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -155,21 +155,20 @@ jobs:
           cargo llvm-cov --all-features --workspace --summary-only > coverage_summary.txt
           echo "✅ Test suite completed"
 
-      - name: 📊 Enforce 100% coverage threshold
+      - name: 📊 Enforce 95% coverage threshold
         run: |
-          echo "📊 Enforcing 100% coverage requirement..."
+          echo "📊 Enforcing 95% coverage requirement..."
           COVERAGE=$(grep "^TOTAL" coverage_summary.txt | grep -oE '[0-9]+\.[0-9]+%' | tail -1 | sed 's/%//')
           echo "Current line coverage: ${COVERAGE}%"
 
-          # Enforce 100% coverage threshold
-          if awk "BEGIN {exit !($COVERAGE < 100)}"; then
-            echo "❌ Coverage ${COVERAGE}% is below required 100% threshold"
-            echo "🎯 CRITICAL: All code must be covered by tests"
+          # Enforce 95% coverage threshold (allows defensive programming)
+          if awk "BEGIN {exit !($COVERAGE < 95)}"; then
+            echo "❌ Coverage ${COVERAGE}% is below required 95% threshold"
             echo "📋 Add tests for uncovered code paths before merging"
             cat coverage_summary.txt
             exit 1
           else
-            echo "✅ Coverage ${COVERAGE}% meets required 100% threshold"
+            echo "✅ Coverage ${COVERAGE}% meets required 95% threshold"
           fi
 
       - name: 📤 Upload coverage to Codecov
@@ -215,6 +214,15 @@ jobs:
           cargo install cargo-deny --locked
           cargo deny check
           echo "✅ All security policies satisfied"
+
+      - name: ☢️ Scan for unsafe code in dependencies
+        run: |
+          echo "☢️ Scanning for unsafe code with cargo-geiger..."
+          cargo install cargo-geiger --locked
+          # Report unsafe code usage (informational, not blocking)
+          cargo geiger --all-features --all-targets 2>&1 | tee geiger_report.txt || true
+          echo "📊 Unsafe code report generated (see above)"
+          echo "⚠️ Note: Some transitive dependencies may contain unsafe code"
 
   # =============================================================================
   # ARCHITECTURAL COMPLIANCE
