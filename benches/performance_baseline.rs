@@ -85,10 +85,7 @@ fn bench_allocation_hotspots(c: &mut Criterion) {
 
     // HOTSPOT 4: Translator creation + validation
     group.bench_function("translator_creation_cost", |b| {
-        b.iter(|| match Translator::new(black_box("fr")) {
-            Ok(t) => Some(t),
-            Err(_) => None,
-        });
+        b.iter(|| Translator::new(black_box("fr")).ok());
     });
 
     group.finish();
@@ -120,7 +117,7 @@ fn bench_sustained_load(c: &mut Criterion) {
     let mut group = c.benchmark_group("sustained_load");
 
     let detector = LanguageDetector::new();
-    let texts = vec![
+    let texts = [
         "The quick brown fox",
         "Le chat noir",
         "Der braune Fuchs",

@@ -9,7 +9,6 @@ use langweave::{
     detect_language_async, is_language_supported, supported_languages,
     translate,
 };
-use tokio;
 
 /// All 15 languages that should be supported by LangWeave
 const ALL_LANGUAGES: &[&str] = &[

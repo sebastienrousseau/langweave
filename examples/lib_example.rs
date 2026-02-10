@@ -54,8 +54,6 @@ pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// # Examples
 ///
-///
-
 /// Demonstrates language detection capabilities.
 pub(crate) fn language_detection_example(
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -115,8 +113,6 @@ pub(crate) fn language_detection_example(
 ///
 /// # Examples
 ///
-///
-
 /// Demonstrates translation capabilities.
 fn translation_example() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Translation Example");

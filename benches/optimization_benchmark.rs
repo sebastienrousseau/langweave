@@ -106,7 +106,7 @@ fn current_translate_lookup(
     translations: &HashMap<String, String>,
     key: &str,
 ) -> Option<String> {
-    translations.get(key).map(|v| v.clone())
+    translations.get(key).cloned()
 }
 
 // Optimization 5: Return reference, avoid clone
@@ -313,12 +313,12 @@ fn bench_memory_usage(c: &mut Criterion) {
     // Test memory allocation patterns
     group.bench_function("vec_vs_slice_iteration", |b| {
         let vec_data =
-            vec!["en".to_string(), "fr".to_string(), "de".to_string()];
+            ["en".to_string(), "fr".to_string(), "de".to_string()];
         let slice_data = ["en", "fr", "de"];
 
         b.iter(|| {
             // Current: iterate over Vec<String>
-            let vec_count = vec_data.iter().count();
+            let vec_count = vec_data.len();
             // Optimized: iterate over &[&str]
             let slice_count = slice_data.iter().count();
             black_box((vec_count, slice_count))
