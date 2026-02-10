@@ -4,7 +4,7 @@
 //! language support verification, translation capabilities, common key translations,
 //! language detection, and supported language count validation.
 
-use langweave::{detect_language, is_language_supported, supported_languages, translate};
+use langweave::{detect_language_async, is_language_supported, supported_languages, translate};
 use langweave::error::I18nError;
 use tokio;
 
@@ -172,7 +172,7 @@ async fn test_detect_language_all_scripts() {
     let mut incorrect_detections = Vec::new();
 
     for (expected_lang, sample_text) in LANGUAGE_SAMPLES {
-        match detect_language(sample_text).await {
+        match detect_language_async(sample_text).await {
             Ok(detected_lang) => {
                 if &detected_lang == expected_lang {
                     successful_detections += 1;
@@ -209,7 +209,7 @@ async fn test_detect_language_all_scripts() {
     // Test specific languages that should work based on current implementation
     for expected_lang in &["en", "fr", "de"] {
         if let Some((_lang, sample)) = LANGUAGE_SAMPLES.iter().find(|(lang, _)| lang == expected_lang) {
-            let result = detect_language(sample).await;
+            let result = detect_language_async(sample).await;
             assert!(
                 result.is_ok(),
                 "Language detection should work for {} sample text",
@@ -313,7 +313,7 @@ fn test_edge_cases() {
 #[tokio::test]
 async fn test_language_detection_edge_cases() {
     // Test empty string
-    match detect_language("").await {
+    match detect_language_async("").await {
         Err(I18nError::LanguageDetectionFailed) => {
             // Expected behavior for empty string
         }
@@ -323,7 +323,7 @@ async fn test_language_detection_edge_cases() {
     }
 
     // Test whitespace only
-    match detect_language("   ").await {
+    match detect_language_async("   ").await {
         Err(I18nError::LanguageDetectionFailed) => {
             // Expected behavior for whitespace-only string
         }
@@ -334,7 +334,7 @@ async fn test_language_detection_edge_cases() {
     }
 
     // Test numbers only
-    let result = detect_language("123456789").await;
+    let result = detect_language_async("123456789").await;
     // Should either detect a language or fail gracefully
     match result {
         Ok(lang) => println!("Detected language for numbers: {}", lang),
@@ -343,7 +343,7 @@ async fn test_language_detection_edge_cases() {
 
     // Test mixed scripts (if supported)
     let mixed_text = "Hello 世界 مرحبا";
-    let result = detect_language(mixed_text).await;
+    let result = detect_language_async(mixed_text).await;
     match result {
         Ok(lang) => println!("Detected language for mixed text: {}", lang),
         Err(_) => println!("Mixed script detection failed (may be expected)"),
@@ -393,7 +393,7 @@ async fn test_full_workflow() {
         ("de", "Hallo Welt"),
     ] {
         // Step 1: Detect language
-        match detect_language(sample_text).await {
+        match detect_language_async(sample_text).await {
             Ok(detected_lang) => {
                 println!("Detected language: {} for text: {}", detected_lang, sample_text);
 

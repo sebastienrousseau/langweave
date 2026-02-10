@@ -1,0 +1,12 @@
+# Project-specific Cargo configuration
+# Overrides global config to use default linker for better compatibility
+
+[target.x86_64-unknown-linux-gnu]
+# Use default linker (cc/gcc) instead of clang+lld for broader compatibility
+linker = "cc"
+rustflags = []
+
+[target.aarch64-unknown-linux-gnu]
+# Use default linker (cc/gcc) instead of clang+lld for broader compatibility
+linker = "cc"
+rustflags = []

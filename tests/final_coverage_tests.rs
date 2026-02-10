@@ -3,7 +3,7 @@
 //! This test suite provides comprehensive validation testing to ensure
 //! all code paths are properly covered and validated.
 
-use langweave::{detect_language, translate, error::I18nError};
+use langweave::{detect_language_async, translate, error::I18nError};
 
 #[cfg(test)]
 mod lib_final_coverage {
@@ -50,7 +50,7 @@ mod lib_final_coverage {
     async fn test_detect_language_word_by_word_fallback() {
         // Test word-by-word detection fallback (lines 158-168)
         // Use text where full text detection fails but individual words succeed
-        let result = detect_language("xyz123 hello abc789").await;
+        let result = detect_language_async("xyz123 hello abc789").await;
         // Should detect "hello" as English in word-by-word fallback
         assert!(result.is_ok());
         let lang = result.unwrap();
@@ -60,20 +60,20 @@ mod lib_final_coverage {
     #[tokio::test]
     async fn test_detect_language_no_detection_possible() {
         // Test case where no language is detected at all (line 171)
-        let result = detect_language("123456 !@#$%^ 789").await;
+        let result = detect_language_async("123456 !@#$%^ 789").await;
         assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
 
-        let result = detect_language("   ").await; // Only whitespace
+        let result = detect_language_async("   ").await; // Only whitespace
         assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
     }
 
     #[tokio::test]
     async fn test_detect_language_debug_logging_paths() {
         // Test debug logging paths (lines 143, 153, 162-165)
-        let result = detect_language("The quick brown fox jumps").await;
+        let result = detect_language_async("The quick brown fox jumps").await;
         assert!(result.is_ok()); // Should trigger debug log at line 153
 
-        let result = detect_language("xyz hello").await;
+        let result = detect_language_async("xyz hello").await;
         assert!(result.is_ok()); // Should trigger debug log at lines 162-165
     }
 }

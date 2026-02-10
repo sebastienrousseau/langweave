@@ -89,15 +89,15 @@ mod lib_coverage_tests {
     #[tokio::test]
     async fn test_detect_language_empty_scenarios() {
         // Test line 131: empty input after trim
-        let result = detect_language("   ").await;
+        let result = detect_language_async("   ").await;
         assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
 
         // Test line 146: completely empty string
-        let result = detect_language("").await;
+        let result = detect_language_async("").await;
         assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
 
         // Test lines 150-155: successful detection on first try
-        let result = detect_language("The quick brown fox jumps").await;
+        let result = detect_language_async("The quick brown fox jumps").await;
         assert!(result.is_ok());
     }
 
@@ -105,12 +105,12 @@ mod lib_coverage_tests {
     async fn test_detect_language_word_by_word_fallback() {
         // Test lines 157-168: word-by-word detection fallback
         // Create input that might fail full-text detection but succeed word-by-word
-        let result = detect_language("123 hello 456").await;
+        let result = detect_language_async("123 hello 456").await;
         // Should either succeed with detection or fail completely
         assert!(result.is_ok() || matches!(result, Err(I18nError::LanguageDetectionFailed)));
 
         // Test line 171: complete failure case
-        let result = detect_language("12345 67890").await;
+        let result = detect_language_async("12345 67890").await;
         // Numbers only should likely fail detection
         assert!(result.is_ok() || matches!(result, Err(I18nError::LanguageDetectionFailed)));
     }
@@ -295,7 +295,7 @@ mod integration_coverage_tests {
         // Test the full workflow with edge cases to ensure all paths are covered
 
         // Empty input detection
-        let result = detect_language("").await;
+        let result = detect_language_async("").await;
         assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
 
         // Translation of empty string (if supported)

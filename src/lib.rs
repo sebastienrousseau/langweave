@@ -35,6 +35,7 @@ pub mod optimized;
 /// A module that re-exports commonly used items for convenience.
 pub mod prelude {
     pub use crate::detect_language;
+    pub use crate::detect_language_async;
     pub use crate::error::I18nError;
     pub use crate::is_language_supported;
     pub use crate::supported_languages;
@@ -90,7 +91,10 @@ pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
     translations::translate_with_fallback(lang, text)
 }
 
-/// Detects the language of a given text using the composite language detector.
+/// Detects the language of a given text synchronously.
+///
+/// This function provides synchronous language detection, suitable for contexts
+/// where async is not available or not needed.
 ///
 /// # Arguments
 ///
@@ -104,15 +108,73 @@ pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
 ///
 /// ```
 /// use langweave::detect_language;
+///
+/// let lang = detect_language("Hello, world!").unwrap();
+/// assert_eq!(lang, "en");
+///
+/// let lang = detect_language("Bonjour le monde!").unwrap();
+/// assert_eq!(lang, "fr");
+/// ```
+///
+/// # Errors
+///
+/// This function will return an error if:
+/// * The input text is empty or contains only non-alphabetic characters.
+/// * The language detection process fails to identify a language with sufficient confidence.
+pub fn detect_language(text: &str) -> Result<String, I18nError> {
+    debug!("Detecting language for: {}", text);
+
+    if text.trim().is_empty() {
+        return Err(I18nError::LanguageDetectionFailed);
+    }
+
+    // Try detecting the language for the whole text first
+    if let Ok(detected_lang) = LANGUAGE_DETECTOR.detect(text) {
+        debug!("Detected language: {}", detected_lang);
+        return Ok(detected_lang);
+    }
+
+    // Fallback: Return the first successfully detected language from word-by-word detection
+    for word in text.split_whitespace() {
+        if let Ok(detected_lang) = LANGUAGE_DETECTOR.detect(word) {
+            debug!(
+                "Detected language from word '{}': {}",
+                word, detected_lang
+            );
+            return Ok(detected_lang);
+        }
+    }
+
+    // If no language is detected, return an error
+    Err(I18nError::LanguageDetectionFailed)
+}
+
+/// Detects the language of a given text asynchronously.
+///
+/// This function provides asynchronous language detection, suitable for
+/// async contexts where non-blocking operation is preferred.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to analyze
+///
+/// # Returns
+///
+/// * `Result<String, I18nError>` - The detected language code if successful, or an error if detection fails
+///
+/// # Examples
+///
+/// ```
+/// use langweave::detect_language_async;
 /// use langweave::error::I18nError;
 ///
 /// async fn example() -> Result<(), I18nError> {
-///     // Detect language using the high-level function
-///     let lang = detect_language("Hello, world!").await?;
+///     // Detect language using the high-level async function
+///     let lang = detect_language_async("Hello, world!").await?;
 ///     println!("Detected language: {}", lang);
 ///
 ///     // Detect language for French text
-///     let lang = detect_language("Bonjour le monde!").await?;
+///     let lang = detect_language_async("Bonjour le monde!").await?;
 ///     println!("Detected language: {}", lang);
 ///
 ///     Ok(())
@@ -124,7 +186,7 @@ pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
 /// This function will return an error if:
 /// * The input text is empty or contains only non-alphabetic characters.
 /// * The language detection process fails to identify a language with sufficient confidence.
-pub async fn detect_language(text: &str) -> Result<String, I18nError> {
+pub async fn detect_language_async(text: &str) -> Result<String, I18nError> {
     debug!("Detecting language for: {}", text);
 
     if text.trim().is_empty() {
@@ -279,26 +341,50 @@ mod tests {
         ));
     }
 
-    #[tokio::test]
-    async fn test_detect_language() {
+    #[test]
+    fn test_detect_language() {
         assert_eq!(
-            detect_language("The quick brown fox").await.unwrap(),
+            detect_language("The quick brown fox").unwrap(),
             "en"
         );
         assert_eq!(
-            detect_language("Le chat noir").await.unwrap(),
+            detect_language("Le chat noir").unwrap(),
             "fr"
         );
         assert_eq!(
-            detect_language("Der schnelle Fuchs").await.unwrap(),
+            detect_language("Der schnelle Fuchs").unwrap(),
+            "de"
+        );
+    }
+
+    #[test]
+    fn test_detect_language_error() {
+        assert!(matches!(
+            detect_language(""),
+            Err(I18nError::LanguageDetectionFailed)
+        ));
+    }
+
+    #[tokio::test]
+    async fn test_detect_language_async() {
+        assert_eq!(
+            detect_language_async("The quick brown fox").await.unwrap(),
+            "en"
+        );
+        assert_eq!(
+            detect_language_async("Le chat noir").await.unwrap(),
+            "fr"
+        );
+        assert_eq!(
+            detect_language_async("Der schnelle Fuchs").await.unwrap(),
             "de"
         );
     }
 
     #[tokio::test]
-    async fn test_detect_language_error() {
+    async fn test_detect_language_async_error() {
         assert!(matches!(
-            detect_language("").await,
+            detect_language_async("").await,
             Err(I18nError::LanguageDetectionFailed)
         ));
     }
@@ -314,9 +400,9 @@ mod tests {
         ));
     }
 
-    #[tokio::test]
-    async fn test_detect_language_mixed() {
-        let result = detect_language("Hello bonjour").await;
+    #[test]
+    fn test_detect_language_mixed() {
+        let result = detect_language("Hello bonjour");
         assert!(
             result.is_ok(),
             "Language detection failed for mixed input"
@@ -331,10 +417,10 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn test_detect_language_fallback() {
+    #[test]
+    fn test_detect_language_fallback() {
         // Test with a string that might be hard to detect
-        let result = detect_language("1234567890").await;
+        let result = detect_language("1234567890");
         // It should either detect a language or return LanguageDetectionFailed
         assert!(
             result.is_ok()

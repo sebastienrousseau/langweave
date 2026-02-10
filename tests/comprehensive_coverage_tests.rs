@@ -7,7 +7,7 @@ use langweave::error::I18nError;
 use langweave::language_detector::LanguageDetector;
 use langweave::language_detector_trait::{CompositeLanguageDetector, LanguageDetectorTrait};
 use langweave::translator::Translator;
-use langweave::{detect_language, is_language_supported, supported_languages, translate};
+use langweave::{detect_language_async, is_language_supported, supported_languages, translate};
 
 #[cfg(feature = "async")]
 use langweave::async_utils::translate_async;
@@ -156,33 +156,33 @@ mod language_detection_tests {
 
     #[tokio::test]
     async fn test_detect_language_whitespace_only() {
-        let result = detect_language("   \t\n   ").await;
+        let result = detect_language_async("   \t\n   ").await;
         assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
     }
 
     #[tokio::test]
     async fn test_detect_language_empty_string() {
-        let result = detect_language("").await;
+        let result = detect_language_async("").await;
         assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
     }
 
     #[tokio::test]
     async fn test_detect_language_numbers_only() {
-        let result = detect_language("123456789").await;
+        let result = detect_language_async("123456789").await;
         // This should either detect a language or fail
         assert!(result.is_ok() || matches!(result, Err(I18nError::LanguageDetectionFailed)));
     }
 
     #[tokio::test]
     async fn test_detect_language_special_characters() {
-        let result = detect_language("!@#$%^&*()_+-=[]{}|;':\",./<>?`~").await;
+        let result = detect_language_async("!@#$%^&*()_+-=[]{}|;':\",./<>?`~").await;
         // This should either detect a language or fail
         assert!(result.is_ok() || matches!(result, Err(I18nError::LanguageDetectionFailed)));
     }
 
     #[tokio::test]
     async fn test_detect_language_mixed_scripts() {
-        let result = detect_language("Hello мир world").await;
+        let result = detect_language_async("Hello мир world").await;
         // Should detect one of the languages
         assert!(result.is_ok());
     }
@@ -190,7 +190,7 @@ mod language_detection_tests {
     #[tokio::test]
     async fn test_detect_language_single_word_fallback() {
         // Test the word-by-word fallback logic
-        let result = detect_language("xyz Hello abc").await;
+        let result = detect_language_async("xyz Hello abc").await;
         // Should detect English from "Hello"
         assert!(result.is_ok());
         let lang = result.unwrap();
@@ -361,7 +361,7 @@ async fn test_full_workflow_integration() {
     let text = "Hello world, this is a test";
 
     // Detect language
-    let detected_lang = detect_language(text).await;
+    let detected_lang = detect_language_async(text).await;
     assert!(detected_lang.is_ok());
     let lang = detected_lang.unwrap();
 

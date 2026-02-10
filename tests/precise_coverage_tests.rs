@@ -3,7 +3,7 @@
 //! This test suite provides targeted coverage for specific lines and edge cases
 //! to ensure comprehensive testing of the LangWeave internationalization library.
 
-use langweave::{detect_language, translate, error::I18nError};
+use langweave::{detect_language_async, translate, error::I18nError};
 
 #[cfg(test)]
 mod precise_lib_coverage {
@@ -52,15 +52,15 @@ mod precise_lib_coverage {
         // Create text where full detection fails but word detection succeeds
         // Use text with mostly non-linguistic content but one recognizable word
 
-        let result = detect_language("12345 hello 67890").await;
+        let result = detect_language_async("12345 hello 67890").await;
         // This should trigger word-by-word detection and debug logging
         assert!(result.is_ok() || result.is_err()); // Either outcome exercises the code
 
-        let result = detect_language("!@#$% the ^&*()").await;
+        let result = detect_language_async("!@#$% the ^&*()").await;
         // This should also trigger word-by-word with debug logging
         assert!(result.is_ok() || result.is_err());
 
-        let result = detect_language("xyz hello abc").await;
+        let result = detect_language_async("xyz hello abc").await;
         // Force word-by-word detection path
         assert!(result.is_ok() || result.is_err());
     }
@@ -68,7 +68,7 @@ mod precise_lib_coverage {
     #[tokio::test]
     async fn test_detect_language_force_all_word_detection_failure() {
         // Target line 171: when all word detection fails
-        let result = detect_language("12345 67890 !@#$% ^&*()").await;
+        let result = detect_language_async("12345 67890 !@#$% ^&*()").await;
         // This should fail both full and word-by-word detection
         assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
     }

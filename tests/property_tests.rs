@@ -7,7 +7,7 @@ use langweave::error::I18nError;
 use langweave::language_detector::LanguageDetector;
 use langweave::language_detector_trait::LanguageDetectorTrait;
 use langweave::translator::Translator;
-use langweave::{detect_language, translate, is_language_supported, supported_languages};
+use langweave::{detect_language_async, translate, is_language_supported, supported_languages};
 use proptest::prelude::*;
 
 /// Test strategy for generating arbitrary text inputs
@@ -104,7 +104,7 @@ proptest! {
         // This should never panic, even on malformed input
         let _result = std::panic::catch_unwind(|| {
             rt.block_on(async {
-                let _ = detect_language(&text).await;
+                let _ = detect_language_async(&text).await;
             })
         });
 
@@ -245,7 +245,7 @@ proptest! {
 
         if whitespace.trim().is_empty() {
             let result = rt.block_on(async {
-                detect_language(&whitespace).await
+                detect_language_async(&whitespace).await
             });
 
             // Empty or whitespace-only input should fail detection

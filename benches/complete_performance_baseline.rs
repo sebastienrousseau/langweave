@@ -6,7 +6,7 @@
 
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use langweave::{
-    is_language_supported, supported_languages, translate, detect_language,
+    is_language_supported, supported_languages, translate, detect_language_async,
     language_detector::LanguageDetector,
     language_detector_trait::LanguageDetectorTrait,
     translator::Translator,
@@ -121,7 +121,7 @@ fn bench_language_detection_all(c: &mut Criterion) {
             |b, &phrase| {
                 b.iter(|| {
                     rt.block_on(async {
-                        black_box(detect_language(phrase).await)
+                        black_box(detect_language_async(phrase).await)
                     })
                 })
             },
@@ -153,7 +153,7 @@ fn bench_stress_test_10x(c: &mut Criterion) {
     group.bench_function("async_language_detection_10x", |b| {
         b.iter(|| {
             rt.block_on(async {
-                black_box(detect_language(&text_10x).await)
+                black_box(detect_language_async(&text_10x).await)
             })
         })
     });
@@ -196,7 +196,7 @@ fn bench_stress_test_100x(c: &mut Criterion) {
     group.bench_function("async_language_detection_100x", |b| {
         b.iter(|| {
             rt.block_on(async {
-                black_box(detect_language(&text_100x).await)
+                black_box(detect_language_async(&text_100x).await)
             })
         })
     });
