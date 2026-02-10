@@ -62,10 +62,9 @@ Detect language and translate text:
 use langweave::{detect_language, translate};
 use langweave::error::I18nError;
 
-#[tokio::main]
-async fn main() -> Result<(), I18nError> {
+fn main() -> Result<(), I18nError> {
     // Detect language using the high-level API
-    let lang = detect_language("Hello, world!").await?;
+    let lang = detect_language("Hello, world!")?;
     println!("Detected: {}", lang);
 
     // Translate text
