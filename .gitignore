@@ -16,6 +16,7 @@ Cargo.lock
 perf.data*
 flamegraph.svg
 criterion/
+bench_*.json
 
 # Coverage reports
 /coverage/
