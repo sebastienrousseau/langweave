@@ -117,7 +117,7 @@ mod edge_cases {
 
         // Test translation failure paths with complex phrases
         let supported_langs = supported_languages();
-        let complex_phrases = vec![
+        let complex_phrases = [
             "This is a very complex sentence that doesn't exist in dictionary",
             "Multiple words with punctuation!",
             "Questions are complex, right?",

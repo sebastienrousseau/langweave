@@ -184,7 +184,7 @@ mod optimized_coverage_tests {
         assert!(is_language_supported_optimized(string_slice));
         assert!(is_language_supported_zero_alloc(string_slice));
 
-        let borrowed_from_vec = vec!["de".to_string()];
+        let borrowed_from_vec = ["de".to_string()];
         assert!(is_language_supported_optimized(&borrowed_from_vec[0]));
         assert!(is_language_supported_zero_alloc(
             &borrowed_from_vec[0]

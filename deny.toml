@@ -1,13 +1,7 @@
 # cargo-deny configuration file for LangWeave v0.0.2
-# This file configures strict security and license checks
+# Compatible with cargo-deny v0.19+
 
 [advisories]
-# The path where the advisory database is cloned/fetched into
-db-path = "~/.cargo/advisory-db"
-# The url(s) of the advisory databases to use
-db-urls = ["https://github.com/rustsec/advisory-db"]
-# The lint level for security vulnerabilities
-vulnerability = "deny"
 # List of advisory IDs to ignore
 ignore = []
 
@@ -24,19 +18,6 @@ allow = [
     "CC0-1.0",
 ]
 
-# List of explicitly disallowed licenses
-deny = [
-    "GPL-2.0",
-    "GPL-3.0",
-    "AGPL-1.0",
-    "AGPL-3.0",
-    "LGPL-2.0",
-    "LGPL-2.1",
-    "LGPL-3.0",
-]
-
-# Lint level for when multiple versions of the same license are detected
-copyleft = "deny"
 # Confidence threshold for detecting a license from a license text
 confidence-threshold = 0.8
 
@@ -55,7 +36,7 @@ multiple-versions = "warn"
 wildcards = "warn"
 # The graph highlighting used when creating dotgraphs for crates with multiple versions
 highlight = "all"
-# List of crates to deny for security reasons
+# List of crates to deny
 deny = [
     { name = "openssl", version = "<1.0" },
     { name = "md5", version = "*" },
