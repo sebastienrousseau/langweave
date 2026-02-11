@@ -76,7 +76,7 @@ mod accuracy_tests {
         let mixed_samples = [
             "Hello bonjour hallo", // English/French/German mix
             "The chat noir is cute", // English with French
-            "Das ist very gut", // German with English
+            "Das ist very gut",    // German with English
         ];
 
         for sample in mixed_samples {
@@ -94,12 +94,12 @@ mod accuracy_tests {
     #[test]
     fn test_non_latin_scripts() {
         let script_samples = [
-            ("你好世界", Some("zh")), // Chinese
-            ("こんにちは世界", Some("ja")), // Japanese
-            ("مرحبا بالعالم", Some("ar")), // Arabic
-            ("שלום עולם", Some("he")), // Hebrew
-            ("Привет мир", Some("ru")), // Russian (Cyrillic)
-            ("नमस्ते दुनिया", Some("hi")), // Hindi (Devanagari)
+            ("你好世界", Some("zh")),        // Chinese
+            ("こんにちは世界", Some("ja")),  // Japanese
+            ("مرحبا بالعالم", Some("ar")),   // Arabic
+            ("שלום עולם", Some("he")),       // Hebrew
+            ("Привет мир", Some("ru")),      // Russian (Cyrillic)
+            ("नमस्ते दुनिया", Some("hi")),      // Hindi (Devanagari)
             ("안녕하세요 세계", Some("ko")), // Korean
         ];
 
@@ -119,7 +119,10 @@ mod accuracy_tests {
                 }
                 (Ok(detected), None) => {
                     // If we expected failure but got success, note it
-                    println!("Note: Unexpectedly detected '{}' as '{}'", text, detected);
+                    println!(
+                        "Note: Unexpectedly detected '{}' as '{}'",
+                        text, detected
+                    );
                 }
             }
         }
@@ -159,19 +162,20 @@ mod accuracy_tests {
         let edge_cases = [
             "",                  // Empty string
             " ",                 // Whitespace only
-            "123456789",        // Numbers only
-            "!@#$%^&*()",       // Symbols only
+            "123456789",         // Numbers only
+            "!@#$%^&*()",        // Symbols only
             "a",                 // Single character
-            "   \t\n\r   ",     // Mixed whitespace
-            "Hello123World",    // Mixed alphanumeric
+            "   \t\n\r   ",      // Mixed whitespace
+            "Hello123World",     // Mixed alphanumeric
             "café résumé naïve", // Accented characters
-            "🎉🎊🎈",           // Emoji only
-            "Hello 🎉 World",   // Text with emoji
+            "🎉🎊🎈",            // Emoji only
+            "Hello 🎉 World",    // Text with emoji
         ];
 
         for case in edge_cases {
             // Should not panic regardless of input
-            let result = std::panic::catch_unwind(|| detect_language(case));
+            let result =
+                std::panic::catch_unwind(|| detect_language(case));
             assert!(
                 result.is_ok(),
                 "Detection panicked for edge case: {:?}",

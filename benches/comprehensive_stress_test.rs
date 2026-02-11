@@ -8,16 +8,18 @@
 #![allow(missing_docs)]
 
 use criterion::{
-    criterion_group, criterion_main, BenchmarkId, Criterion, Throughput
+    criterion_group, criterion_main, BenchmarkId, Criterion, Throughput,
 };
 use langweave::{
-    detect_language, detect_language_async, translate, supported_languages,
-    is_language_supported, language_detector::LanguageDetector,
+    detect_language, detect_language_async, is_language_supported,
+    language_detector::LanguageDetector,
     language_detector_trait::LanguageDetectorTrait,
     optimized::{
-        supported_languages_optimized, is_language_supported_optimized,
-        is_language_supported_zero_alloc
-    }
+        is_language_supported_optimized,
+        is_language_supported_zero_alloc,
+        supported_languages_optimized,
+    },
+    supported_languages, translate,
 };
 use std::hint::black_box;
 use std::time::Duration;
@@ -32,12 +34,18 @@ fn benchmark_language_detection_baselines(c: &mut Criterion) {
 
     // Pre-allocate repeated strings to avoid lifetime issues
     let medium_en = "Hello world this is a test sentence. ".repeat(10);
-    let medium_fr = "Bonjour le monde ceci est une phrase de test. ".repeat(10);
+    let medium_fr =
+        "Bonjour le monde ceci est une phrase de test. ".repeat(10);
     let medium_de = "Hallo Welt das ist ein Testsatz. ".repeat(10);
-    let large_en = "Hello world this is a test sentence with many words. ".repeat(100);
+    let large_en =
+        "Hello world this is a test sentence with many words. "
+            .repeat(100);
     let large_fr = "Bonjour le monde ceci est une phrase de test avec beaucoup de mots. ".repeat(100);
-    let large_de = "Hallo Welt das ist ein Testsatz mit vielen Wörtern. ".repeat(100);
-    let mixed_large = "Hello world bonjour le monde hallo Welt. ".repeat(50);
+    let large_de =
+        "Hallo Welt das ist ein Testsatz mit vielen Wörtern. "
+            .repeat(100);
+    let mixed_large =
+        "Hello world bonjour le monde hallo Welt. ".repeat(50);
 
     // Test cases with varying complexity and input sizes
     let test_cases: Vec<(&str, &str)> = vec![
@@ -45,17 +53,14 @@ fn benchmark_language_detection_baselines(c: &mut Criterion) {
         ("tiny_en", "Hello"),
         ("tiny_fr", "Bonjour"),
         ("tiny_de", "Hallo"),
-
         // Medium inputs (10x typical)
         ("medium_en", &medium_en),
         ("medium_fr", &medium_fr),
         ("medium_de", &medium_de),
-
         // Large inputs (100x typical)
         ("large_en", &large_en),
         ("large_fr", &large_fr),
         ("large_de", &large_de),
-
         // Mixed language inputs (stress case)
         ("mixed_small", "Hello bonjour hallo"),
         ("mixed_large", &mixed_large),
@@ -69,20 +74,16 @@ fn benchmark_language_detection_baselines(c: &mut Criterion) {
             BenchmarkId::new("sync_detect", name),
             &text,
             |b, text| {
-                b.iter(|| {
-                    black_box(detect_language(black_box(text)))
-                })
-            }
+                b.iter(|| black_box(detect_language(black_box(text))))
+            },
         );
 
         group.bench_with_input(
             BenchmarkId::new("direct_detect", name),
             &text,
             |b, text| {
-                b.iter(|| {
-                    black_box(detector.detect(black_box(text)))
-                })
-            }
+                b.iter(|| black_box(detector.detect(black_box(text))))
+            },
         );
     }
 
@@ -115,9 +116,11 @@ fn benchmark_async_detection(c: &mut Criterion) {
             &text,
             |b, text| {
                 b.to_async(&rt).iter(|| async {
-                    black_box(detect_language_async(black_box(*text)).await)
+                    black_box(
+                        detect_language_async(black_box(*text)).await,
+                    )
                 })
-            }
+            },
         );
     }
 
@@ -137,13 +140,19 @@ fn benchmark_translation_performance(c: &mut Criterion) {
     for lang in &languages {
         for key in &keys {
             group.bench_with_input(
-                BenchmarkId::new("translate", format!("{}_{}", lang, key)),
+                BenchmarkId::new(
+                    "translate",
+                    format!("{}_{}", lang, key),
+                ),
                 &(lang, key),
                 |b, (lang, key)| {
                     b.iter(|| {
-                        black_box(translate(black_box(lang), black_box(key)))
+                        black_box(translate(
+                            black_box(lang),
+                            black_box(key),
+                        ))
                     })
-                }
+                },
             );
         }
     }
@@ -157,7 +166,8 @@ fn benchmark_language_support_optimizations(c: &mut Criterion) {
     group.warm_up_time(Duration::from_secs(1));
     group.measurement_time(Duration::from_secs(5));
 
-    let test_languages = ["en", "fr", "de", "es", "invalid", "zz", "EN", "FR"];
+    let test_languages =
+        ["en", "fr", "de", "es", "invalid", "zz", "EN", "FR"];
 
     for lang in &test_languages {
         // Original implementation
@@ -165,8 +175,10 @@ fn benchmark_language_support_optimizations(c: &mut Criterion) {
             BenchmarkId::new("original", lang),
             lang,
             |b, lang| {
-                b.iter(|| black_box(is_language_supported(black_box(lang))))
-            }
+                b.iter(|| {
+                    black_box(is_language_supported(black_box(lang)))
+                })
+            },
         );
 
         // Optimized implementation
@@ -174,8 +186,12 @@ fn benchmark_language_support_optimizations(c: &mut Criterion) {
             BenchmarkId::new("optimized", lang),
             lang,
             |b, lang| {
-                b.iter(|| black_box(is_language_supported_optimized(black_box(lang))))
-            }
+                b.iter(|| {
+                    black_box(is_language_supported_optimized(
+                        black_box(lang),
+                    ))
+                })
+            },
         );
 
         // Zero-allocation implementation
@@ -183,8 +199,12 @@ fn benchmark_language_support_optimizations(c: &mut Criterion) {
             BenchmarkId::new("zero_alloc", lang),
             lang,
             |b, lang| {
-                b.iter(|| black_box(is_language_supported_zero_alloc(black_box(lang))))
-            }
+                b.iter(|| {
+                    black_box(is_language_supported_zero_alloc(
+                        black_box(lang),
+                    ))
+                })
+            },
         );
     }
 
@@ -199,15 +219,11 @@ fn benchmark_memory_hotspots(c: &mut Criterion) {
 
     // Benchmark supported_languages() allocation pattern
     group.bench_function("supported_languages_vec", |b| {
-        b.iter(|| {
-            black_box(supported_languages())
-        })
+        b.iter(|| black_box(supported_languages()))
     });
 
     group.bench_function("supported_languages_optimized", |b| {
-        b.iter(|| {
-            black_box(supported_languages_optimized())
-        })
+        b.iter(|| black_box(supported_languages_optimized()))
     });
 
     // Benchmark repeated allocations (worst case scenario)
@@ -238,13 +254,12 @@ fn benchmark_extreme_stress_test(c: &mut Criterion) {
     group.sample_size(10); // Smaller sample size for very long operations
 
     // Extremely large text (1MB+)
-    let huge_text = "The quick brown fox jumps over the lazy dog. ".repeat(10000);
+    let huge_text =
+        "The quick brown fox jumps over the lazy dog. ".repeat(10000);
 
     group.throughput(Throughput::Bytes(huge_text.len() as u64));
     group.bench_function("detect_1mb_text", |b| {
-        b.iter(|| {
-            black_box(detect_language(black_box(&huge_text)))
-        })
+        b.iter(|| black_box(detect_language(black_box(&huge_text))))
     });
 
     // Sustained high-frequency operations
@@ -254,7 +269,7 @@ fn benchmark_extreme_stress_test(c: &mut Criterion) {
             "Bonjour monde",
             "Hallo Welt",
             "Hola mundo",
-            "Ciao mondo"
+            "Ciao mondo",
         ];
 
         b.iter(|| {
@@ -291,7 +306,7 @@ fn benchmark_concurrent_performance(c: &mut Criterion) {
                             0 => "Hello world",
                             1 => "Bonjour monde",
                             2 => "Hallo Welt",
-                            _ => "Hola mundo"
+                            _ => "Hola mundo",
                         };
 
                         handles.push(tokio::spawn(async move {
@@ -303,7 +318,7 @@ fn benchmark_concurrent_performance(c: &mut Criterion) {
                         let _ = black_box(handle.await);
                     }
                 })
-            }
+            },
         );
     }
 
@@ -335,10 +350,8 @@ fn benchmark_regex_performance(c: &mut Criterion) {
             BenchmarkId::from_parameter(name),
             &text,
             |b, text| {
-                b.iter(|| {
-                    black_box(detector.detect(black_box(text)))
-                })
-            }
+                b.iter(|| black_box(detector.detect(black_box(text))))
+            },
         );
     }
 

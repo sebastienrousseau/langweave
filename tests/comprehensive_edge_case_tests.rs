@@ -5,13 +5,15 @@
 
 use langweave::error::I18nError;
 use langweave::language_detector::LanguageDetector;
-use langweave::language_detector_trait::{CompositeLanguageDetector, LanguageDetectorTrait};
+use langweave::language_detector_trait::{
+    CompositeLanguageDetector, LanguageDetectorTrait,
+};
 use langweave::optimized::*;
 use langweave::translations;
 use langweave::translator::Translator;
 use langweave::{
-    detect_language, detect_language_async, is_language_supported, supported_languages,
-    translate, VERSION,
+    detect_language, detect_language_async, is_language_supported,
+    supported_languages, translate, VERSION,
 };
 use tokio::task::JoinSet;
 
@@ -23,25 +25,25 @@ mod edge_cases {
     #[tokio::test]
     async fn test_unicode_edge_cases() {
         let edge_cases = vec![
-            "", // Empty
-            " \t\n\r", // Whitespace only
-            "🎉🎊🎈", // Emojis only
-            "123456789", // Numbers only
-            "!@#$%^&*()", // Punctuation only
-            "ሀሎ ወርልድ", // Amharic
-            "مرحبا بالعالم", // Arabic
-            "שלום עולם", // Hebrew
-            "こんにちは世界", // Japanese
+            "",                                              // Empty
+            " \t\n\r",         // Whitespace only
+            "🎉🎊🎈",          // Emojis only
+            "123456789",       // Numbers only
+            "!@#$%^&*()",      // Punctuation only
+            "ሀሎ ወርልድ",         // Amharic
+            "مرحبا بالعالم",   // Arabic
+            "שלום עולם",       // Hebrew
+            "こんにちは世界",  // Japanese
             "안녕하세요 세계", // Korean
-            "你好世界", // Chinese
-            "Привет мир", // Russian
-            "नमस्ते संसार", // Hindi
-            "Hallå världen", // Swedish with special chars
-            "Olá mundo", // Portuguese with accent
+            "你好世界",        // Chinese
+            "Привет мир",      // Russian
+            "नमस्ते संसार",       // Hindi
+            "Hallå världen",   // Swedish with special chars
+            "Olá mundo",       // Portuguese with accent
             "A\u{0300}e\u{0301}i\u{0302}o\u{0303}u\u{0308}", // Combining diacritical marks
             "\u{200B}\u{200C}\u{200D}", // Zero-width characters
-            "\u{FEFF}Hello", // BOM + text
-            "𝒽𝑒𝓁𝓁𝑜 𝓌𝑜𝓇𝓁𝒹", // Mathematical script
+            "\u{FEFF}Hello",            // BOM + text
+            "𝒽𝑒𝓁𝓁𝑜 𝓌𝑜𝓇𝓁𝒹",              // Mathematical script
         ];
 
         for test_case in edge_cases {
@@ -54,7 +56,9 @@ mod edge_cases {
             // Results should be consistent
             assert_eq!(sync_result.is_ok(), async_result.is_ok());
 
-            if let (Ok(sync_lang), Ok(async_lang)) = (sync_result, async_result) {
+            if let (Ok(sync_lang), Ok(async_lang)) =
+                (sync_result, async_result)
+            {
                 assert_eq!(sync_lang, async_lang);
             }
         }
@@ -72,7 +76,8 @@ mod edge_cases {
         }
 
         // Very long text (1MB)
-        let long_text = "Hello world this is a test sentence. ".repeat(30000);
+        let long_text =
+            "Hello world this is a test sentence. ".repeat(30000);
         let _result = detector.detect(&long_text);
 
         // Extremely long single word
@@ -85,15 +90,28 @@ mod edge_cases {
     fn test_translate_error_paths() {
         // Test with all unsupported language patterns
         let unsupported_langs = vec![
-            "xx", "zz", "invalid", "123", "", "en-US", "fr-FR", "de-DE",
-            "toolong", "CAPS", "MiXeD", "with space", "with-dash",
+            "xx",
+            "zz",
+            "invalid",
+            "123",
+            "",
+            "en-US",
+            "fr-FR",
+            "de-DE",
+            "toolong",
+            "CAPS",
+            "MiXeD",
+            "with space",
+            "with-dash",
         ];
 
         for lang in unsupported_langs {
             match translate(lang, "Hello") {
-                Ok(_) => {}, // Might be supported by fallback
-                Err(I18nError::UnsupportedLanguage(_)) => {}, // Expected
-                Err(_) => panic!("Unexpected error type for lang: {}", lang),
+                Ok(_) => {} // Might be supported by fallback
+                Err(I18nError::UnsupportedLanguage(_)) => {} // Expected
+                Err(_) => {
+                    panic!("Unexpected error type for lang: {}", lang)
+                }
             }
         }
 
@@ -106,14 +124,18 @@ mod edge_cases {
             "Comma, separated, phrases, everywhere",
         ];
 
-        for lang in &supported_langs[..3] { // Test first 3 languages
+        for lang in &supported_langs[..3] {
+            // Test first 3 languages
             for phrase in complex_phrases.iter() {
                 let result = translate(lang, phrase);
                 // Should either succeed or fail with TranslationFailed
                 match result {
-                    Ok(_) => {},
-                    Err(I18nError::TranslationFailed(_)) => {},
-                    Err(e) => panic!("Unexpected error for {}/{}: {:?}", lang, phrase, e),
+                    Ok(_) => {}
+                    Err(I18nError::TranslationFailed(_)) => {}
+                    Err(e) => panic!(
+                        "Unexpected error for {}/{}: {:?}",
+                        lang, phrase, e
+                    ),
                 }
             }
         }
@@ -133,13 +155,17 @@ mod edge_cases {
         ];
 
         for key in simple_keys {
-            let result = translations::translate_with_fallback("fr", key);
+            let result =
+                translations::translate_with_fallback("fr", key);
             match result {
                 Ok(translated) => {
                     // Should either be actual translation or fallback to original
                     assert!(!translated.is_empty());
-                },
-                Err(e) => panic!("Simple key should not fail with error: {:?}", e),
+                }
+                Err(e) => panic!(
+                    "Simple key should not fail with error: {:?}",
+                    e
+                ),
             }
         }
 
@@ -153,11 +179,15 @@ mod edge_cases {
         ];
 
         for phrase in complex_phrases {
-            let result = translations::translate_with_fallback("fr", phrase);
+            let result =
+                translations::translate_with_fallback("fr", phrase);
             match result {
-                Ok(_) => {}, // Might have actual translation
-                Err(I18nError::TranslationFailed(_)) => {}, // Expected for complex phrases without translation
-                Err(e) => panic!("Unexpected error for complex phrase {}: {:?}", phrase, e),
+                Ok(_) => {} // Might have actual translation
+                Err(I18nError::TranslationFailed(_)) => {} // Expected for complex phrases without translation
+                Err(e) => panic!(
+                    "Unexpected error for complex phrase {}: {:?}",
+                    phrase, e
+                ),
             }
         }
     }
@@ -172,37 +202,56 @@ mod edge_cases {
 
         // Test is_language_supported_optimized with all cases
         let test_codes = vec![
-            "en", "fr", "de", "es", "pt", "it", "nl", "ru", "ar", "he", "hi", "ja", "ko", "zh", "id",
-            "EN", "FR", "De", // Case variations
-            "invalid", "xx", "123", "", "toolong", // Invalid cases
+            "en", "fr", "de", "es", "pt", "it", "nl", "ru", "ar", "he",
+            "hi", "ja", "ko", "zh", "id", "EN", "FR",
+            "De", // Case variations
+            "invalid", "xx", "123", "",
+            "toolong", // Invalid cases
         ];
 
         for code in test_codes {
-            let optimized_result = is_language_supported_optimized(code);
+            let optimized_result =
+                is_language_supported_optimized(code);
             let regular_result = is_language_supported(code);
-            assert_eq!(optimized_result, regular_result, "Mismatch for code: {}", code);
+            assert_eq!(
+                optimized_result, regular_result,
+                "Mismatch for code: {}",
+                code
+            );
         }
 
         // Test is_language_supported_zero_alloc
         for code in &["en", "fr", "invalid", ""] {
-            let zero_alloc_result = is_language_supported_zero_alloc(code);
+            let zero_alloc_result =
+                is_language_supported_zero_alloc(code);
             let regular_result = is_language_supported(code);
-            assert_eq!(zero_alloc_result, regular_result, "Zero-alloc mismatch for: {}", code);
+            assert_eq!(
+                zero_alloc_result, regular_result,
+                "Zero-alloc mismatch for: {}",
+                code
+            );
         }
 
         // Test translate_optimized - verify it works for known translations
-        let test_cases = vec![
-            ("en", "Hello"),
-            ("fr", "Hello"),
-        ];
+        let test_cases = vec![("en", "Hello"), ("fr", "Hello")];
 
         for (lang, text) in test_cases {
             let optimized_result = translate_optimized(lang, text);
             let regular_result = translate(lang, text);
 
             // For known translations, both should succeed
-            assert!(optimized_result.is_ok(), "Optimized failed for {}/{}", lang, text);
-            assert!(regular_result.is_ok(), "Regular failed for {}/{}", lang, text);
+            assert!(
+                optimized_result.is_ok(),
+                "Optimized failed for {}/{}",
+                lang,
+                text
+            );
+            assert!(
+                regular_result.is_ok(),
+                "Regular failed for {}/{}",
+                lang,
+                text
+            );
         }
 
         // Test that invalid language returns error for both
@@ -217,13 +266,18 @@ mod edge_cases {
         let supported = supported_languages();
         for &lang in supported {
             let translator = Translator::new(lang);
-            assert!(translator.is_ok(), "Failed to create translator for {}", lang);
+            assert!(
+                translator.is_ok(),
+                "Failed to create translator for {}",
+                lang
+            );
 
             if let Ok(translator) = translator {
                 assert_eq!(translator.lang(), lang);
 
                 // Test translation with various inputs
-                let test_inputs = vec!["Hello", "Goodbye", "", "NonexistentKey"];
+                let test_inputs =
+                    vec!["Hello", "Goodbye", "", "NonexistentKey"];
                 for input in test_inputs {
                     let _result = translator.translate(input);
                 }
@@ -235,9 +289,11 @@ mod edge_cases {
         for lang in unsupported {
             let result = Translator::new(lang);
             match result {
-                Ok(_) => {}, // Might be supported
-                Err(I18nError::UnsupportedLanguage(_)) => {}, // Expected
-                Err(e) => panic!("Unexpected error for {}: {:?}", lang, e),
+                Ok(_) => {} // Might be supported
+                Err(I18nError::UnsupportedLanguage(_)) => {} // Expected
+                Err(e) => {
+                    panic!("Unexpected error for {}: {:?}", lang, e)
+                }
             }
         }
     }
@@ -249,10 +305,16 @@ mod edge_cases {
         let mut composite = CompositeLanguageDetector::new();
 
         let result = composite.detect("Hello world");
-        assert!(matches!(result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
 
         let async_result = composite.detect_async("Hello world").await;
-        assert!(matches!(async_result, Err(I18nError::LanguageDetectionFailed)));
+        assert!(matches!(
+            async_result,
+            Err(I18nError::LanguageDetectionFailed)
+        ));
 
         // Test with one detector
         composite.add_detector(Box::new(LanguageDetector::new()));
@@ -310,7 +372,9 @@ mod edge_cases {
             assert_eq!(result1.is_ok(), result2.is_ok());
             assert_eq!(result1.is_ok(), result3.is_ok());
 
-            if let (Ok(lang1), Ok(lang2), Ok(lang3)) = (result1, result2, result3) {
+            if let (Ok(lang1), Ok(lang2), Ok(lang3)) =
+                (result1, result2, result3)
+            {
                 assert_eq!(lang1, lang2);
                 assert_eq!(lang1, lang3);
             }
@@ -324,10 +388,10 @@ mod edge_cases {
 
         // Spawn many concurrent tasks with edge case inputs
         let edge_inputs = vec![
-            ("", ""), // Empty lang and text
-            ("invalid", ""), // Invalid lang, empty text
-            ("", "Hello"), // Empty lang, valid text
-            ("fr", "🎉🎊🎈"), // Valid lang, emoji text
+            ("", ""),              // Empty lang and text
+            ("invalid", ""),       // Invalid lang, empty text
+            ("", "Hello"),         // Empty lang, valid text
+            ("fr", "🎉🎊🎈"),      // Valid lang, emoji text
             ("CAPS", "CAPS TEXT"), // Uppercase everything
         ];
 
@@ -344,7 +408,8 @@ mod edge_cases {
 
                 // Test detection
                 if !text.is_empty() {
-                    let _detect_result = detect_language_async(&text).await;
+                    let _detect_result =
+                        detect_language_async(&text).await;
                 }
 
                 i // Return task ID
@@ -406,11 +471,17 @@ mod edge_cases {
 
         // Should match Cargo.toml version format (basic check)
         let parts: Vec<&str> = VERSION.split('.').collect();
-        assert!(parts.len() >= 2, "Version should have at least major.minor");
+        assert!(
+            parts.len() >= 2,
+            "Version should have at least major.minor"
+        );
 
         // Each part should be numeric or contain numeric
         for part in parts {
-            assert!(!part.is_empty(), "Version part should not be empty");
+            assert!(
+                !part.is_empty(),
+                "Version part should not be empty"
+            );
         }
     }
 
@@ -422,7 +493,10 @@ mod edge_cases {
             ("very long error message ".repeat(100), "Long message"),
             ("Unicode error: 🎉💀".to_string(), "Unicode in message"),
             ("\n\t\r".to_string(), "Whitespace message"),
-            ("Message with \"quotes\" and 'apostrophes'".to_string(), "Quotes in message"),
+            (
+                "Message with \"quotes\" and 'apostrophes'".to_string(),
+                "Quotes in message",
+            ),
         ];
 
         for (msg, description) in test_cases {
@@ -435,9 +509,21 @@ mod edge_cases {
             let display2 = error2.to_string();
             let display3 = error3.to_string();
 
-            assert!(!display1.is_empty(), "Failed for: {}", description);
-            assert!(!display2.is_empty(), "Failed for: {}", description);
-            assert!(!display3.is_empty(), "Failed for: {}", description);
+            assert!(
+                !display1.is_empty(),
+                "Failed for: {}",
+                description
+            );
+            assert!(
+                !display2.is_empty(),
+                "Failed for: {}",
+                description
+            );
+            assert!(
+                !display3.is_empty(),
+                "Failed for: {}",
+                description
+            );
 
             // Should be consistent across multiple calls
             assert_eq!(display1, error1.to_string());
@@ -470,14 +556,20 @@ mod regression_tests {
             match result {
                 Ok(ref lang) => {
                     // Detection succeeded - lang should be a valid language code
-                    assert!(!lang.is_empty(), "Detected language should not be empty");
+                    assert!(
+                        !lang.is_empty(),
+                        "Detected language should not be empty"
+                    );
                     // Note: detected languages may include languages not in
                     // the translation dictionary (e.g., 'uzb' for Uzbek patterns)
-                },
+                }
                 Err(I18nError::LanguageDetectionFailed) => {
                     // Acceptable failure for difficult inputs
-                },
-                Err(e) => panic!("Unexpected error for '{}': {:?}", test_case, e),
+                }
+                Err(e) => panic!(
+                    "Unexpected error for '{}': {:?}",
+                    test_case, e
+                ),
             }
         }
     }
@@ -500,7 +592,11 @@ mod regression_tests {
 
         for (lang_code, expected_supported) in test_cases {
             let result = is_language_supported(lang_code);
-            assert_eq!(result, expected_supported, "Mismatch for language code: {}", lang_code);
+            assert_eq!(
+                result, expected_supported,
+                "Mismatch for language code: {}",
+                lang_code
+            );
         }
     }
 
@@ -525,12 +621,19 @@ mod regression_tests {
             // Results should be consistent
             match (sync_result, async_result) {
                 (Ok(sync_lang), Ok(async_lang)) => {
-                    assert_eq!(sync_lang, async_lang, "Language mismatch for input: {}", input);
-                },
+                    assert_eq!(
+                        sync_lang, async_lang,
+                        "Language mismatch for input: {}",
+                        input
+                    );
+                }
                 (Err(_), Err(_)) => {
                     // Both failed - acceptable
-                },
-                _ => panic!("Sync/async result type mismatch for input: {}", input),
+                }
+                _ => panic!(
+                    "Sync/async result type mismatch for input: {}",
+                    input
+                ),
             }
         }
     }

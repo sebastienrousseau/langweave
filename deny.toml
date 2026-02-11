@@ -8,12 +8,6 @@ db-path = "~/.cargo/advisory-db"
 db-urls = ["https://github.com/rustsec/advisory-db"]
 # The lint level for security vulnerabilities
 vulnerability = "deny"
-# The lint level for unmaintained crates
-unmaintained = "warn"
-# The lint level for crates that have been yanked from their source registry
-yanked = "warn"
-# The lint level for crates with security notices
-notice = "warn"
 # List of advisory IDs to ignore
 ignore = []
 
@@ -61,9 +55,6 @@ multiple-versions = "warn"
 wildcards = "warn"
 # The graph highlighting used when creating dotgraphs for crates with multiple versions
 highlight = "all"
-# The maximum number of versions that can be found for a single crate
-version-limit = 3
-
 # List of crates to deny for security reasons
 deny = [
     { name = "openssl", version = "<1.0" },
