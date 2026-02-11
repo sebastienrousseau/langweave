@@ -59,14 +59,14 @@ mod complete_coverage {
     fn test_translate_comprehensive_edge_cases() {
         // Test all supported languages with empty string
         let supported = supported_languages();
-        for lang in &supported {
+        for lang in supported {
             let result = translate(lang, "");
             // Should either succeed or fail gracefully
             assert!(result.is_ok() || result.is_err());
         }
 
         // Test with whitespace-only input
-        for lang in &supported {
+        for lang in supported {
             let result = translate(lang, "   \t\n   ");
             assert!(result.is_ok() || result.is_err());
         }
@@ -192,7 +192,7 @@ mod complete_coverage {
 
         for expected_lang in expected_languages {
             assert!(
-                languages.contains(&expected_lang.to_string()),
+                languages.contains(&expected_lang),
                 "Missing language: {}",
                 expected_lang
             );

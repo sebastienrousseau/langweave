@@ -277,7 +277,7 @@ fn test_supported_languages_count() {
     // Verify all 15 languages are included
     for &expected_lang in ALL_LANGUAGES {
         assert!(
-            languages.contains(&expected_lang.to_string()),
+            languages.contains(&expected_lang),
             "Language {} should be in supported_languages() result",
             expected_lang
         );

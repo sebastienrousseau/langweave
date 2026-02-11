@@ -107,7 +107,7 @@ mod edge_cases {
         ];
 
         for lang in &supported_langs[..3] { // Test first 3 languages
-            for phrase in &complex_phrases {
+            for phrase in complex_phrases.iter() {
                 let result = translate(lang, phrase);
                 // Should either succeed or fail with TranslationFailed
                 match result {
@@ -215,7 +215,7 @@ mod edge_cases {
     fn test_translator_edge_cases() {
         // Test all supported languages
         let supported = supported_languages();
-        for lang in &supported {
+        for &lang in supported {
             let translator = Translator::new(lang);
             assert!(translator.is_ok(), "Failed to create translator for {}", lang);
 

@@ -160,21 +160,21 @@ mod lib_coverage_tests {
         // Test lines 188-189: supported_languages function
         let languages = supported_languages();
         assert_eq!(languages.len(), 15);
-        assert!(languages.contains(&"en".to_string()));
-        assert!(languages.contains(&"fr".to_string()));
-        assert!(languages.contains(&"de".to_string()));
-        assert!(languages.contains(&"es".to_string()));
-        assert!(languages.contains(&"pt".to_string()));
-        assert!(languages.contains(&"it".to_string()));
-        assert!(languages.contains(&"nl".to_string()));
-        assert!(languages.contains(&"ru".to_string()));
-        assert!(languages.contains(&"ar".to_string()));
-        assert!(languages.contains(&"he".to_string()));
-        assert!(languages.contains(&"hi".to_string()));
-        assert!(languages.contains(&"ja".to_string()));
-        assert!(languages.contains(&"ko".to_string()));
-        assert!(languages.contains(&"zh".to_string()));
-        assert!(languages.contains(&"id".to_string()));
+        assert!(languages.contains(&"en"));
+        assert!(languages.contains(&"fr"));
+        assert!(languages.contains(&"de"));
+        assert!(languages.contains(&"es"));
+        assert!(languages.contains(&"pt"));
+        assert!(languages.contains(&"it"));
+        assert!(languages.contains(&"nl"));
+        assert!(languages.contains(&"ru"));
+        assert!(languages.contains(&"ar"));
+        assert!(languages.contains(&"he"));
+        assert!(languages.contains(&"hi"));
+        assert!(languages.contains(&"ja"));
+        assert!(languages.contains(&"ko"));
+        assert!(languages.contains(&"zh"));
+        assert!(languages.contains(&"id"));
     }
 
     #[test]

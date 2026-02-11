@@ -220,7 +220,7 @@ proptest! {
     #[test]
     fn supported_languages_consistency(_any in ".*") {
         let supported = supported_languages();
-        for lang in &supported {
+        for lang in supported {
             prop_assert!(is_language_supported(lang));
         }
     }
@@ -272,7 +272,7 @@ proptest! {
     fn translation_roundtrip_property(text in "[a-zA-Z ]{1,100}") {
         let supported_langs = supported_languages();
 
-        for lang in &supported_langs {
+        for lang in supported_langs {
             if is_language_supported(lang) {
                 let result = translate(lang, &text);
 
