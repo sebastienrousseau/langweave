@@ -14,7 +14,10 @@ allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "ISC",
+    "Unicode-3.0",
     "Unicode-DFS-2016",
+    "Unlicense",
+    "Zlib",
     "CC0-1.0",
 ]
 
@@ -22,12 +25,7 @@ allow = [
 confidence-threshold = 0.8
 
 # Allow specific licenses on a per-crate basis
-exceptions = [
-    { allow = ["Unicode-DFS-2016"], name = "unicode-ident" },
-    { allow = ["Unicode-DFS-2016"], name = "unicode-normalization" },
-    { allow = ["Unicode-DFS-2016"], name = "unicode-width" },
-    { allow = ["Unicode-DFS-2016"], name = "unicode-bidi" },
-]
+exceptions = []
 
 [bans]
 # Lint level for when multiple versions of the same crate are detected
