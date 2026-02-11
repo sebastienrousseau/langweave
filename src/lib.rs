@@ -209,9 +209,13 @@ pub async fn detect_language_async(
 /// it (Italian), nl (Dutch), ru (Russian), ar (Arabic), he (Hebrew),
 /// hi (Hindi), ja (Japanese), ko (Korean), zh (Chinese), id (Indonesian).
 ///
+/// # Performance
+///
+/// This function returns a static slice reference with zero heap allocations.
+///
 /// # Returns
 ///
-/// A vector of strings representing the supported language codes.
+/// A static slice of string slices containing the supported language codes.
 ///
 /// # Examples
 ///
@@ -220,32 +224,19 @@ pub async fn detect_language_async(
 ///
 /// let languages = supported_languages();
 /// assert_eq!(languages.len(), 15);
-/// assert!(languages.contains(&"en".to_string()));
-/// assert!(languages.contains(&"fr".to_string()));
-/// assert!(languages.contains(&"de".to_string()));
-/// assert!(languages.contains(&"es".to_string()));
+/// assert!(languages.contains(&"en"));
+/// assert!(languages.contains(&"fr"));
+/// assert!(languages.contains(&"de"));
+/// assert!(languages.contains(&"es"));
 /// ```
-pub fn supported_languages() -> Vec<String> {
-    vec![
-        "en".to_string(),
-        "fr".to_string(),
-        "de".to_string(),
-        "es".to_string(),
-        "pt".to_string(),
-        "it".to_string(),
-        "nl".to_string(),
-        "ru".to_string(),
-        "ar".to_string(),
-        "he".to_string(),
-        "hi".to_string(),
-        "ja".to_string(),
-        "ko".to_string(),
-        "zh".to_string(),
-        "id".to_string(),
-    ]
+#[inline]
+pub fn supported_languages() -> &'static [&'static str] {
+    optimized::SUPPORTED_LANGUAGE_CODES
 }
 
 /// Validates if a given language code is supported.
+///
+/// This function supports case-insensitive matching with zero heap allocations.
 ///
 /// # Arguments
 ///
@@ -255,16 +246,23 @@ pub fn supported_languages() -> Vec<String> {
 ///
 /// `true` if the language is supported, `false` otherwise.
 ///
+/// # Performance
+///
+/// Uses compile-time pattern matching for O(1) lookup on lowercase codes,
+/// with zero-allocation ASCII case folding for other cases.
+///
 /// # Examples
 ///
 /// ```
 /// use langweave::is_language_supported;
 ///
 /// assert!(is_language_supported("en"));
+/// assert!(is_language_supported("FR")); // Case insensitive
 /// assert!(!is_language_supported("zz"));
 /// ```
+#[inline]
 pub fn is_language_supported(lang: &str) -> bool {
-    supported_languages().contains(&lang.to_lowercase())
+    optimized::is_language_supported_zero_alloc(lang)
 }
 
 /// Asynchronous utilities for language processing.
@@ -429,9 +427,9 @@ mod tests {
     #[test]
     fn test_supported_languages() {
         let languages = supported_languages();
-        assert!(languages.contains(&"en".to_string()));
-        assert!(languages.contains(&"fr".to_string()));
-        assert!(languages.contains(&"de".to_string()));
+        assert!(languages.contains(&"en"));
+        assert!(languages.contains(&"fr"));
+        assert!(languages.contains(&"de"));
     }
 
     #[test]

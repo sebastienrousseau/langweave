@@ -171,7 +171,7 @@ mod edge_case_coverage {
         ];
 
         for lang in expected_languages {
-            assert!(languages.contains(&lang.to_string()),
+            assert!(languages.contains(&lang),
                    "Expected language '{}' not found in supported languages", lang);
         }
     }
