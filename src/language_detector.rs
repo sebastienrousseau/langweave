@@ -74,21 +74,9 @@ pub struct LanguageDetector {
     custom_patterns: Arc<Vec<(Regex, String)>>,
 }
 
-/// Safely compiles all language detection patterns without panicking.
-///
-/// This function attempts to compile all regex patterns for language detection.
-/// If any pattern fails to compile, it returns an error instead of panicking.
-///
-/// # Returns
-///
-/// * `Result<Vec<(Regex, &'static str)>, I18nError>` - Compiled patterns on success, or an error on failure.
-///
-/// # Errors
-///
-/// Returns `I18nError::UnexpectedError` if any pattern compilation fails.
-fn compile_language_patterns(
-) -> Result<Vec<(Regex, &'static str)>, I18nError> {
-    let pattern_specs = vec![
+/// Returns the built-in language detection pattern specifications.
+fn language_pattern_specs() -> Vec<(&'static str, &'static str)> {
+    vec![
         // English
         (
             r"(?i)\b(hello|hi|hey|goodbye|bye|thank you|thanks|please|the|a|an|in|on|at|for|to|of)\b",
@@ -155,41 +143,38 @@ fn compile_language_patterns(
             r"(?i)\b(halo|selamat|terima kasih|tolong|sampai jumpa|yang|dan|atau|ini|itu|dengan|untuk)\b",
             "id",
         ),
-    ];
+    ]
+}
 
-    let mut compiled_patterns = Vec::with_capacity(pattern_specs.len());
-    for (pattern_str, lang_code) in pattern_specs {
-        match Regex::new(pattern_str) {
-            Ok(regex) => compiled_patterns.push((regex, lang_code)),
-            Err(err) => {
-                error!(
-                    "Failed to compile regex for language '{}': {}",
-                    lang_code, err
-                );
-                return Err(I18nError::UnexpectedError(format!(
-                    "Failed to compile regex for language '{}': {}",
-                    lang_code, err
-                )));
-            }
-        }
-    }
-
-    Ok(compiled_patterns)
+/// Compiles regex patterns from the given specifications.
+///
+/// Returns an error if any regex pattern fails to compile.
+fn compile_language_patterns(
+    pattern_specs: Vec<(&str, &'static str)>,
+) -> Result<Vec<(Regex, &'static str)>, I18nError> {
+    pattern_specs
+        .into_iter()
+        .map(|(pattern_str, lang_code)| {
+            Regex::new(pattern_str)
+                .map(|regex| (regex, lang_code))
+                .map_err(|err| {
+                    I18nError::UnexpectedError(format!(
+                        "Failed to compile regex for language '{}': {}",
+                        lang_code, err
+                    ))
+                })
+        })
+        .collect()
 }
 
 /// A static list of language detection patterns for common languages.
 ///
-/// This uses lazy initialization with graceful error handling.
-/// Returns empty patterns if compilation fails, allowing the system to fall back to whatlang.
-/// For explicit error handling, use `LanguageDetector::try_new()` instead.
+/// Uses lazy initialization. Panics on compilation failure since the
+/// built-in patterns are known-valid. For fallible initialization,
+/// use `LanguageDetector::try_new()` instead.
 static PATTERNS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
-    match compile_language_patterns() {
-        Ok(patterns) => patterns,
-        Err(err) => {
-            error!("Failed to compile language detection patterns, falling back to empty patterns: {}", err);
-            Vec::new()
-        }
-    }
+    compile_language_patterns(language_pattern_specs())
+        .expect("built-in language patterns must compile")
 });
 
 impl LanguageDetector {
@@ -252,7 +237,8 @@ impl LanguageDetector {
     /// # Ok::<(), langweave::error::I18nError>(())
     /// ```
     pub fn try_new() -> Result<Self, I18nError> {
-        let patterns = compile_language_patterns()?;
+        let patterns =
+            compile_language_patterns(language_pattern_specs())?;
         Ok(LanguageDetector {
             patterns: Arc::new(patterns),
             custom_patterns: Arc::new(Vec::new()),
@@ -757,7 +743,8 @@ mod tests {
 
     #[test]
     fn test_compile_language_patterns() {
-        let patterns = compile_language_patterns();
+        let patterns =
+            compile_language_patterns(language_pattern_specs());
         assert!(
             patterns.is_ok(),
             "compile_language_patterns should succeed with valid patterns"
@@ -784,6 +771,19 @@ mod tests {
                 code
             );
         }
+    }
+
+    #[test]
+    fn test_compile_language_patterns_invalid_regex() {
+        let bad_specs = vec![
+            (r"(?i)\b(hello)\b", "en"),
+            ("[invalid", "xx"),
+        ];
+        let result = compile_language_patterns(bad_specs);
+        assert!(matches!(
+            result,
+            Err(I18nError::UnexpectedError(ref msg)) if msg.contains("xx")
+        ));
     }
 
     #[test]

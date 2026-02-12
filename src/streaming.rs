@@ -156,12 +156,11 @@ pub fn detect_language_stream(
         for (chunk_index, chunk_text) in chunks.into_iter().enumerate()
         {
             let text_for_detect = chunk_text.clone();
-            let result = tokio::task::spawn_blocking(move || {
-                detect_language(&text_for_detect)
-            })
-            .await
-            .map_err(|e| I18nError::TaskFailed(e.to_string()))
-            .and_then(|r| r);
+            let result =
+                crate::run_blocking(move || {
+                    detect_language(&text_for_detect)
+                })
+                .await;
 
             let chunk_result = ChunkResult {
                 chunk_index,
@@ -217,12 +216,10 @@ pub fn translate_stream(
         {
             let lang_clone = lang_owned.clone();
             let text_for_translate = chunk_text.clone();
-            let result = tokio::task::spawn_blocking(move || {
+            let result = crate::run_blocking(move || {
                 translate(&lang_clone, &text_for_translate)
             })
-            .await
-            .map_err(|e| I18nError::TaskFailed(e.to_string()))
-            .and_then(|r| r);
+            .await;
 
             let chunk_result = ChunkResult {
                 chunk_index,
