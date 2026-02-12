@@ -89,32 +89,33 @@ pub async fn detect_batch_async(
                 .acquire()
                 .await
                 .map_err(|e| I18nError::TaskFailed(e.to_string()));
-            let result = tokio::task::spawn_blocking(move || {
-                detect_language(&text_owned)
-            })
-            .await
-            .map_err(|e| I18nError::TaskFailed(e.to_string()))
-            .and_then(|r| r);
+            let result =
+                crate::run_blocking(move || detect_language(&text_owned))
+                    .await;
             (index, result)
         });
     }
 
-    let mut results = Vec::with_capacity(texts.len());
-    while let Some(join_result) = join_set.join_next().await {
-        match join_result {
-            Ok((index, result)) => {
-                results.push(BatchResult { index, result });
-            }
-            Err(e) => {
-                results.push(BatchResult {
-                    index: results.len(),
-                    result: Err(I18nError::TaskFailed(e.to_string())),
-                });
-            }
-        }
-    }
+    let mut results = collect_join_set(&mut join_set).await;
 
     results.sort_by_key(|r| r.index);
+    results
+}
+
+async fn collect_join_set(
+    join_set: &mut tokio::task::JoinSet<(
+        usize,
+        Result<String, I18nError>,
+    )>,
+) -> Vec<BatchResult<String>> {
+    let mut results = Vec::new();
+    while let Some(join_result) = join_set.join_next().await {
+        // Inner tasks use run_blocking which converts panics to TaskFailed,
+        // so the outer JoinSet task cannot panic.
+        let (index, result) = join_result
+            .expect("inner task should not panic");
+        results.push(BatchResult { index, result });
+    }
     results
 }
 
@@ -161,30 +162,15 @@ pub async fn translate_batch_async(
                 .acquire()
                 .await
                 .map_err(|e| I18nError::TaskFailed(e.to_string()));
-            let result = tokio::task::spawn_blocking(move || {
+            let result = crate::run_blocking(move || {
                 translate(&lang_owned, &text_owned)
             })
-            .await
-            .map_err(|e| I18nError::TaskFailed(e.to_string()))
-            .and_then(|r| r);
+            .await;
             (index, result)
         });
     }
 
-    let mut results = Vec::with_capacity(texts.len());
-    while let Some(join_result) = join_set.join_next().await {
-        match join_result {
-            Ok((index, result)) => {
-                results.push(BatchResult { index, result });
-            }
-            Err(e) => {
-                results.push(BatchResult {
-                    index: results.len(),
-                    result: Err(I18nError::TaskFailed(e.to_string())),
-                });
-            }
-        }
-    }
+    let mut results = collect_join_set(&mut join_set).await;
 
     results.sort_by_key(|r| r.index);
     results

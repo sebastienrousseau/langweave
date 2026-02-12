@@ -508,9 +508,7 @@ impl LanguageDetectorTrait for LanguageDetector {
     ) -> Result<String, I18nError> {
         let detector = self.clone();
         let text = text.to_string();
-        tokio::task::spawn_blocking(move || detector.detect(&text))
-            .await
-            .map_err(|e| I18nError::TaskFailed(e.to_string()))?
+        crate::run_blocking(move || detector.detect(&text)).await
     }
 }
 

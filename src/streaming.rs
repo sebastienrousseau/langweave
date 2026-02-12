@@ -85,7 +85,7 @@ pub fn chunk_text(text: &str, chunk_size: usize) -> Vec<String> {
     }
 
     let mut chunks = Vec::new();
-    let mut remaining = text;
+    let mut remaining = text.trim_start();
 
     while !remaining.is_empty() {
         if remaining.len() <= chunk_size {
@@ -109,6 +109,7 @@ pub fn chunk_text(text: &str, chunk_size: usize) -> Vec<String> {
         // Find the last whitespace boundary within the safe range
         let boundary = remaining[..byte_limit]
             .rfind(char::is_whitespace)
+            .filter(|&b| b > 0)
             .unwrap_or(byte_limit);
 
         let (chunk, rest) = remaining.split_at(boundary);
@@ -266,6 +267,24 @@ mod tests {
         // When no word boundary exists within chunk_size, splits at chunk_size
         assert_eq!(chunks[0], "super");
         assert!(chunks.len() > 1);
+    }
+
+    #[test]
+    fn test_chunk_text_multibyte_small_chunk() {
+        // chunk_size=1 on a 4-byte emoji forces byte_limit to 0,
+        // triggering the fallback to take the first char
+        let chunks = chunk_text("\u{1F980}abc", 1);
+        assert_eq!(chunks[0], "\u{1F980}");
+        assert!(chunks.len() > 1);
+    }
+
+    #[test]
+    fn test_chunk_text_leading_whitespace() {
+        let chunks = chunk_text("  Hello world", 10);
+        assert!(!chunks.is_empty());
+        for chunk in &chunks {
+            assert!(!chunk.is_empty());
+        }
     }
 
     #[tokio::test]

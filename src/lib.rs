@@ -72,6 +72,19 @@ pub mod prelude {
 /// The current version of the langweave library.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// Runs a blocking closure on the tokio blocking thread pool and converts
+/// any `JoinError` (task panic/cancellation) into `I18nError::TaskFailed`.
+pub(crate) async fn run_blocking<F, T>(f: F) -> Result<T, I18nError>
+where
+    F: FnOnce() -> Result<T, I18nError> + Send + 'static,
+    T: Send + 'static,
+{
+    match tokio::task::spawn_blocking(f).await {
+        Ok(result) => result,
+        Err(e) => Err(I18nError::TaskFailed(e.to_string())),
+    }
+}
+
 /// A lazy-initialized instance of the LanguageDetector.
 static LANGUAGE_DETECTOR: Lazy<LanguageDetector> =
     Lazy::new(LanguageDetector::new);
@@ -215,9 +228,7 @@ pub async fn detect_language_async(
     }
 
     let text_owned = text.to_string();
-    tokio::task::spawn_blocking(move || detect_language(&text_owned))
-        .await
-        .map_err(|e| I18nError::TaskFailed(e.to_string()))?
+    run_blocking(move || detect_language(&text_owned)).await
 }
 
 /// Returns a list of supported language codes.
@@ -334,12 +345,11 @@ pub mod async_utils {
         }
         let lang_owned = lang.to_string();
         let text_owned = text.to_string();
-        tokio::task::spawn_blocking(move || {
+        run_blocking(move || {
             let translator = Translator::new(&lang_owned)?;
             translator.translate(&text_owned)
         })
         .await
-        .map_err(|e| I18nError::TaskFailed(e.to_string()))?
     }
 }
 
@@ -462,6 +472,17 @@ mod tests {
         assert!(is_language_supported("fr"));
         assert!(is_language_supported("de"));
         assert!(!is_language_supported("zz"));
+    }
+
+    #[tokio::test]
+    async fn test_run_blocking_task_panic() {
+        let result = run_blocking(|| -> Result<String, I18nError> {
+            panic!("intentional test panic");
+        })
+        .await;
+        assert!(
+            matches!(result, Err(I18nError::TaskFailed(ref msg)) if msg.contains("panic"))
+        );
     }
 
     #[test]
