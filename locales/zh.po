@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: LangWeave\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello"
+msgstr "你好"
+
+msgid "Goodbye"
+msgstr "再见"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "No"
+msgstr "不"
+
+msgid "Thank you"
+msgstr "谢谢"
+
+msgid "Please"
+msgstr "请"
+
+msgid "Good morning"
+msgstr "早上好"
+
+msgid "Good night"
+msgstr "晚安"
+
+msgid "Sorry"
+msgstr "对不起"
+
+msgid "Help"
+msgstr "帮助"
+
+msgid "Welcome"
+msgstr "欢迎"
+
+msgid "Friend"
+msgstr "朋友"
+
+msgid "Love"
+msgstr "爱"
+
+msgid "Peace"
+msgstr "和平"
+
+msgid "Happy"
+msgstr "快乐"
+
+msgid "main_logger_msg"
+msgstr "\n请运行 `ssg --help` 获取更多信息。\n"
+
+msgid "lib_banner_log_msg"
+msgstr "横幅打印成功"
+
+msgid "lib_args_log_msg"
+msgstr "参数处理成功"
+
+msgid "lib_server_log_msg"
+msgstr "服务器启动成功"

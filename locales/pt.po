@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: LangWeave\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello"
+msgstr "Olá"
+
+msgid "Goodbye"
+msgstr "Tchau"
+
+msgid "Yes"
+msgstr "Sim"
+
+msgid "No"
+msgstr "Não"
+
+msgid "Thank you"
+msgstr "Obrigado"
+
+msgid "Please"
+msgstr "Por favor"
+
+msgid "Good morning"
+msgstr "Bom dia"
+
+msgid "Good night"
+msgstr "Boa noite"
+
+msgid "Sorry"
+msgstr "Desculpe"
+
+msgid "Help"
+msgstr "Ajuda"
+
+msgid "Welcome"
+msgstr "Bem-vindo"
+
+msgid "Friend"
+msgstr "Amigo"
+
+msgid "Love"
+msgstr "Amor"
+
+msgid "Peace"
+msgstr "Paz"
+
+msgid "Happy"
+msgstr "Feliz"
+
+msgid "main_logger_msg"
+msgstr "\nPor favor execute `ssg --help` para mais informações.\n"
+
+msgid "lib_banner_log_msg"
+msgstr "Banner impresso com sucesso"
+
+msgid "lib_args_log_msg"
+msgstr "Argumentos processados com sucesso"
+
+msgid "lib_server_log_msg"
+msgstr "Servidor iniciado com sucesso"

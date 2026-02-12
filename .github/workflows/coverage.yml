@@ -13,49 +13,52 @@ jobs:
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
-    env:
-      CARGO_INCREMENTAL: "0"
-      RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-      RUSTDOCFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
 
     steps:
-      # Checkout the repository
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      # Setup Rust nightly
       - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        id: toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: nightly
-          override: true
+          components: llvm-tools-preview
 
-      # Configure cache for Cargo
-      - name: Cache Cargo registry, index
-        uses: actions/cache@v4
-        id: cache-cargo
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/bin
             ~/.cargo/git
-          key: linux-${{ steps.toolchain.outputs.rustc_hash }}-rust-cov-${{ hashFiles('**/Cargo.lock') }}
+          key: linux-coverage-${{ hashFiles('**/Cargo.lock') }}
 
-      # Run tests with all features
-      - name: Test (cargo test)
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: "--workspace"
+      - name: Generate code coverage
+        run: |
+          # Generate coverage report and capture summary
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+          cargo llvm-cov --all-features --workspace --summary-only > coverage_summary.txt
 
-      # Install grcov
-      - uses: actions-rs/grcov@v0.1
-        id: coverage
+      - name: Extract and enforce coverage threshold
+        run: |
+          # Extract line coverage percentage from TOTAL row (last column with %)
+          COVERAGE=$(grep "^TOTAL" coverage_summary.txt | grep -oE '[0-9]+\.[0-9]+%' | tail -1 | sed 's/%//')
+          echo "Current line coverage: ${COVERAGE}%"
 
-      # Upload to Codecov.io
+          # Check if coverage meets 95% threshold using awk for floating-point comparison
+          if awk "BEGIN {exit !($COVERAGE < 95)}"; then
+            echo "❌ Coverage ${COVERAGE}% is below required 95% threshold"
+            echo "Please add tests to improve coverage before merging"
+            exit 1
+          else
+            echo "✅ Coverage ${COVERAGE}% meets required 95% threshold"
+          fi
+
       - name: Upload to Codecov.io
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ${{ steps.coverage.outputs.report }}
+          files: lcov.info
+          fail_ci_if_error: false

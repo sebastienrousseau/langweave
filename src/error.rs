@@ -30,10 +30,48 @@ pub enum I18nError {
     /// Represents any other unexpected errors that may occur during library operations.
     #[error("An unexpected error occurred: {0}")]
     UnexpectedError(String),
+
+    /// Indicates that an async task failed to join or was cancelled.
+    #[error("Async task failed: {0}")]
+    TaskFailed(String),
+
+    /// Indicates that a batch operation failed.
+    #[error("Batch operation failed: {0}")]
+    BatchOperationFailed(String),
+
+    /// Indicates that a streaming operation failed.
+    #[error("Stream processing failed: {0}")]
+    StreamProcessingFailed(String),
+
+    /// Indicates that a runtime pattern operation failed (e.g., invalid regex).
+    #[error("Pattern operation failed: {0}")]
+    PatternOperationFailed(String),
 }
 
 impl I18nError {
     /// Returns a string slice describing the error.
+    ///
+    /// This method provides a short, human-readable description of the error type,
+    /// suitable for logging or displaying to users in a simplified format.
+    ///
+    /// # Returns
+    ///
+    /// A string slice containing a brief description of the error type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use langweave::error::I18nError;
+    ///
+    /// let error = I18nError::LanguageDetectionFailed;
+    /// assert_eq!(error.as_str(), "language detection failed");
+    ///
+    /// let error = I18nError::UnsupportedLanguage("xyz".to_string());
+    /// assert_eq!(error.as_str(), "unsupported language");
+    ///
+    /// let error = I18nError::TranslationFailed("missing key".to_string());
+    /// assert_eq!(error.as_str(), "translation failed");
+    /// ```
     pub fn as_str(&self) -> &str {
         match self {
             I18nError::LanguageDetectionFailed => {
@@ -42,6 +80,16 @@ impl I18nError {
             I18nError::TranslationFailed(_) => "translation failed",
             I18nError::UnsupportedLanguage(_) => "unsupported language",
             I18nError::UnexpectedError(_) => "unexpected error",
+            I18nError::TaskFailed(_) => "task failed",
+            I18nError::BatchOperationFailed(_) => {
+                "batch operation failed"
+            }
+            I18nError::StreamProcessingFailed(_) => {
+                "stream processing failed"
+            }
+            I18nError::PatternOperationFailed(_) => {
+                "pattern operation failed"
+            }
         }
     }
 }
@@ -71,6 +119,25 @@ mod tests {
                 .to_string(),
             "An unexpected error occurred: test error"
         );
+        assert_eq!(
+            I18nError::TaskFailed("join error".to_string()).to_string(),
+            "Async task failed: join error"
+        );
+        assert_eq!(
+            I18nError::BatchOperationFailed("batch err".to_string())
+                .to_string(),
+            "Batch operation failed: batch err"
+        );
+        assert_eq!(
+            I18nError::StreamProcessingFailed("stream err".to_string())
+                .to_string(),
+            "Stream processing failed: stream err"
+        );
+        assert_eq!(
+            I18nError::PatternOperationFailed("bad regex".to_string())
+                .to_string(),
+            "Pattern operation failed: bad regex"
+        );
     }
 
     #[test]
@@ -91,6 +158,24 @@ mod tests {
             I18nError::UnexpectedError("test error".to_string())
                 .as_str(),
             "unexpected error"
+        );
+        assert_eq!(
+            I18nError::TaskFailed("err".to_string()).as_str(),
+            "task failed"
+        );
+        assert_eq!(
+            I18nError::BatchOperationFailed("err".to_string()).as_str(),
+            "batch operation failed"
+        );
+        assert_eq!(
+            I18nError::StreamProcessingFailed("err".to_string())
+                .as_str(),
+            "stream processing failed"
+        );
+        assert_eq!(
+            I18nError::PatternOperationFailed("err".to_string())
+                .as_str(),
+            "pattern operation failed"
         );
     }
 
@@ -119,6 +204,26 @@ mod tests {
         assert_ne!(
             I18nError::UnexpectedError("oops1".to_string()),
             I18nError::UnexpectedError("oops2".to_string())
+        );
+        assert_eq!(
+            I18nError::TaskFailed("err".to_string()),
+            I18nError::TaskFailed("err".to_string())
+        );
+        assert_ne!(
+            I18nError::TaskFailed("err1".to_string()),
+            I18nError::TaskFailed("err2".to_string())
+        );
+        assert_eq!(
+            I18nError::BatchOperationFailed("err".to_string()),
+            I18nError::BatchOperationFailed("err".to_string())
+        );
+        assert_eq!(
+            I18nError::StreamProcessingFailed("err".to_string()),
+            I18nError::StreamProcessingFailed("err".to_string())
+        );
+        assert_eq!(
+            I18nError::PatternOperationFailed("err".to_string()),
+            I18nError::PatternOperationFailed("err".to_string())
         );
     }
 
@@ -197,11 +302,26 @@ mod tests {
                 I18nError::TranslationFailed(_) => {}
                 I18nError::UnsupportedLanguage(_) => {}
                 I18nError::UnexpectedError(_) => {}
+                I18nError::TaskFailed(_) => {}
+                I18nError::BatchOperationFailed(_) => {}
+                I18nError::StreamProcessingFailed(_) => {}
+                I18nError::PatternOperationFailed(_) => {}
             }
         }
 
-        // Use the function to avoid unused function warning
+        // Use the function with all variants to ensure full coverage
         use_error(I18nError::LanguageDetectionFailed);
+        use_error(I18nError::TranslationFailed("test".to_string()));
+        use_error(I18nError::UnsupportedLanguage("test".to_string()));
+        use_error(I18nError::UnexpectedError("test".to_string()));
+        use_error(I18nError::TaskFailed("test".to_string()));
+        use_error(I18nError::BatchOperationFailed("test".to_string()));
+        use_error(I18nError::StreamProcessingFailed(
+            "test".to_string(),
+        ));
+        use_error(I18nError::PatternOperationFailed(
+            "test".to_string(),
+        ));
     }
 
     #[test]
@@ -212,6 +332,10 @@ mod tests {
             I18nError::TranslationFailed("test".to_string()),
             I18nError::UnsupportedLanguage("en".to_string()),
             I18nError::UnexpectedError("oops".to_string()),
+            I18nError::TaskFailed("join".to_string()),
+            I18nError::BatchOperationFailed("batch".to_string()),
+            I18nError::StreamProcessingFailed("stream".to_string()),
+            I18nError::PatternOperationFailed("regex".to_string()),
         ];
 
         for error in errors {
@@ -220,6 +344,10 @@ mod tests {
                 I18nError::TranslationFailed(_) => {}
                 I18nError::UnsupportedLanguage(_) => {}
                 I18nError::UnexpectedError(_) => {}
+                I18nError::TaskFailed(_) => {}
+                I18nError::BatchOperationFailed(_) => {}
+                I18nError::StreamProcessingFailed(_) => {}
+                I18nError::PatternOperationFailed(_) => {}
             }
         }
     }

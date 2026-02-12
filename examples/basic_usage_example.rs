@@ -17,13 +17,12 @@ use langweave::{detect_language, translate};
 ///
 /// * `Result<(), Box<dyn std::error::Error>>`: A `Result` indicating whether the execution was successful or an error occurred.
 ///
-#[tokio::main]
-pub(crate) async fn main() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Basic translation
     let translated_text = translate("fr", "Hello")?;
     println!("Translated: {}", translated_text);
 
-    let detected_language = detect_language("Le chat noir").await?;
+    let detected_language = detect_language("Le chat noir")?;
     println!("Detected language: {}", detected_language);
 
     // Custom Translator usage

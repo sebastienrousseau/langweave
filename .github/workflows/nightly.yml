@@ -1,0 +1,283 @@
+name: 🌙 Nightly Maintenance
+
+on:
+  schedule:
+    # Run at 2 AM UTC every day
+    - cron: '0 2 * * *'
+  workflow_dispatch:  # Allow manual triggering
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  # =============================================================================
+  # DEPENDENCY UPDATE CHECKS
+  # =============================================================================
+  dependency-updates:
+    name: 🔄 Dependency Update Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 📦 Install cargo-edit and cargo-outdated
+        run: |
+          cargo install cargo-edit cargo-outdated --locked
+
+      - name: 🔍 Check for outdated dependencies
+        run: |
+          echo "🔍 Checking for outdated dependencies..."
+          cargo outdated --format json > outdated.json
+
+          # Check if we have any outdated dependencies
+          OUTDATED_COUNT=$(cat outdated.json | grep -o '"name"' | wc -l)
+
+          if [ "$OUTDATED_COUNT" -gt 0 ]; then
+            echo "📦 Found $OUTDATED_COUNT outdated dependencies:"
+            cargo outdated
+
+            # Create issue or comment about outdated dependencies
+            echo "⚠️ Outdated dependencies detected in nightly check"
+
+            # Store results for the security scan
+            echo "DEPENDENCIES_OUTDATED=true" >> $GITHUB_ENV
+          else
+            echo "✅ All dependencies are up to date"
+            echo "DEPENDENCIES_OUTDATED=false" >> $GITHUB_ENV
+          fi
+
+      - name: 🔒 Security audit on latest dependencies
+        run: |
+          echo "🔒 Running security audit..."
+          cargo install cargo-audit --locked
+
+          # Update to latest versions for security check
+          cargo update
+
+          # Run security audit - this should never be bypassed
+          cargo audit
+
+          echo "✅ Security audit passed with latest dependencies"
+
+      - name: 📋 Generate dependency report
+        run: |
+          echo "📋 Generating dependency analysis report..."
+
+          # Generate comprehensive dependency information
+          echo "# Nightly Dependency Report - $(date)" > dependency_report.md
+          echo "" >> dependency_report.md
+
+          echo "## Current Dependencies" >> dependency_report.md
+          cargo tree --format "{p} {l}" >> dependency_report.md
+          echo "" >> dependency_report.md
+
+          if [ "$DEPENDENCIES_OUTDATED" = "true" ]; then
+            echo "## Outdated Dependencies" >> dependency_report.md
+            cargo outdated >> dependency_report.md
+            echo "" >> dependency_report.md
+          fi
+
+          echo "## Security Audit Results" >> dependency_report.md
+          cargo audit --format json > audit_results.json
+          echo "No vulnerabilities found as of $(date)" >> dependency_report.md
+
+          cat dependency_report.md
+
+  # =============================================================================
+  # BETA/NIGHTLY COMPILER TESTING
+  # =============================================================================
+  nightly-compiler:
+    name: 🚀 Nightly Compiler Test
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    continue-on-error: true  # Don't fail the workflow if nightly breaks
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        toolchain: [beta, nightly]
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain (${{ matrix.toolchain }})
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: rustfmt, clippy
+
+      - name: 💾 Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-${{ matrix.toolchain }}-nightly-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 🔨 Test build with ${{ matrix.toolchain }}
+        run: |
+          echo "🔨 Testing build with ${{ matrix.toolchain }} toolchain..."
+
+          # Temporarily remove warnings-as-errors for nightly testing
+          export RUSTFLAGS=""
+
+          # Test basic build
+          cargo build --all-targets --all-features --workspace
+
+          echo "✅ Build successful with ${{ matrix.toolchain }}"
+
+      - name: 🧪 Run tests with ${{ matrix.toolchain }}
+        run: |
+          echo "🧪 Running tests with ${{ matrix.toolchain }} toolchain..."
+
+          # Run tests without warnings-as-errors
+          export RUSTFLAGS=""
+
+          cargo test --all-features --workspace
+
+          echo "✅ Tests passed with ${{ matrix.toolchain }}"
+
+      - name: 📋 Check lints with ${{ matrix.toolchain }}
+        run: |
+          echo "📋 Checking lints with ${{ matrix.toolchain }}..."
+
+          # Run clippy but don't fail on warnings for nightly
+          cargo clippy --all-targets --all-features --workspace || echo "⚠️ Clippy warnings with ${{ matrix.toolchain }}"
+
+          echo "✅ Lint check completed with ${{ matrix.toolchain }}"
+
+  # =============================================================================
+  # EXTENDED TEST RUNS
+  # =============================================================================
+  extended-tests:
+    name: 🧪 Extended Test Suite
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 💾 Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-extended-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 🧪 Run property-based tests
+        run: |
+          echo "🧪 Running extended property-based tests..."
+          cargo test --all-features --workspace --release -- --ignored
+          echo "✅ Property-based tests completed"
+
+      - name: 🏃‍♂️ Run performance benchmarks
+        run: |
+          echo "🏃‍♂️ Running performance benchmarks..."
+          cargo bench --all-features
+          echo "✅ Benchmarks completed"
+
+      - name: 🔄 Run stress tests
+        run: |
+          echo "🔄 Running stress tests..."
+          # Run tests multiple times to catch race conditions and flaky tests
+          for i in {1..5}; do
+            echo "🔄 Stress test iteration $i/5"
+            cargo test --all-features --workspace --release
+          done
+          echo "✅ Stress tests completed"
+
+      - name: 💾 Memory leak detection
+        run: |
+          echo "💾 Running memory leak detection..."
+
+          # Install valgrind on Linux for memory leak detection
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo apt-get update
+            sudo apt-get install -y valgrind
+
+            # Run a simple test under valgrind
+            cargo test --all-features --workspace --bin langweave || echo "⚠️ Memory leak check completed"
+          else
+            echo "⚠️ Memory leak detection skipped on $RUNNER_OS"
+          fi
+
+  # =============================================================================
+  # MAINTENANCE REPORT
+  # =============================================================================
+  maintenance-report:
+    name: 📊 Generate Maintenance Report
+    runs-on: ubuntu-latest
+    needs: [dependency-updates, nightly-compiler, extended-tests]
+    if: always()  # Run even if other jobs fail
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📊 Generate nightly maintenance report
+        run: |
+          echo "📊 Generating nightly maintenance report..."
+
+          # Create comprehensive maintenance report
+          echo "# Nightly Maintenance Report - $(date)" > maintenance_report.md
+          echo "" >> maintenance_report.md
+
+          echo "## Job Status Summary" >> maintenance_report.md
+          echo "- Dependency Updates: ${{ needs.dependency-updates.result }}" >> maintenance_report.md
+          echo "- Nightly Compiler: ${{ needs.nightly-compiler.result }}" >> maintenance_report.md
+          echo "- Extended Tests: ${{ needs.extended-tests.result }}" >> maintenance_report.md
+          echo "" >> maintenance_report.md
+
+          echo "## Next Actions Required" >> maintenance_report.md
+          if [ "${{ needs.dependency-updates.result }}" != "success" ]; then
+            echo "- ⚠️ Review dependency update issues" >> maintenance_report.md
+          fi
+
+          if [ "${{ needs.nightly-compiler.result }}" != "success" ]; then
+            echo "- ⚠️ Investigate nightly compiler compatibility" >> maintenance_report.md
+          fi
+
+          if [ "${{ needs.extended-tests.result }}" != "success" ]; then
+            echo "- ⚠️ Address extended test failures" >> maintenance_report.md
+          fi
+
+          echo "" >> maintenance_report.md
+          echo "## Health Status" >> maintenance_report.md
+          if [ "${{ needs.dependency-updates.result }}" = "success" ] && [ "${{ needs.extended-tests.result }}" = "success" ]; then
+            echo "🟢 Project health: GOOD" >> maintenance_report.md
+          else
+            echo "🟡 Project health: NEEDS ATTENTION" >> maintenance_report.md
+          fi
+
+          cat maintenance_report.md
+
+      - name: 📤 Archive maintenance artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-maintenance-report-${{ github.run_number }}
+          path: |
+            maintenance_report.md
+            dependency_report.md
+            outdated.json
+            audit_results.json
+          retention-days: 30

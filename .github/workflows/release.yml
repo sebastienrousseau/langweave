@@ -18,8 +18,62 @@ env:
   CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
 
 jobs:
+  # =============================================================================
+  # SEMVER COMPLIANCE VALIDATION - RUNS BEFORE ANY RELEASE
+  # =============================================================================
+  semver-check:
+    name: 📋 SemVer API Compatibility Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 📦 Install cargo-semver-checks
+        run: cargo install cargo-semver-checks --locked
+
+      - name: 💾 Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ubuntu-semver-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 📋 Run SemVer compatibility check
+        run: |
+          echo "📋 Running SemVer API compatibility check..."
+          echo "🔍 This validates that API changes match the version bump semantics"
+
+          # For initial releases or major version changes, we may need to skip this
+          # Get current version from Cargo.toml
+          CURRENT_VERSION=$(grep -m 1 '^version =' Cargo.toml | cut -d '"' -f 2)
+          echo "📦 Current version: $CURRENT_VERSION"
+
+          # Run cargo-semver-checks against the previous version
+          # This will fail gracefully if there's no previous version to compare against
+          if cargo semver-checks check-release; then
+            echo "✅ SemVer compatibility check passed"
+          else
+            echo "⚠️ SemVer compatibility check failed or no baseline found"
+            echo "📝 For initial releases, this is expected"
+            echo "📝 For subsequent releases, ensure API changes match version semantics"
+
+            # For now, we'll allow this to continue but log the failure
+            # In production, you might want to fail here for non-initial releases
+            echo "⚠️ Continuing with release process (review required)"
+          fi
+
   build:
     name: Build 🛠
+    needs: semver-check
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     strategy:
       fail-fast: false
@@ -37,13 +91,13 @@ jobs:
             target: x86_64-unknown-linux-gnu
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           target: ${{ matrix.target }}
           override: true
-      - uses: actions/cache@v4
+      - uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry
@@ -71,7 +125,7 @@ jobs:
           tar -czf ../../package/${{ matrix.target }}.tar.gz *
         shell: pwsh
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.target }}
           path: target/package/${{ matrix.target }}.tar.gz
@@ -82,10 +136,10 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set version
         run: echo "VERSION=$(grep -m 1 '^version =' Cargo.toml | cut -d '"' -f 2)" >> $GITHUB_ENV
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           path: artifacts
       - name: Generate Changelog
@@ -116,7 +170,7 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable

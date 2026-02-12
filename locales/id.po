@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: LangWeave\n"
+"Language: id\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello"
+msgstr "Halo"
+
+msgid "Goodbye"
+msgstr "Selamat tinggal"
+
+msgid "Yes"
+msgstr "Ya"
+
+msgid "No"
+msgstr "Tidak"
+
+msgid "Thank you"
+msgstr "Terima kasih"
+
+msgid "Please"
+msgstr "Tolong"
+
+msgid "Good morning"
+msgstr "Selamat pagi"
+
+msgid "Good night"
+msgstr "Selamat malam"
+
+msgid "Sorry"
+msgstr "Maaf"
+
+msgid "Help"
+msgstr "Bantuan"
+
+msgid "Welcome"
+msgstr "Selamat datang"
+
+msgid "Friend"
+msgstr "Teman"
+
+msgid "Love"
+msgstr "Cinta"
+
+msgid "Peace"
+msgstr "Perdamaian"
+
+msgid "Happy"
+msgstr "Bahagia"
+
+msgid "main_logger_msg"
+msgstr "\nSilakan jalankan `ssg --help` untuk informasi lebih lanjut.\n"
+
+msgid "lib_banner_log_msg"
+msgstr "Banner berhasil dicetak"
+
+msgid "lib_args_log_msg"
+msgstr "Argumen berhasil diproses"
+
+msgid "lib_server_log_msg"
+msgstr "Server berhasil dimulai"

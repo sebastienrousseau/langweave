@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: LangWeave\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello"
+msgstr "안녕하세요"
+
+msgid "Goodbye"
+msgstr "안녕히 가세요"
+
+msgid "Yes"
+msgstr "네"
+
+msgid "No"
+msgstr "아니요"
+
+msgid "Thank you"
+msgstr "고맙습니다"
+
+msgid "Please"
+msgstr "제발"
+
+msgid "Good morning"
+msgstr "좋은 아침"
+
+msgid "Good night"
+msgstr "좋은 밤"
+
+msgid "Sorry"
+msgstr "죄송합니다"
+
+msgid "Help"
+msgstr "도움"
+
+msgid "Welcome"
+msgstr "환영합니다"
+
+msgid "Friend"
+msgstr "친구"
+
+msgid "Love"
+msgstr "사랑"
+
+msgid "Peace"
+msgstr "평화"
+
+msgid "Happy"
+msgstr "행복한"
+
+msgid "main_logger_msg"
+msgstr "\n자세한 정보는 `ssg --help`를 실행하세요.\n"
+
+msgid "lib_banner_log_msg"
+msgstr "배너가 성공적으로 인쇄되었습니다"
+
+msgid "lib_args_log_msg"
+msgstr "인수가 성공적으로 처리되었습니다"
+
+msgid "lib_server_log_msg"
+msgstr "서버가 성공적으로 시작되었습니다"

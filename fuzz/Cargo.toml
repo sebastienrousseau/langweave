@@ -1,0 +1,48 @@
+[package]
+name = "langweave-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+langweave = { path = "..", features = ["full"] }
+
+[[bin]]
+name = "detect_language"
+path = "fuzz_targets/detect_language.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "translate"
+path = "fuzz_targets/translate.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "error_serialization"
+path = "fuzz_targets/error_serialization.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "language_validation"
+path = "fuzz_targets/language_validation.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "batch_operations"
+path = "fuzz_targets/batch_operations.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "streaming_operations"
+path = "fuzz_targets/streaming_operations.rs"
+test = false
+doc = false

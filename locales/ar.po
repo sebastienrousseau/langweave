@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: LangWeave\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello"
+msgstr "مرحبا"
+
+msgid "Goodbye"
+msgstr "وداعا"
+
+msgid "Yes"
+msgstr "نعم"
+
+msgid "No"
+msgstr "لا"
+
+msgid "Thank you"
+msgstr "شكرا لك"
+
+msgid "Please"
+msgstr "من فضلك"
+
+msgid "Good morning"
+msgstr "صباح الخير"
+
+msgid "Good night"
+msgstr "تصبح على خير"
+
+msgid "Sorry"
+msgstr "آسف"
+
+msgid "Help"
+msgstr "مساعدة"
+
+msgid "Welcome"
+msgstr "أهلا وسهلا"
+
+msgid "Friend"
+msgstr "صديق"
+
+msgid "Love"
+msgstr "حب"
+
+msgid "Peace"
+msgstr "سلام"
+
+msgid "Happy"
+msgstr "سعيد"
+
+msgid "main_logger_msg"
+msgstr "\nيرجى تشغيل `ssg --help` للمزيد من المعلومات.\n"
+
+msgid "lib_banner_log_msg"
+msgstr "تم طباعة البانر بنجاح"
+
+msgid "lib_args_log_msg"
+msgstr "تم معالجة الوسائط بنجاح"
+
+msgid "lib_server_log_msg"
+msgstr "تم بدء تشغيل الخادم بنجاح"

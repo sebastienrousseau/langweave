@@ -1,12 +1,101 @@
-*.DS_Store
+# Rust build artifacts
+/target/
+**/*.rs.bk
+*.pdb
+*.rlib
+*.dll
+*.so
+*.dylib
+*.exe
+
+# Cargo
+Cargo.lock
+
+# Profiling and benchmarking
 *.profraw
+perf.data*
+flamegraph.svg
+criterion/
+bench_*.json
+
+# Coverage reports
+/coverage/
+tarpaulin-report.html
+tarpaulin-report.json
+*.lcov
+*.gcno
+*.gcda
+cobertura.xml
+
+# Documentation (generated only)
+/docs/_book/
+/docs/book/
+/docs/target/
+target/doc/
+
+# Logs
 *.log
+logs/
+
+# IDE and editor files
 /.vscode/
+/.idea/
+*.swp
+*.swo
+*~
+.vim/
+
+# OS generated files
+*.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Icon?
+
+# Temporary and build directories
 /output/
 /public/
-/target/
-build
-Icon?
-src/.DS_Store
-tarpaulin-report.html
-Cargo.lock
+/dist/
+/build/
+tmp/
+temp/
+
+# Python cache (for scripts like validate_docs.py)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+.pytest_cache/
+
+# Node.js (if any tooling uses it)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local development and testing
+.env
+.env.local
+.env.test
+*.local
+
+# Backup files
+*.bak
+*.backup
+*.orig
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z

@@ -24,6 +24,33 @@ msgstr "Danke"
 msgid "Please"
 msgstr "Bitte"
 
+msgid "Good morning"
+msgstr "Guten Morgen"
+
+msgid "Good night"
+msgstr "Gute Nacht"
+
+msgid "Sorry"
+msgstr "Entschuldigung"
+
+msgid "Help"
+msgstr "Hilfe"
+
+msgid "Welcome"
+msgstr "Willkommen"
+
+msgid "Friend"
+msgstr "Freund"
+
+msgid "Love"
+msgstr "Liebe"
+
+msgid "Peace"
+msgstr "Frieden"
+
+msgid "Happy"
+msgstr "Glücklich"
+
 msgid "main_logger_msg"
 msgstr "\nBitte führen Sie `ssg --help` für weitere Informationen aus.\n"
 
