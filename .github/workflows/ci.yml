@@ -115,12 +115,95 @@ jobs:
           echo "✅ Documentation builds and tests pass"
 
   # =============================================================================
-  # TEST SUITE - 95% COVERAGE ENFORCEMENT
+  # MSRV VERIFICATION - MINIMUM SUPPORTED RUST VERSION
+  # =============================================================================
+  msrv-check:
+    name: 🔧 MSRV Check (Rust 1.66.0)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install MSRV Rust toolchain (1.66.0)
+        uses: dtolnay/rust-toolchain@1.66.0
+
+      - name: 💾 Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-msrv-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 🔧 Verify MSRV compatibility
+        run: |
+          echo "🔧 Verifying MSRV compatibility with Rust 1.66.0..."
+
+          # Build with all features
+          cargo build --all-features --workspace
+
+          # Test with all features
+          cargo test --all-features --workspace
+
+          # Test with no default features
+          cargo test --no-default-features --workspace
+
+          echo "✅ MSRV verification completed successfully"
+
+  # =============================================================================
+  # MIRI VALIDATION - UNSAFE CODE ANALYSIS
+  # =============================================================================
+  miri-check:
+    name: ☢️ Miri Unsafe Code Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust nightly toolchain with Miri
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: miri
+
+      - name: 💾 Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ubuntu-miri-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: ☢️ Run Miri on unsafe code
+        run: |
+          echo "☢️ Running Miri for unsafe code validation..."
+
+          # Setup Miri
+          cargo miri setup
+
+          # Run Miri on all tests to detect undefined behavior in unsafe code
+          cargo miri test --all-features --workspace
+
+          echo "✅ Miri validation completed - no undefined behavior detected"
+
+  # =============================================================================
+  # TEST SUITE - 95% COVERAGE ENFORCEMENT + COMPREHENSIVE TESTING
   # =============================================================================
   test-coverage:
     name: 🧪 Test Suite (95% Coverage)
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 15
     strategy:
       fail-fast: true
       matrix:
@@ -148,16 +231,40 @@ jobs:
             target/
           key: ${{ runner.os }}-coverage-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: 🧪 Run test suite with coverage
+      - name: 🧪 Run comprehensive test suite
         run: |
-          echo "🧪 Running test suite with coverage analysis..."
+          echo "🧪 Running comprehensive test suite..."
+
+          # Test with all features enabled
+          echo "🚀 Testing with all features enabled..."
+          cargo test --all-features --workspace
+
+          # Test with no default features (minimal feature set)
+          echo "🔍 Testing with no default features..."
+          cargo test --no-default-features --workspace
+
+          # Test individual features in isolation
+          echo "🔧 Testing async feature in isolation..."
+          cargo test --no-default-features --features async --workspace
+
+          echo "📦 Testing batch feature (implies async)..."
+          cargo test --no-default-features --features batch --workspace
+
+          echo "🌊 Testing stream feature (implies async + tokio-stream)..."
+          cargo test --no-default-features --features stream --workspace
+
+          echo "✅ Comprehensive test suite completed"
+
+      - name: 📊 Run test suite with coverage analysis
+        run: |
+          echo "📊 Running test suite with coverage analysis..."
           cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
           cargo llvm-cov --all-features --workspace --summary-only > coverage_summary.txt
-          echo "✅ Test suite completed"
+          echo "✅ Coverage analysis completed"
 
-      - name: 📊 Enforce 95% coverage threshold
+      - name: 📈 Enforce 95% coverage threshold
         run: |
-          echo "📊 Enforcing 95% coverage requirement..."
+          echo "📈 Enforcing 95% coverage requirement..."
           COVERAGE=$(grep "^TOTAL" coverage_summary.txt | grep -oE '[0-9]+\.[0-9]+%' | tail -1 | sed 's/%//')
           echo "Current line coverage: ${COVERAGE}%"
 
@@ -265,7 +372,7 @@ jobs:
     name: 🔗 Integration Check
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
-    needs: [lint-and-format, build-check, test-coverage, security-audit]
+    needs: [lint-and-format, build-check, msrv-check, miri-check, test-coverage, security-audit]
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]

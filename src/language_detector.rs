@@ -65,9 +65,13 @@ use std::sync::Arc;
 use whatlang::{detect, Lang};
 
 /// A thread-safe struct for detecting the language of a given text.
+///
+/// Supports runtime-extensible custom patterns that take priority over built-in patterns.
+/// Use [`with_custom_pattern`](LanguageDetector::with_custom_pattern) to add custom patterns.
 #[derive(Debug, Clone)]
 pub struct LanguageDetector {
     patterns: Arc<Vec<(Regex, &'static str)>>,
+    custom_patterns: Arc<Vec<(Regex, String)>>,
 }
 
 /// Safely compiles all language detection patterns without panicking.
@@ -219,6 +223,7 @@ impl LanguageDetector {
     pub fn new() -> Self {
         LanguageDetector {
             patterns: Arc::new(PATTERNS.clone()),
+            custom_patterns: Arc::new(Vec::new()),
         }
     }
 
@@ -250,6 +255,7 @@ impl LanguageDetector {
         let patterns = compile_language_patterns()?;
         Ok(LanguageDetector {
             patterns: Arc::new(patterns),
+            custom_patterns: Arc::new(Vec::new()),
         })
     }
 
@@ -297,6 +303,71 @@ impl LanguageDetector {
             _ => lang.code(),
         }
         .to_string()
+    }
+
+    /// Returns a new `LanguageDetector` with an additional custom pattern.
+    ///
+    /// Custom patterns are checked before built-in patterns, giving them highest priority.
+    /// The original detector is not modified (builder-style immutable API).
+    ///
+    /// # Arguments
+    ///
+    /// * `pattern` - A regex pattern string to match against input text.
+    /// * `lang_code` - The language code to return when this pattern matches.
+    ///
+    /// # Returns
+    ///
+    /// * `Result<Self, I18nError>` - A new detector with the added pattern, or an error if the regex is invalid.
+    ///
+    /// # Errors
+    ///
+    /// Returns `I18nError::PatternOperationFailed` if the regex pattern fails to compile.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use langweave::language_detector::LanguageDetector;
+    /// use langweave::language_detector_trait::LanguageDetectorTrait;
+    ///
+    /// let detector = LanguageDetector::new();
+    /// let custom = detector.with_custom_pattern(r"(?i)\b(aloha)\b", "haw").unwrap();
+    /// assert_eq!(custom.detect("Aloha world").unwrap(), "haw");
+    /// // Original detector is unchanged
+    /// assert_eq!(detector.custom_pattern_count(), 0);
+    /// assert_eq!(custom.custom_pattern_count(), 1);
+    /// ```
+    pub fn with_custom_pattern(
+        &self,
+        pattern: &str,
+        lang_code: &str,
+    ) -> Result<Self, I18nError> {
+        let regex = Regex::new(pattern).map_err(|e| {
+            I18nError::PatternOperationFailed(format!(
+                "Invalid regex pattern '{}': {}",
+                pattern, e
+            ))
+        })?;
+        let mut new_patterns = (*self.custom_patterns).clone();
+        new_patterns.push((regex, lang_code.to_string()));
+        Ok(LanguageDetector {
+            patterns: Arc::clone(&self.patterns),
+            custom_patterns: Arc::new(new_patterns),
+        })
+    }
+
+    /// Returns the number of custom patterns added to this detector.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use langweave::language_detector::LanguageDetector;
+    ///
+    /// let detector = LanguageDetector::new();
+    /// assert_eq!(detector.custom_pattern_count(), 0);
+    /// ```
+    #[must_use]
+    pub fn custom_pattern_count(&self) -> usize {
+        self.custom_patterns.len()
     }
 }
 
@@ -352,10 +423,24 @@ impl LanguageDetectorTrait for LanguageDetector {
             return Err(I18nError::LanguageDetectionFailed);
         }
 
-        // Try custom patterns first
+        // Try runtime custom patterns first (highest priority)
+        for (pattern, lang) in self.custom_patterns.iter() {
+            if pattern.is_match(normalized_text) {
+                debug!(
+                    "Custom runtime pattern matched for language '{}'",
+                    lang
+                );
+                return Ok(lang.clone());
+            }
+        }
+
+        // Try built-in patterns
         for (pattern, lang) in self.patterns.iter() {
             if pattern.is_match(normalized_text) {
-                debug!("Custom heuristic matched pattern for language '{}'", lang);
+                debug!(
+                    "Built-in pattern matched for language '{}'",
+                    lang
+                );
                 return Ok(lang.to_string());
             }
         }
@@ -421,7 +506,11 @@ impl LanguageDetectorTrait for LanguageDetector {
         &self,
         text: &str,
     ) -> Result<String, I18nError> {
-        self.detect(text)
+        let detector = self.clone();
+        let text = text.to_string();
+        tokio::task::spawn_blocking(move || detector.detect(&text))
+            .await
+            .map_err(|e| I18nError::TaskFailed(e.to_string()))?
     }
 }
 

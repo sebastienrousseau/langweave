@@ -32,6 +32,13 @@ pub mod translations;
 /// The `translator` module contains a simple translation service using a predefined dictionary.
 pub mod translator;
 
+/// The `batch` module provides concurrent batch processing for language detection and translation.
+#[cfg(feature = "batch")]
+pub mod batch;
+/// The `streaming` module provides streaming operations for large text processing.
+#[cfg(feature = "stream")]
+pub mod streaming;
+
 /// A module that re-exports commonly used items for convenience.
 pub mod prelude {
     pub use crate::detect_language;
@@ -46,6 +53,20 @@ pub mod prelude {
     pub use crate::optimized::is_language_supported_optimized;
     pub use crate::optimized::supported_languages_optimized;
     pub use crate::optimized::translate_optimized;
+
+    // Batch processing (requires "batch" feature)
+    #[cfg(feature = "batch")]
+    pub use crate::batch::{
+        detect_batch_async, translate_batch_async, BatchConfig,
+        BatchResult,
+    };
+
+    // Streaming processing (requires "stream" feature)
+    #[cfg(feature = "stream")]
+    pub use crate::streaming::{
+        chunk_text, detect_language_stream, translate_stream,
+        ChunkResult, StreamConfig,
+    };
 }
 
 /// The current version of the langweave library.
@@ -189,17 +210,14 @@ pub fn detect_language(text: &str) -> Result<String, I18nError> {
 pub async fn detect_language_async(
     text: &str,
 ) -> Result<String, I18nError> {
-    debug!("Detecting language for: {}", text);
-
     if text.trim().is_empty() {
         return Err(I18nError::LanguageDetectionFailed);
     }
 
-    // Delegate to the composite language detector, which handles
-    // regex pattern matching and word-by-word whatlang detection internally
-    let detected_lang = LANGUAGE_DETECTOR.detect_async(text).await?;
-    debug!("Detected language: {}", detected_lang);
-    Ok(detected_lang)
+    let text_owned = text.to_string();
+    tokio::task::spawn_blocking(move || detect_language(&text_owned))
+        .await
+        .map_err(|e| I18nError::TaskFailed(e.to_string()))?
 }
 
 /// Returns a list of supported language codes.
@@ -314,8 +332,14 @@ pub mod async_utils {
                 lang.to_string(),
             ));
         }
-        let translator = Translator::new(lang)?;
-        translator.translate(text)
+        let lang_owned = lang.to_string();
+        let text_owned = text.to_string();
+        tokio::task::spawn_blocking(move || {
+            let translator = Translator::new(&lang_owned)?;
+            translator.translate(&text_owned)
+        })
+        .await
+        .map_err(|e| I18nError::TaskFailed(e.to_string()))?
     }
 }
 
