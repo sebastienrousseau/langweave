@@ -465,10 +465,7 @@ mod async_utils_coverage {
         // translate_async uses Translator which calls translations::translate
         // directly (no fallback), so a missing key returns TranslationFailed
         let result = translate_async("fr", "NonexistentKey99").await;
-        assert!(matches!(
-            result,
-            Err(I18nError::TranslationFailed(_))
-        ));
+        assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
     }
 
     #[tokio::test]

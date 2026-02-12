@@ -95,7 +95,8 @@ pub fn chunk_text(text: &str, chunk_size: usize) -> Vec<String> {
 
         // Find the nearest char boundary at or before chunk_size
         let mut byte_limit = chunk_size.min(remaining.len());
-        while byte_limit > 0 && !remaining.is_char_boundary(byte_limit) {
+        while byte_limit > 0 && !remaining.is_char_boundary(byte_limit)
+        {
             byte_limit -= 1;
         }
         if byte_limit == 0 {
@@ -156,11 +157,10 @@ pub fn detect_language_stream(
         for (chunk_index, chunk_text) in chunks.into_iter().enumerate()
         {
             let text_for_detect = chunk_text.clone();
-            let result =
-                crate::run_blocking(move || {
-                    detect_language(&text_for_detect)
-                })
-                .await;
+            let result = crate::run_blocking(move || {
+                detect_language(&text_for_detect)
+            })
+            .await;
 
             let chunk_result = ChunkResult {
                 chunk_index,

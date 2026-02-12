@@ -1,9 +1,9 @@
-#![cfg(feature = "full")]
-
 //! Comprehensive property-based tests for LangWeave core logic
 //!
 //! This test suite ensures mathematical properties, invariants, and panic safety
 //! across all public functions using property-based testing with proptest.
+
+#![cfg(feature = "full")]
 
 use langweave::{
     detect_language, detect_language_async, error::I18nError,

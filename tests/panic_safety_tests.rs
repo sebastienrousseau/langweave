@@ -79,7 +79,8 @@ mod panic_safety {
 
         for lang in &dangerous_lang_codes {
             for text in &dangerous_texts {
-                let result = panic::catch_unwind(|| translate(lang, text));
+                let result =
+                    panic::catch_unwind(|| translate(lang, text));
                 assert!(
                     result.is_ok(),
                     "translate panicked on lang len: {}, text len: {}",
@@ -108,7 +109,8 @@ mod panic_safety {
         ];
 
         for input in &dangerous_inputs {
-            let result = panic::catch_unwind(|| is_language_supported(input));
+            let result =
+                panic::catch_unwind(|| is_language_supported(input));
             assert!(
                 result.is_ok(),
                 "is_language_supported panicked on input len: {}",
@@ -128,7 +130,9 @@ mod panic_safety {
     #[cfg(feature = "batch")]
     #[tokio::test]
     async fn batch_operations_never_panic() {
-        use langweave::batch::{detect_batch_async, translate_batch_async, BatchConfig};
+        use langweave::batch::{
+            detect_batch_async, translate_batch_async, BatchConfig,
+        };
 
         let dangerous_text_sets: Vec<Vec<String>> = vec![
             vec![String::new()],
@@ -141,16 +145,20 @@ mod panic_safety {
         let config = BatchConfig::default();
 
         for texts in &dangerous_text_sets {
-            let text_refs: Vec<&str> = texts.iter().map(String::as_str).collect();
+            let text_refs: Vec<&str> =
+                texts.iter().map(String::as_str).collect();
             let _ = detect_batch_async(&text_refs, &config).await;
-            let _ = translate_batch_async("en", &text_refs, &config).await;
+            let _ =
+                translate_batch_async("en", &text_refs, &config).await;
         }
     }
 
     #[cfg(feature = "stream")]
     #[tokio::test]
     async fn streaming_operations_never_panic() {
-        use langweave::streaming::{chunk_text, detect_language_stream, StreamConfig};
+        use langweave::streaming::{
+            chunk_text, detect_language_stream, StreamConfig,
+        };
         use tokio_stream::StreamExt;
 
         let dangerous_inputs: Vec<(String, usize)> = vec![
@@ -163,7 +171,8 @@ mod panic_safety {
 
         for (text, chunk_size) in &dangerous_inputs {
             // Test chunk_text
-            let result = panic::catch_unwind(|| chunk_text(text, *chunk_size));
+            let result =
+                panic::catch_unwind(|| chunk_text(text, *chunk_size));
             assert!(
                 result.is_ok(),
                 "chunk_text panicked on text len: {}, chunk_size: {}",
@@ -190,10 +199,15 @@ mod memory_safety {
     fn large_input_handling() {
         let large_text = "a".repeat(1_000_000);
 
-        let result = panic::catch_unwind(|| detect_language(&large_text));
-        assert!(result.is_ok(), "detect_language panicked on 1MB input");
+        let result =
+            panic::catch_unwind(|| detect_language(&large_text));
+        assert!(
+            result.is_ok(),
+            "detect_language panicked on 1MB input"
+        );
 
-        let result = panic::catch_unwind(|| translate("en", &large_text));
+        let result =
+            panic::catch_unwind(|| translate("en", &large_text));
         assert!(result.is_ok(), "translate panicked on 1MB input");
     }
 
@@ -228,7 +242,9 @@ mod memory_safety {
     fn error_handling_robustness() {
         let error_cases = vec![
             I18nError::LanguageDetectionFailed,
-            I18nError::TranslationFailed("\0\u{FFFD}\u{1F980}".to_string()),
+            I18nError::TranslationFailed(
+                "\0\u{FFFD}\u{1F980}".to_string(),
+            ),
             I18nError::UnsupportedLanguage("\u{1F480}".repeat(1000)),
             I18nError::UnexpectedError("\x00\x01".to_string()),
             I18nError::TaskFailed("\u{E000}".to_string()),

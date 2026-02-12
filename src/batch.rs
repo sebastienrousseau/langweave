@@ -89,9 +89,10 @@ pub async fn detect_batch_async(
                 .acquire()
                 .await
                 .map_err(|e| I18nError::TaskFailed(e.to_string()));
-            let result =
-                crate::run_blocking(move || detect_language(&text_owned))
-                    .await;
+            let result = crate::run_blocking(move || {
+                detect_language(&text_owned)
+            })
+            .await;
             (index, result)
         });
     }
@@ -112,8 +113,8 @@ async fn collect_join_set(
     while let Some(join_result) = join_set.join_next().await {
         // Inner tasks use run_blocking which converts panics to TaskFailed,
         // so the outer JoinSet task cannot panic.
-        let (index, result) = join_result
-            .expect("inner task should not panic");
+        let (index, result) =
+            join_result.expect("inner task should not panic");
         results.push(BatchResult { index, result });
     }
     results

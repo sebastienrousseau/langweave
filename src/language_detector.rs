@@ -775,10 +775,8 @@ mod tests {
 
     #[test]
     fn test_compile_language_patterns_invalid_regex() {
-        let bad_specs = vec![
-            (r"(?i)\b(hello)\b", "en"),
-            ("[invalid", "xx"),
-        ];
+        let bad_specs =
+            vec![(r"(?i)\b(hello)\b", "en"), ("[invalid", "xx")];
         let result = compile_language_patterns(bad_specs);
         assert!(matches!(
             result,

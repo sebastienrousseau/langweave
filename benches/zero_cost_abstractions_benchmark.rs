@@ -5,17 +5,29 @@
 
 //! Zero-cost abstractions performance benchmarks
 
-use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use langweave::{detect_language, detect_language_async, translate, is_language_supported, supported_languages};
-use langweave::optimized::{is_language_supported_zero_alloc, supported_languages_optimized};
+use criterion::{
+    black_box, criterion_group, criterion_main, BenchmarkId, Criterion,
+    Throughput,
+};
+use langweave::optimized::{
+    is_language_supported_zero_alloc, supported_languages_optimized,
+};
+use langweave::{
+    detect_language, detect_language_async, is_language_supported,
+    supported_languages, translate,
+};
 use std::sync::Arc;
 use tokio::runtime::Runtime;
 
 #[cfg(feature = "batch")]
-use langweave::batch::{BatchConfig, detect_batch_async, translate_batch_async};
+use langweave::batch::{
+    detect_batch_async, translate_batch_async, BatchConfig,
+};
 
 #[cfg(feature = "stream")]
-use langweave::streaming::{StreamConfig, detect_language_stream, chunk_text};
+use langweave::streaming::{
+    chunk_text, detect_language_stream, StreamConfig,
+};
 
 const SAMPLE_TEXTS: &[&str] = &[
     "Hello world",
@@ -45,15 +57,15 @@ fn bench_string_clones(c: &mut Criterion) {
     group.bench_function("detect_language_async_with_clones", |b| {
         let rt = Runtime::new().unwrap();
         b.to_async(&rt).iter(|| async {
-            detect_language_async(black_box("Hello world")).await.unwrap()
+            detect_language_async(black_box("Hello world"))
+                .await
+                .unwrap()
         });
     });
 
     // Measure synchronous version for comparison
     group.bench_function("detect_language_sync", |b| {
-        b.iter(|| {
-            detect_language(black_box("Hello world")).unwrap()
-        });
+        b.iter(|| detect_language(black_box("Hello world")).unwrap());
     });
 
     group.finish();
@@ -66,7 +78,12 @@ fn bench_language_support_lookup(c: &mut Criterion) {
     // Original implementation
     group.bench_function("is_language_supported_original", |b| {
         b.iter(|| {
-            for &lang in ["en", "fr", "de", "es", "pt", "it", "nl", "ru", "ar", "he", "hi", "ja", "ko", "zh", "id"].iter() {
+            for &lang in [
+                "en", "fr", "de", "es", "pt", "it", "nl", "ru", "ar",
+                "he", "hi", "ja", "ko", "zh", "id",
+            ]
+            .iter()
+            {
                 black_box(is_language_supported(black_box(lang)));
             }
         });
@@ -75,8 +92,15 @@ fn bench_language_support_lookup(c: &mut Criterion) {
     // Optimized zero-allocation version
     group.bench_function("is_language_supported_zero_alloc", |b| {
         b.iter(|| {
-            for &lang in ["en", "fr", "de", "es", "pt", "it", "nl", "ru", "ar", "he", "hi", "ja", "ko", "zh", "id"].iter() {
-                black_box(is_language_supported_zero_alloc(black_box(lang)));
+            for &lang in [
+                "en", "fr", "de", "es", "pt", "it", "nl", "ru", "ar",
+                "he", "hi", "ja", "ko", "zh", "id",
+            ]
+            .iter()
+            {
+                black_box(is_language_supported_zero_alloc(black_box(
+                    lang,
+                )));
             }
         });
     });
@@ -85,7 +109,9 @@ fn bench_language_support_lookup(c: &mut Criterion) {
     group.bench_function("case_insensitive_lookup", |b| {
         b.iter(|| {
             for &lang in ["EN", "Fr", "DE", "Es", "PT"].iter() {
-                black_box(is_language_supported_zero_alloc(black_box(lang)));
+                black_box(is_language_supported_zero_alloc(black_box(
+                    lang,
+                )));
             }
         });
     });
@@ -126,7 +152,7 @@ fn bench_translation_patterns(c: &mut Criterion) {
                 b.iter(|| {
                     let _ = translate(black_box("fr"), black_box(text));
                 });
-            }
+            },
         );
     }
 
@@ -166,15 +192,21 @@ fn bench_batch_operations(c: &mut Criterion) {
 
     // Batch detection with various concurrency levels
     for concurrency in [1, 5, 10, 20].iter() {
-        let config = BatchConfig { max_concurrency: *concurrency };
+        let config = BatchConfig {
+            max_concurrency: *concurrency,
+        };
         group.bench_with_input(
             BenchmarkId::new("detect_batch", concurrency),
             &config,
             |b, config| {
                 b.to_async(&rt).iter(|| async {
-                    detect_batch_async(black_box(SAMPLE_TEXTS), black_box(config)).await
+                    detect_batch_async(
+                        black_box(SAMPLE_TEXTS),
+                        black_box(config),
+                    )
+                    .await
                 });
-            }
+            },
         );
     }
 
@@ -182,7 +214,12 @@ fn bench_batch_operations(c: &mut Criterion) {
     let config = BatchConfig::default();
     group.bench_function("translate_batch", |b| {
         b.to_async(&rt).iter(|| async {
-            translate_batch_async(black_box("fr"), black_box(SAMPLE_TEXTS), black_box(&config)).await
+            translate_batch_async(
+                black_box("fr"),
+                black_box(SAMPLE_TEXTS),
+                black_box(&config),
+            )
+            .await
         });
     });
 
@@ -196,9 +233,7 @@ fn bench_streaming_operations(c: &mut Criterion) {
 
     // Text chunking performance
     group.bench_function("chunk_text", |b| {
-        b.iter(|| {
-            chunk_text(black_box(LONG_TEXT), black_box(100))
-        });
+        b.iter(|| chunk_text(black_box(LONG_TEXT), black_box(100)));
     });
 
     // Streaming vs batch comparison
@@ -206,7 +241,10 @@ fn bench_streaming_operations(c: &mut Criterion) {
     group.bench_function("detect_language_stream", |b| {
         use tokio_stream::StreamExt;
         b.to_async(&rt).iter(|| async {
-            let mut stream = detect_language_stream(black_box(LONG_TEXT), black_box(&config));
+            let mut stream = detect_language_stream(
+                black_box(LONG_TEXT),
+                black_box(&config),
+            );
             let mut count = 0;
             while let Some(_result) = stream.next().await {
                 count += 1;
@@ -225,30 +263,26 @@ fn bench_async_runtime_overhead(c: &mut Criterion) {
     // Measure spawn_blocking overhead
     group.bench_function("spawn_blocking_simple", |b| {
         b.to_async(&rt).iter(|| async {
-            tokio::task::spawn_blocking(|| {
-                black_box(42)
-            }).await.unwrap()
+            tokio::task::spawn_blocking(|| black_box(42)).await.unwrap()
         });
     });
 
     // Compare with direct computation
     group.bench_function("direct_computation", |b| {
-        b.iter(|| {
-            black_box(42)
-        });
+        b.iter(|| black_box(42));
     });
 
     // Measure async function call overhead vs sync
     group.bench_function("detect_async_overhead", |b| {
         b.to_async(&rt).iter(|| async {
-            detect_language_async(black_box("Hello world")).await.unwrap()
+            detect_language_async(black_box("Hello world"))
+                .await
+                .unwrap()
         });
     });
 
     group.bench_function("detect_sync_baseline", |b| {
-        b.iter(|| {
-            detect_language(black_box("Hello world")).unwrap()
-        });
+        b.iter(|| detect_language(black_box("Hello world")).unwrap());
     });
 
     group.finish();
@@ -269,9 +303,7 @@ fn bench_arc_mutex_alternatives(c: &mut Criterion) {
     // Direct reference baseline
     let data_ref = [1, 2, 3, 4, 5];
     group.bench_function("direct_reference", |b| {
-        b.iter(|| {
-            black_box(data_ref.len())
-        });
+        b.iter(|| black_box(data_ref.len()));
     });
 
     group.finish();
@@ -287,9 +319,11 @@ fn bench_regex_vs_pattern_matching(c: &mut Criterion) {
         b.iter(|| {
             for &input in inputs.iter() {
                 // Simulate the current eq_ignore_ascii_case approach
-                black_box("en".eq_ignore_ascii_case(input) ||
-                          "fr".eq_ignore_ascii_case(input) ||
-                          "de".eq_ignore_ascii_case(input));
+                black_box(
+                    "en".eq_ignore_ascii_case(input)
+                        || "fr".eq_ignore_ascii_case(input)
+                        || "de".eq_ignore_ascii_case(input),
+                );
             }
         });
     });
@@ -300,9 +334,11 @@ fn bench_regex_vs_pattern_matching(c: &mut Criterion) {
             for &input in inputs.iter() {
                 match input {
                     "en" | "fr" | "de" => black_box(true),
-                    _ => black_box("en".eq_ignore_ascii_case(input) ||
-                                  "fr".eq_ignore_ascii_case(input) ||
-                                  "de".eq_ignore_ascii_case(input)),
+                    _ => black_box(
+                        "en".eq_ignore_ascii_case(input)
+                            || "fr".eq_ignore_ascii_case(input)
+                            || "de".eq_ignore_ascii_case(input),
+                    ),
                 };
             }
         });

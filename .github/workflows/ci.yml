@@ -118,7 +118,7 @@ jobs:
   # MSRV VERIFICATION - MINIMUM SUPPORTED RUST VERSION
   # =============================================================================
   msrv-check:
-    name: 🔧 MSRV Check (Rust 1.66.0)
+    name: 🔧 MSRV Check (Rust 1.85.0)
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
@@ -130,8 +130,8 @@ jobs:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🦀 Install MSRV Rust toolchain (1.66.0)
-        uses: dtolnay/rust-toolchain@1.66.0
+      - name: 🦀 Install MSRV Rust toolchain (1.85.0)
+        uses: dtolnay/rust-toolchain@1.85.0
 
       - name: 💾 Cache Cargo dependencies
         uses: actions/cache@v4
@@ -145,7 +145,7 @@ jobs:
 
       - name: 🔧 Verify MSRV compatibility
         run: |
-          echo "🔧 Verifying MSRV compatibility with Rust 1.66.0..."
+          echo "🔧 Verifying MSRV compatibility with Rust 1.85.0..."
 
           # Build with all features
           cargo build --all-features --workspace
@@ -175,15 +175,14 @@ jobs:
         with:
           components: miri
 
-      - name: 💾 Cache Cargo dependencies
+      - name: 💾 Cache Cargo registry
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/
-          key: ubuntu-miri-${{ hashFiles('**/Cargo.lock') }}
+          key: ubuntu-miri-registry-${{ hashFiles('**/Cargo.lock') }}
 
       - name: ☢️ Run Miri on unsafe code
         run: |
