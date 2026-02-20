@@ -58,9 +58,9 @@ skip-tree = []
 # Lint level for unknown registries
 unknown-registry = "warn"
 # Lint level for unknown git repositories
-unknown-git = "warn"
+unknown-git = "deny"
 
 # List of allowed crate registries
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # List of allowed Git repositories
-allow-git = []
+allow-git = ["https://github.com/sebastienrousseau/commons"]

@@ -67,6 +67,13 @@ jobs:
 
           echo "✅ Security audit passed with latest dependencies"
 
+      - name: 🦀 Verify MSRV compatibility
+        run: |
+          echo "🦀 Verifying declared MSRV in nightly maintenance..."
+          cargo install cargo-msrv --locked
+          cargo msrv verify -- cargo check --workspace --all-targets --all-features --locked
+          echo "✅ Nightly MSRV verification passed"
+
       - name: 📋 Generate dependency report
         run: |
           echo "📋 Generating dependency analysis report..."

@@ -44,6 +44,13 @@ cargo test
 - Write tests for new features
 - Maintain backward compatibility
 
+#### Dependency and Lockfile Policy
+- Keep `Cargo.lock` committed and up to date for deterministic CI.
+- Use pinned revisions (`rev`) for git dependencies; avoid floating branches in `Cargo.toml`.
+- Run `cargo update` only when intentionally refreshing dependencies.
+- If dependency updates are included, mention them explicitly in PR descriptions.
+- Keep `deny.toml` aligned with allowed sources and license/security policy changes.
+
 ## Development Process
 
 ### Pull Request Review

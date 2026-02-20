@@ -150,6 +150,32 @@ jobs:
           echo "✅ Feature matrix checks passed"
 
   # =============================================================================
+  # MSRV VERIFICATION - ENFORCE DECLARED rust-version
+  # =============================================================================
+  msrv-check:
+    name: 🦀 MSRV Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain (MSRV)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.66.0"
+
+      - name: 📦 Install cargo-msrv
+        run: cargo install cargo-msrv --locked
+
+      - name: 🧪 Verify declared MSRV
+        run: |
+          echo "🧪 Verifying repository against declared rust-version..."
+          cargo msrv verify -- cargo check --workspace --all-targets --all-features --locked
+          echo "✅ MSRV verification passed"
+
+  # =============================================================================
   # TEST SUITE - 95% COVERAGE ENFORCEMENT
   # =============================================================================
   test-coverage:
@@ -376,7 +402,7 @@ jobs:
     name: 🔗 Integration Check
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
-    needs: [lint-and-format, build-check, feature-matrix, test-coverage, security-audit, benchmark-guardrail]
+    needs: [lint-and-format, build-check, feature-matrix, msrv-check, test-coverage, security-audit, benchmark-guardrail]
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
