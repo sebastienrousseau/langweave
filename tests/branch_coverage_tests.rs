@@ -433,9 +433,8 @@ mod regression_branch_tests {
         ];
 
         for case in edge_cases {
-            let result = is_language_supported(case);
-            // Should handle all cases without panic
-            assert!(result || !result);
+            // Should handle all cases without panic.
+            let _ = is_language_supported(case);
         }
     }
 

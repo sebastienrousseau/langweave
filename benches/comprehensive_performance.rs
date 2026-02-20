@@ -57,7 +57,7 @@ fn bench_language_detection(c: &mut Criterion) {
 
     let long_text =
         "The quick brown fox jumps over the lazy dog. ".repeat(50);
-    let test_cases = vec![
+    let test_cases = [
         ("short_en", "Hello world"),
         ("medium_en", "The quick brown fox jumps over the lazy dog. This is a longer sentence to test detection."),
         ("long_en", long_text.as_str()),
@@ -81,7 +81,7 @@ fn bench_language_detection(c: &mut Criterion) {
 /// Benchmark case-insensitive translation fallback (worst case)
 fn bench_translation_fallback(c: &mut Criterion) {
     let translator = Translator::new("fr").unwrap();
-    let test_cases = vec![
+    let test_cases = [
         ("exact_match", "Hello"),
         ("case_mismatch", "HELLO"), // Forces case-insensitive search
         ("not_found", "NonexistentKey"),
@@ -103,7 +103,7 @@ fn bench_word_by_word_detection(c: &mut Criterion) {
     let detector = LanguageDetector::new();
 
     // Create text that won't match patterns but will trigger word-by-word fallback
-    let problematic_texts = vec![
+    let problematic_texts = [
         ("numbers_and_en", "123 hello 456 world"),
         ("mixed_scripts", "hello مرحبا 你好"),
         ("long_mixed", "word1 word2 word3 word4 word5 hello world test case example"),

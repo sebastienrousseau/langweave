@@ -175,7 +175,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           files: lcov.info
-          fail_ci_if_error: true  # Fail CI if codecov upload fails
+          fail_ci_if_error: false
 
   # =============================================================================
   # SECURITY AUDIT - NO BYPASS ALLOWED

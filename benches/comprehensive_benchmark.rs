@@ -21,7 +21,7 @@ use std::sync::Arc;
 /// Benchmark language detection performance
 fn bench_language_detection(c: &mut Criterion) {
     let detector = LanguageDetector::new();
-    let texts = vec![
+    let texts = [
         "The quick brown fox jumps over the lazy dog",
         "Le chat noir saute par-dessus le chien paresseux",
         "Der schnelle braune Fuchs springt über den faulen Hund",
@@ -121,7 +121,7 @@ fn bench_allocations(c: &mut Criterion) {
 
     // Test regex pattern cloning (happens in LanguageDetector::new)
     group.bench_function("detector_new_clone_patterns", |b| {
-        b.iter(|| LanguageDetector::new());
+        b.iter(LanguageDetector::new);
     });
 
     // Test convert_lang_code string allocation
