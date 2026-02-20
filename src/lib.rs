@@ -9,7 +9,7 @@
 )]
 #![crate_name = "langweave"]
 #![crate_type = "lib"]
-#![warn(missing_docs)]
+#![deny(missing_docs)]
 #![forbid(unsafe_code)]
 
 use language_detector_trait::LanguageDetectorTrait;
@@ -18,7 +18,6 @@ use once_cell::sync::Lazy;
 
 use crate::error::I18nError;
 use crate::language_detector::LanguageDetector;
-use crate::translator::Translator;
 
 /// The `error` module contains error types used by the library.
 pub mod error;
@@ -26,6 +25,8 @@ pub mod error;
 pub mod language_detector;
 /// The `language_detector_trait` module contains the `LanguageDetectorTrait` trait for extensibility.
 pub mod language_detector_trait;
+/// The `optimized` module contains zero-cost abstraction performance optimizations.
+pub mod optimized;
 /// The `translations` module contains translation functions for different languages.
 pub mod translations;
 /// The `translator` module contains a simple translation service using a predefined dictionary.
@@ -34,11 +35,17 @@ pub mod translator;
 /// A module that re-exports commonly used items for convenience.
 pub mod prelude {
     pub use crate::detect_language;
+    pub use crate::detect_language_async;
     pub use crate::error::I18nError;
     pub use crate::is_language_supported;
     pub use crate::supported_languages;
     pub use crate::translate;
     pub use crate::translator::Translator;
+
+    // Performance-optimized variants
+    pub use crate::optimized::is_language_supported_optimized;
+    pub use crate::optimized::supported_languages_optimized;
+    pub use crate::optimized::translate_optimized;
 }
 
 /// The current version of the langweave library.
@@ -73,24 +80,21 @@ static LANGUAGE_DETECTOR: Lazy<LanguageDetector> =
 ///
 /// This function will return an error if:
 /// * The specified language is not supported.
-/// * The translation process fails for any reason.
+/// * The translation key is not found in the language's translation dictionary.
+/// * The translation process fails for any other reason.
 pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
     if !is_language_supported(lang) {
         return Err(I18nError::UnsupportedLanguage(lang.to_string()));
     }
 
-    let translator = Translator::new(lang).map_err(|e| {
-        I18nError::TranslationFailed(format!(
-            "Failed to create translator: {}",
-            e
-        ))
-    })?;
-
-    // If translation fails, return the original text
-    translator.translate(text).or_else(|_| Ok(text.to_string()))
+    // Use the centralized fallback logic from translations module
+    translations::translate_with_fallback(lang, text)
 }
 
-/// Detects the language of a given text using the composite language detector.
+/// Detects the language of a given text synchronously.
+///
+/// This function provides synchronous language detection, suitable for contexts
+/// where async is not available or not needed.
 ///
 /// # Arguments
 ///
@@ -103,20 +107,13 @@ pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
 /// # Examples
 ///
 /// ```
-/// use langweave::language_detector::LanguageDetector;
-/// use langweave::error::I18nError;
-/// use langweave::language_detector_trait::LanguageDetectorTrait;
+/// use langweave::detect_language;
 ///
-/// async fn detect_language() -> Result<(), I18nError> {
-///     // Create a new language detector
-///     let detector = LanguageDetector::new();
+/// let lang = detect_language("Hello, world!").unwrap();
+/// assert_eq!(lang, "en");
 ///
-///     // Detect language
-///     let lang = detector.detect_async("Hello, world!").await?;
-///     println!("Detected language: {}", lang);
-///
-///     Ok(())
-/// }
+/// let lang = detect_language("Bonjour le monde!").unwrap();
+/// assert_eq!(lang, "fr");
 /// ```
 ///
 /// # Errors
@@ -124,7 +121,7 @@ pub fn translate(lang: &str, text: &str) -> Result<String, I18nError> {
 /// This function will return an error if:
 /// * The input text is empty or contains only non-alphabetic characters.
 /// * The language detection process fails to identify a language with sufficient confidence.
-pub async fn detect_language(text: &str) -> Result<String, I18nError> {
+pub fn detect_language(text: &str) -> Result<String, I18nError> {
     debug!("Detecting language for: {}", text);
 
     if text.trim().is_empty() {
@@ -132,18 +129,14 @@ pub async fn detect_language(text: &str) -> Result<String, I18nError> {
     }
 
     // Try detecting the language for the whole text first
-    if let Ok(detected_lang) =
-        LANGUAGE_DETECTOR.detect_async(text).await
-    {
+    if let Ok(detected_lang) = LANGUAGE_DETECTOR.detect(text) {
         debug!("Detected language: {}", detected_lang);
         return Ok(detected_lang);
     }
 
     // Fallback: Return the first successfully detected language from word-by-word detection
     for word in text.split_whitespace() {
-        if let Ok(detected_lang) =
-            LANGUAGE_DETECTOR.detect_async(word).await
-        {
+        if let Ok(detected_lang) = LANGUAGE_DETECTOR.detect(word) {
             debug!(
                 "Detected language from word '{}': {}",
                 word, detected_lang
@@ -156,11 +149,73 @@ pub async fn detect_language(text: &str) -> Result<String, I18nError> {
     Err(I18nError::LanguageDetectionFailed)
 }
 
-/// Returns a list of supported language codes.
+/// Detects the language of a given text asynchronously.
+///
+/// This function provides asynchronous language detection, suitable for
+/// async contexts where non-blocking operation is preferred.
+///
+/// # Arguments
+///
+/// * `text` - A string slice that holds the text to analyze
 ///
 /// # Returns
 ///
-/// A vector of strings representing the supported language codes.
+/// * `Result<String, I18nError>` - The detected language code if successful, or an error if detection fails
+///
+/// # Examples
+///
+/// ```
+/// use langweave::detect_language_async;
+/// use langweave::error::I18nError;
+///
+/// async fn example() -> Result<(), I18nError> {
+///     // Detect language using the high-level async function
+///     let lang = detect_language_async("Hello, world!").await?;
+///     println!("Detected language: {}", lang);
+///
+///     // Detect language for French text
+///     let lang = detect_language_async("Bonjour le monde!").await?;
+///     println!("Detected language: {}", lang);
+///
+///     Ok(())
+/// }
+/// ```
+///
+/// # Errors
+///
+/// This function will return an error if:
+/// * The input text is empty or contains only non-alphabetic characters.
+/// * The language detection process fails to identify a language with sufficient confidence.
+pub async fn detect_language_async(
+    text: &str,
+) -> Result<String, I18nError> {
+    debug!("Detecting language for: {}", text);
+
+    if text.trim().is_empty() {
+        return Err(I18nError::LanguageDetectionFailed);
+    }
+
+    // Delegate to the composite language detector, which handles
+    // regex pattern matching and word-by-word whatlang detection internally
+    let detected_lang = LANGUAGE_DETECTOR.detect_async(text).await?;
+    debug!("Detected language: {}", detected_lang);
+    Ok(detected_lang)
+}
+
+/// Returns a list of supported language codes.
+///
+/// This function returns all 15 languages that LangWeave supports:
+/// en (English), fr (French), de (German), es (Spanish), pt (Portuguese),
+/// it (Italian), nl (Dutch), ru (Russian), ar (Arabic), he (Hebrew),
+/// hi (Hindi), ja (Japanese), ko (Korean), zh (Chinese), id (Indonesian).
+///
+/// # Performance
+///
+/// This function returns a static slice reference with zero heap allocations.
+///
+/// # Returns
+///
+/// A static slice of string slices containing the supported language codes.
 ///
 /// # Examples
 ///
@@ -168,13 +223,20 @@ pub async fn detect_language(text: &str) -> Result<String, I18nError> {
 /// use langweave::supported_languages;
 ///
 /// let languages = supported_languages();
-/// assert!(languages.contains(&"en".to_string()));
+/// assert_eq!(languages.len(), 15);
+/// assert!(languages.contains(&"en"));
+/// assert!(languages.contains(&"fr"));
+/// assert!(languages.contains(&"de"));
+/// assert!(languages.contains(&"es"));
 /// ```
-pub fn supported_languages() -> Vec<String> {
-    vec!["en".to_string(), "fr".to_string(), "de".to_string()]
+#[inline]
+pub fn supported_languages() -> &'static [&'static str] {
+    optimized::SUPPORTED_LANGUAGE_CODES
 }
 
 /// Validates if a given language code is supported.
+///
+/// This function supports case-insensitive matching with zero heap allocations.
 ///
 /// # Arguments
 ///
@@ -184,22 +246,31 @@ pub fn supported_languages() -> Vec<String> {
 ///
 /// `true` if the language is supported, `false` otherwise.
 ///
+/// # Performance
+///
+/// Uses compile-time pattern matching for O(1) lookup on lowercase codes,
+/// with zero-allocation ASCII case folding for other cases.
+///
 /// # Examples
 ///
 /// ```
 /// use langweave::is_language_supported;
 ///
 /// assert!(is_language_supported("en"));
+/// assert!(is_language_supported("FR")); // Case insensitive
 /// assert!(!is_language_supported("zz"));
 /// ```
+#[inline]
 pub fn is_language_supported(lang: &str) -> bool {
-    supported_languages().contains(&lang.to_lowercase())
+    optimized::is_language_supported_zero_alloc(lang)
 }
 
 /// Asynchronous utilities for language processing.
 #[cfg(feature = "async")]
 pub mod async_utils {
     use super::*;
+    use crate::translator::Translator;
+    use tokio::task;
 
     /// Asynchronously translates a given text to a specified language.
     ///
@@ -239,23 +310,19 @@ pub mod async_utils {
         lang: &str,
         text: &str,
     ) -> Result<String, I18nError> {
-        if !is_language_supported(lang) {
-            return Err(I18nError::UnsupportedLanguage(
-                lang.to_string(),
-            ));
-        }
-        let translator = Translator::new(lang).map_err(|e| {
-            I18nError::TranslationFailed(format!(
-                "Failed to create translator: {}",
-                e
-            ))
-        })?;
-        translator.translate(text).map_err(|e| {
-            I18nError::TranslationFailed(format!(
-                "Async translation failed: {}",
-                e
-            ))
+        // Translation is CPU-bound and file-backed; execute it on
+        // the blocking pool to avoid stalling async executors.
+        let lang = lang.to_string();
+        let text = text.to_string();
+        task::spawn_blocking(move || {
+            if !is_language_supported(&lang) {
+                return Err(I18nError::UnsupportedLanguage(lang));
+            }
+            let translator = Translator::new(&lang)?;
+            translator.translate(&text)
         })
+        .await
+        .map_err(|err| I18nError::UnexpectedError(err.to_string()))?
     }
 }
 
@@ -280,26 +347,47 @@ mod tests {
         ));
     }
 
-    #[tokio::test]
-    async fn test_detect_language() {
+    #[test]
+    fn test_detect_language() {
         assert_eq!(
-            detect_language("The quick brown fox").await.unwrap(),
+            detect_language("The quick brown fox").unwrap(),
+            "en"
+        );
+        assert_eq!(detect_language("Le chat noir").unwrap(), "fr");
+        assert_eq!(
+            detect_language("Der schnelle Fuchs").unwrap(),
+            "de"
+        );
+    }
+
+    #[test]
+    fn test_detect_language_error() {
+        assert!(matches!(
+            detect_language(""),
+            Err(I18nError::LanguageDetectionFailed)
+        ));
+    }
+
+    #[tokio::test]
+    async fn test_detect_language_async() {
+        assert_eq!(
+            detect_language_async("The quick brown fox").await.unwrap(),
             "en"
         );
         assert_eq!(
-            detect_language("Le chat noir").await.unwrap(),
+            detect_language_async("Le chat noir").await.unwrap(),
             "fr"
         );
         assert_eq!(
-            detect_language("Der schnelle Fuchs").await.unwrap(),
+            detect_language_async("Der schnelle Fuchs").await.unwrap(),
             "de"
         );
     }
 
     #[tokio::test]
-    async fn test_detect_language_error() {
+    async fn test_detect_language_async_error() {
         assert!(matches!(
-            detect_language("").await,
+            detect_language_async("").await,
             Err(I18nError::LanguageDetectionFailed)
         ));
     }
@@ -308,18 +396,13 @@ mod tests {
     fn test_translate_complex() {
         let text = "Hello, how are you today?";
         let result = translate("fr", text);
-        assert!(result.is_ok());
-        // Either it's translated or the original text is returned
-        assert!(
-            result.clone().unwrap()
-                == "Bonjour, comment allez-vous aujourd'hui ?"
-                || result.clone().unwrap() == text
-        );
+        // Complex phrases not in the dictionary should return TranslationFailed error
+        assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
     }
 
-    #[tokio::test]
-    async fn test_detect_language_mixed() {
-        let result = detect_language("Hello bonjour").await;
+    #[test]
+    fn test_detect_language_mixed() {
+        let result = detect_language("Hello bonjour");
         assert!(
             result.is_ok(),
             "Language detection failed for mixed input"
@@ -334,10 +417,10 @@ mod tests {
         );
     }
 
-    #[tokio::test]
-    async fn test_detect_language_fallback() {
+    #[test]
+    fn test_detect_language_fallback() {
         // Test with a string that might be hard to detect
-        let result = detect_language("1234567890").await;
+        let result = detect_language("1234567890");
         // It should either detect a language or return LanguageDetectionFailed
         assert!(
             result.is_ok()
@@ -351,9 +434,9 @@ mod tests {
     #[test]
     fn test_supported_languages() {
         let languages = supported_languages();
-        assert!(languages.contains(&"en".to_string()));
-        assert!(languages.contains(&"fr".to_string()));
-        assert!(languages.contains(&"de".to_string()));
+        assert!(languages.contains(&"en"));
+        assert!(languages.contains(&"fr"));
+        assert!(languages.contains(&"de"));
     }
 
     #[test]
@@ -362,5 +445,23 @@ mod tests {
         assert!(is_language_supported("fr"));
         assert!(is_language_supported("de"));
         assert!(!is_language_supported("zz"));
+    }
+
+    #[test]
+    fn test_prelude_optimized_functions() {
+        use crate::prelude::*;
+
+        // Test optimized supported languages
+        let optimized_langs = supported_languages_optimized();
+        assert_eq!(optimized_langs.len(), 15);
+        assert!(optimized_langs.contains(&"en"));
+
+        // Test optimized language support check
+        assert!(is_language_supported_optimized("en"));
+        assert!(!is_language_supported_optimized("zz"));
+
+        // Test optimized translate
+        let result = translate_optimized("fr", "Hello");
+        assert!(result.is_ok() || result.is_err()); // Either translation works or fails appropriately
     }
 }

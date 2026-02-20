@@ -1,21 +1,66 @@
+# cargo-deny configuration file for LangWeave v0.0.2
+# Compatible with cargo-deny v0.19+
+
+[advisories]
+# The path where the advisory database is cloned/fetched into
+db-path = "~/.cargo/advisory-db"
+# The url(s) of the advisory databases to use
+db-urls = ["https://github.com/rustsec/advisory-db"]
+# Scope for unmaintained crate checks
+unmaintained = "workspace"
+# Lint level for crates that have been yanked from the registry
+yanked = "warn"
+# List of advisory IDs to ignore
+ignore = []
+
 [licenses]
-# List of allowed licenses for dependencies
-allow = ["MIT", "Apache-2.0", "Unicode-DFS-2016"]
+# List of explicitly allowed licenses
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "CC0-1.0",
+    "Zlib",
+]
+
+# Confidence threshold for detecting a license from a license text
+confidence-threshold = 0.8
+
+# Allow specific licenses on a per-crate basis
+exceptions = []
 
 [bans]
 # Lint level for when multiple versions of the same crate are detected
 multiple-versions = "warn"
-
-# The graph highlighting used when creating dotgraphs for crates with multiple versions
-# Options: "lowest-version", "simplest-path", "all"
+# Lint level for when a crate version requirement is `*`
+wildcards = "warn"
+# Graph highlighting used for duplicate crate diagnostics
 highlight = "all"
 
-# Certain crates/versions that will be skipped when doing duplicate detection.
+# List of crates to deny for security reasons
+deny = [
+    { crate = "openssl@<1.0" },
+    { crate = "md5" },
+    { crate = "sha1" },
+]
+
+# Certain crates/versions that will be skipped when doing duplicate detection
 skip = []
 
-# Similarly to `skip` allows you to skip certain crates during duplicate detection, unlike skip, it also includes the entire tree of transitive dependencies starting at the specified crate, up to a certain depth, which is by default infinite
+# Skip entire dependency trees
 skip-tree = []
 
-[advisories]
-# List of advisory IDs to ignore
-ignore = []
+[sources]
+# Lint level for unknown registries
+unknown-registry = "warn"
+# Lint level for unknown git repositories
+unknown-git = "deny"
+
+# List of allowed crate registries
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+# List of allowed Git repositories
+allow-git = ["https://github.com/sebastienrousseau/commons"]

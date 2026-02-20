@@ -1,24 +1,67 @@
 name: 🧪 Check
 
 on:
-  push:
-    branches:
-      - main
-      - feat/langweave
-  pull_request:
-    branches:
-      - feat/langweave
+  workflow_dispatch:
   release:
     types: [created]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # Enforce warnings as errors globally
+  RUSTFLAGS: "-D warnings"
 
 jobs:
   all:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: hecrj/setup-rust-action@v2
+      - uses: actions/checkout@v6
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy
-      - uses: actions/checkout@v4
-      - name: Check lints
-        run: cargo check --all-targets --workspace --all-features
+          components: clippy, rustfmt
+
+      - name: 🎨 Check code formatting (FAIL ON UNFORMATTED)
+        run: |
+          echo "🎨 Enforcing code formatting standards..."
+          cargo fmt --all -- --check
+          if [ $? -ne 0 ]; then
+            echo "❌ Code is not formatted according to rustfmt.toml"
+            echo "Run 'cargo fmt --all' to fix formatting issues"
+            exit 1
+          fi
+          echo "✅ All code is properly formatted"
+
+      - name: Check lints (ZERO WARNINGS POLICY)
+        run: |
+          echo "📋 Running Clippy with zero-warning policy..."
+          cargo clippy --all-targets --workspace --all-features -- -D warnings
+          cargo check --all-targets --workspace --all-features
+          echo "✅ All linting and build checks passed"
+
+      - name: Test documentation examples
+        run: cargo test --doc --workspace --all-features
+
+      - name: Set up Python for architecture checks
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install toml
+
+      - name: Create scripts directory
+        run: mkdir -p scripts
+
+      - name: Make architecture script executable
+        run: chmod +x scripts/check_architecture.py
+
+      - name: Run architectural guardrails
+        run: |
+          echo "🏗️ Enforcing architectural boundaries..."
+          python3 scripts/check_architecture.py

@@ -20,9 +20,14 @@ jobs:
       - name: Install cargo-audit
         run: cargo install cargo-audit
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Resolve dependencies
         run: cargo update
 
-      - name: Audit vulnerabilities
-        run: cargo audit
+      - name: Audit vulnerabilities (strict enforcement)
+        run: |
+          echo "🔍 Running security audit with strict enforcement..."
+          echo "🚫 NO SECURITY BYPASSES ALLOWED"
+          cargo audit
+          # CRITICAL: This step MUST fail on vulnerabilities - no '|| true' allowed
+          echo "✅ No security vulnerabilities found."

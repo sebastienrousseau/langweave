@@ -60,8 +60,14 @@ fn translator_initialization_example() -> Result<(), I18nError> {
     }
 
     match Translator::new(unsupported_language) {
-        Ok(_) => println!("    ❓ Unexpectedly initialized translator for unsupported language {}", unsupported_language),
-        Err(e) => println!("    ✅ Expected error for unsupported language {}: {:?}", unsupported_language, e),
+        Ok(_) => println!(
+            "    ❓ Unexpectedly initialized translator for unsupported language {}",
+            unsupported_language
+        ),
+        Err(e) => println!(
+            "    ✅ Expected error for unsupported language {}: {:?}",
+            unsupported_language, e
+        ),
     }
 
     Ok(())

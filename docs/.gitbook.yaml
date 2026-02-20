@@ -1,0 +1,13 @@
+# (c) 2026 Euxis Fleet. All rights reserved.
+
+root: ./
+
+structure:
+  readme: README.md
+  summary: SUMMARY.md
+
+exclude:
+  - .DS_Store
+  - node_modules
+  - _book
+  - *.tmp

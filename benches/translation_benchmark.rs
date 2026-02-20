@@ -9,10 +9,11 @@
 //!
 
 use criterion::{
-    black_box, criterion_group, criterion_main, BenchmarkId, Criterion,
+    BenchmarkId, Criterion, criterion_group, criterion_main,
 };
 use langweave::error::I18nError;
 use langweave::translator::Translator;
+use std::hint::black_box;
 
 /// Benchmark the translation of various strings using the `langweave` library.
 fn benchmark_translation(c: &mut Criterion) {

@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: LangWeave\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello"
+msgstr "こんにちは"
+
+msgid "Goodbye"
+msgstr "さようなら"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "No"
+msgstr "いいえ"
+
+msgid "Thank you"
+msgstr "ありがとう"
+
+msgid "Please"
+msgstr "お願いします"
+
+msgid "Good morning"
+msgstr "おはよう"
+
+msgid "Good night"
+msgstr "おやすみ"
+
+msgid "Sorry"
+msgstr "すみません"
+
+msgid "Help"
+msgstr "ヘルプ"
+
+msgid "Welcome"
+msgstr "ようこそ"
+
+msgid "Friend"
+msgstr "友達"
+
+msgid "Love"
+msgstr "愛"
+
+msgid "Peace"
+msgstr "平和"
+
+msgid "Happy"
+msgstr "幸せ"
+
+msgid "main_logger_msg"
+msgstr "\n詳細については `ssg --help` を実行してください。\n"
+
+msgid "lib_banner_log_msg"
+msgstr "バナーが正常に印刷されました"
+
+msgid "lib_args_log_msg"
+msgstr "引数が正常に処理されました"
+
+msgid "lib_server_log_msg"
+msgstr "サーバーが正常に開始されました"

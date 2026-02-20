@@ -25,13 +25,12 @@ use langweave::translator::Translator;
 /// * `Result<(), Box<dyn std::error::Error>>`:
 ///   - `Ok(())`: If the LangWeave library example is executed successfully.
 ///   - `Err(e)`: If an error occurs during the execution of the LangWeave library example.
-#[tokio::main]
-pub(crate) async fn main() -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n🧪 LangWeave Library Example\n");
 
-    language_detection_example().await?;
+    language_detection_example()?;
     translation_example()?;
-    error_handling_example().await?;
+    error_handling_example()?;
     supported_languages_example()?;
 
     println!("\n🎉 LangWeave library example completed successfully!");
@@ -55,11 +54,9 @@ pub(crate) async fn main() -> Result<(), Box<dyn std::error::Error>> {
 ///
 /// # Examples
 ///
-///
-
 /// Demonstrates language detection capabilities.
-pub(crate) async fn language_detection_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn language_detection_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("🦀 Language Detection Example");
     println!("---------------------------------------------");
 
@@ -71,7 +68,7 @@ pub(crate) async fn language_detection_example(
     ];
 
     for text in texts {
-        match detect_language(text).await {
+        match detect_language(text) {
             Ok(lang) => println!(
                 "    ✅ Detected language for '{}': {}",
                 text, lang
@@ -86,7 +83,7 @@ pub(crate) async fn language_detection_example(
     // Using LanguageDetector directly
     let detector = LanguageDetector::new();
     let mixed_text = "Hello mundo";
-    match detector.detect_async(mixed_text).await {
+    match detector.detect(mixed_text) {
         Ok(lang) => println!(
             "    ✅ Detected language for mixed text '{}': {}",
             mixed_text, lang
@@ -116,8 +113,6 @@ pub(crate) async fn language_detection_example(
 ///
 /// # Examples
 ///
-///
-
 /// Demonstrates translation capabilities.
 fn translation_example() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Translation Example");
@@ -156,8 +151,7 @@ fn translation_example() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Demonstrates error handling in various scenarios.
-async fn error_handling_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+fn error_handling_example() -> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Error Handling Example");
     println!("---------------------------------------------");
 
@@ -173,7 +167,7 @@ async fn error_handling_example(
     }
 
     // Empty text for language detection
-    match detect_language("").await {
+    match detect_language("") {
         Ok(_) => println!(
             "    ❓ Unexpected success for empty text detection"
         ),
@@ -186,16 +180,21 @@ async fn error_handling_example(
     // Non-existent translation key
     let translator = Translator::new("en")?;
     match translator.translate("NonexistentKey") {
-        Ok(_) => println!("    ❓ Unexpected success for non-existent translation key"),
-        Err(e) => println!("    ✅ Expected error for non-existent translation key: {:?}", e),
+        Ok(_) => println!(
+            "    ❓ Unexpected success for non-existent translation key"
+        ),
+        Err(e) => println!(
+            "    ✅ Expected error for non-existent translation key: {:?}",
+            e
+        ),
     }
 
     Ok(())
 }
 
 /// Demonstrates the supported languages in the library.
-fn supported_languages_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+fn supported_languages_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Supported Languages Example");
     println!("---------------------------------------------");
 

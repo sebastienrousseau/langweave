@@ -48,8 +48,8 @@ pub(crate) async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Demonstrates handling unsupported language errors.
-fn unsupported_language_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+fn unsupported_language_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("🦀 Unsupported Language Example");
     println!("---------------------------------------------");
 
@@ -67,8 +67,8 @@ fn unsupported_language_example(
 }
 
 /// Demonstrates handling language detection failures.
-async fn language_detection_failed_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn language_detection_failed_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Language Detection Failed Example");
     println!("---------------------------------------------");
 
@@ -136,8 +136,8 @@ fn unexpected_error_example() -> Result<(), Box<dyn std::error::Error>>
 }
 
 /// Demonstrates a successful translation scenario.
-fn successful_translation_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+fn successful_translation_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Successful Translation Example");
     println!("---------------------------------------------");
 

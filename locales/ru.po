@@ -1,0 +1,64 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: LangWeave\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Hello"
+msgstr "Привет"
+
+msgid "Goodbye"
+msgstr "До свидания"
+
+msgid "Yes"
+msgstr "Да"
+
+msgid "No"
+msgstr "Нет"
+
+msgid "Thank you"
+msgstr "Спасибо"
+
+msgid "Please"
+msgstr "Пожалуйста"
+
+msgid "Good morning"
+msgstr "Доброе утро"
+
+msgid "Good night"
+msgstr "Спокойной ночи"
+
+msgid "Sorry"
+msgstr "Извините"
+
+msgid "Help"
+msgstr "Помощь"
+
+msgid "Welcome"
+msgstr "Добро пожаловать"
+
+msgid "Friend"
+msgstr "Друг"
+
+msgid "Love"
+msgstr "Любовь"
+
+msgid "Peace"
+msgstr "Мир"
+
+msgid "Happy"
+msgstr "Счастливый"
+
+msgid "main_logger_msg"
+msgstr "\nПожалуйста, выполните `ssg --help` для получения дополнительной информации.\n"
+
+msgid "lib_banner_log_msg"
+msgstr "Баннер успешно напечатан"
+
+msgid "lib_args_log_msg"
+msgstr "Аргументы успешно обработаны"
+
+msgid "lib_server_log_msg"
+msgstr "Сервер успешно запущен"

@@ -10,7 +10,9 @@ pub enum I18nError {
     /// Indicates that the language detection process failed.
     ///
     /// This error occurs when the library is unable to determine the language of the provided text.
-    #[error("Failed to detect language: the provided text does not contain sufficient identifiable language patterns")]
+    #[error(
+        "Failed to detect language: the provided text does not contain sufficient identifiable language patterns"
+    )]
     LanguageDetectionFailed,
 
     /// Indicates that the translation process failed for the given text.
@@ -34,6 +36,28 @@ pub enum I18nError {
 
 impl I18nError {
     /// Returns a string slice describing the error.
+    ///
+    /// This method provides a short, human-readable description of the error type,
+    /// suitable for logging or displaying to users in a simplified format.
+    ///
+    /// # Returns
+    ///
+    /// A string slice containing a brief description of the error type.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use langweave::error::I18nError;
+    ///
+    /// let error = I18nError::LanguageDetectionFailed;
+    /// assert_eq!(error.as_str(), "language detection failed");
+    ///
+    /// let error = I18nError::UnsupportedLanguage("xyz".to_string());
+    /// assert_eq!(error.as_str(), "unsupported language");
+    ///
+    /// let error = I18nError::TranslationFailed("missing key".to_string());
+    /// assert_eq!(error.as_str(), "translation failed");
+    /// ```
     pub fn as_str(&self) -> &str {
         match self {
             I18nError::LanguageDetectionFailed => {
@@ -200,8 +224,11 @@ mod tests {
             }
         }
 
-        // Use the function to avoid unused function warning
+        // Use the function with all variants to ensure full coverage
         use_error(I18nError::LanguageDetectionFailed);
+        use_error(I18nError::TranslationFailed("test".to_string()));
+        use_error(I18nError::UnsupportedLanguage("test".to_string()));
+        use_error(I18nError::UnexpectedError("test".to_string()));
     }
 
     #[test]

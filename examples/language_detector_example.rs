@@ -39,8 +39,8 @@ pub(crate) async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Demonstrates simple language detection for common languages.
-async fn simple_detection_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn simple_detection_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("🦀 Simple Language Detection Example");
     println!("---------------------------------------------");
 
@@ -70,8 +70,8 @@ async fn simple_detection_example(
 }
 
 /// Demonstrates language detection for multiple languages.
-async fn multi_language_detection_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn multi_language_detection_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Multi-Language Detection Example");
     println!("---------------------------------------------");
 
@@ -107,8 +107,8 @@ async fn multi_language_detection_example(
 }
 
 /// Demonstrates language detection for short texts.
-async fn short_text_detection_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn short_text_detection_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Short Text Detection Example");
     println!("---------------------------------------------");
 
@@ -142,8 +142,8 @@ async fn short_text_detection_example(
 }
 
 /// Demonstrates language detection for non-Latin scripts.
-async fn non_latin_script_detection_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn non_latin_script_detection_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Non-Latin Script Detection Example");
     println!("---------------------------------------------");
 
@@ -177,8 +177,8 @@ async fn non_latin_script_detection_example(
 }
 
 /// Demonstrates language detection for mixed language texts.
-async fn mixed_language_detection_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn mixed_language_detection_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Mixed Language Detection Example");
     println!("---------------------------------------------");
 
@@ -210,8 +210,8 @@ async fn mixed_language_detection_example(
 }
 
 /// Demonstrates error handling in language detection.
-async fn error_handling_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn error_handling_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Error Handling Example");
     println!("---------------------------------------------");
 

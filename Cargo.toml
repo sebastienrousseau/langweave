@@ -5,10 +5,10 @@
 [package]
 # General project metadata
 name = "langweave"                          # The name of the library
-version = "0.0.1"                           # Initial version of the crate
+version = "0.0.2"                           # Current version for v0.0.2 certification
 authors = ["LangWeave Contributors"]        # Library contributors
-edition = "2021"                            # Rust edition being used
-rust-version = "1.56.0"                     # Minimum supported Rust version
+edition = "2024"                            # Rust edition being used
+rust-version = "1.87.0"                     # Minimum supported Rust version
 license = "MIT OR Apache-2.0"               # Dual licensing strategy
 description = """
 A Rust library for seamless internationalization (i18n) and localization.
@@ -65,7 +65,7 @@ path = "src/lib.rs"                         # Path to the library entry point
 [features]
 # Optional features that can be enabled or disabled.
 default = []                                # No default features enabled
-async = []                                  # Placeholder for future asynchronous feature support
+async = ["dep:tokio"]                       # Enable async utility helpers backed by Tokio
 
 # -----------------------------------------------------------------------------
 # Build Dependencies
@@ -79,26 +79,29 @@ version_check = "0.9"                       # Ensures that a compatible Rust ver
 # -----------------------------------------------------------------------------
 [dev-dependencies]
 # Dependencies required for testing and development.
-assert_fs = "1.0"                           # Filesystem assertions for testing
-criterion = "0.5"                           # Benchmarking library to test performance
-predicates = "3.0"                          # Filesystem predicates for testing
-tempfile = "3.2"                            # Temporary file creation for testing
+criterion = { version = "0.8", features = ["async_tokio"] }  # Benchmarking library with async support
+proptest = "1.5"                            # Property-based testing framework
+arbitrary = { version = "1.3", features = ["derive"] } # Arbitrary data generation for testing
+quickcheck = "1.0"                          # Alternative property-based testing
+quickcheck_macros = "1.0"                   # Macros for quickcheck
+tokio-test = "0.4"                          # Testing utilities for async code
+tokio = { version = "1.44", features = ["full"] }  # Runtime used by tests/benches/examples
 
 [dependencies]
 # Dependencies required for building and running the project.
 async-trait = "0.1"
 thiserror = "2.0"
-anyhow = "1.0.90"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 log = "0.4"
-env_logger = "0.11"
-lazy_static = "1.4"
 once_cell = "1.20"
 regex = "1.5"
 smallvec = "1.13"
-tokio = { version = "1.0", features = ["full"] }
-whatlang = "0.16"
+whatlang = "0.18"
+tokio = { version = "1.44", features = ["rt"], optional = true }
+
+# Ecosystem shared utilities
+commons = { git = "https://github.com/sebastienrousseau/commons", rev = "4d3ed8e239b1adaacbf18d92db81fa7f1372901a", default-features = false, features = ["error", "logging", "time", "validation"] }
 
 # -----------------------------------------------------------------------------
 # Examples
@@ -151,6 +154,36 @@ path = "examples/translator_example.rs"       # Path to the example code
 name = "translation_benchmark"              # Name of the benchmark
 harness = false                             # Disable the default benchmark harness (used by Criterion)
 
+[[bench]]
+# Comprehensive stress test and performance baseline establishment
+name = "comprehensive_stress_test"          # Performance baselines and stress testing
+harness = false                             # Disable the default benchmark harness (used by Criterion)
+
+[[bench]]
+# Decoupled async detection benchmarks
+name = "bench_async_detection"
+harness = false
+
+[[bench]]
+# Decoupled translation benchmarks
+name = "bench_translation"
+harness = false
+
+[[bench]]
+# Decoupled language support and allocation benchmarks
+name = "bench_language_support"
+harness = false
+
+[[bench]]
+# Decoupled regex benchmarks
+name = "bench_regex"
+harness = false
+
+[[bench]]
+# Decoupled concurrency benchmarks
+name = "bench_concurrency"
+harness = false
+
 # -----------------------------------------------------------------------------
 # Documentation Configuration
 # -----------------------------------------------------------------------------
@@ -160,6 +193,10 @@ all-features = true                         # Build documentation with all featu
 rustdoc-args = ["--cfg", "docsrs"]          # Arguments passed to `rustdoc` when building the documentation
 targets = ["x86_64-unknown-linux-gnu"]      # Default target platform for the docs
 
+[package.metadata.cargo-machete]
+# Keep CI stable for known false positives in static dependency usage analysis.
+ignored = ["commons", "serde", "serde_json", "smallvec"]
+
 # -----------------------------------------------------------------------------
 # Linting Configuration
 # -----------------------------------------------------------------------------
@@ -168,7 +205,7 @@ targets = ["x86_64-unknown-linux-gnu"]      # Default target platform for the do
 
 ## Warnings
 missing_copy_implementations = "warn"       # Warn if types can implement `Copy` but don’t
-missing_docs = "warn"                       # Warn if public items lack documentation
+missing_docs = "deny"                       # Deny if public items lack documentation (library requirement)
 unstable_features = "warn"                  # Warn on the usage of unstable features
 unused_extern_crates = "warn"               # Warn about unused external crates
 unused_results = "warn"                     # Warn if a result type is unused (e.g., errors ignored)
@@ -195,10 +232,9 @@ future_incompatible = { level = "deny", priority = -1 } # Handle future compatib
 keyword_idents = { level = "deny", priority = -1 }      # Deny usage of keywords as identifiers
 macro_use_extern_crate = "deny"             # Deny macro use of `extern crate`
 meta_variable_misuse = "deny"               # Deny misuse of meta variables in macros
-missing_fragment_specifier = "deny"         # Deny missing fragment specifiers in macros
 noop_method_call = "deny"                   # Deny method calls that have no effect
 rust_2018_idioms = { level = "deny", priority = -1 }    # Enforce Rust 2018 idioms
-rust_2021_compatibility = { level = "deny", priority = -1 } # Enforce Rust 2021 compatibility
+rust_2024_compatibility = { level = "deny", priority = -1 } # Enforce Rust 2024 compatibility
 single_use_lifetimes = "deny"               # Deny lifetimes that are used only once
 trivial_casts = "deny"                      # Deny trivial casts (e.g., `as` when unnecessary)
 trivial_numeric_casts = "deny"              # Deny trivial numeric casts (e.g., `i32` to `i64`)

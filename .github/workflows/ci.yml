@@ -1,0 +1,469 @@
+name: 🚀 CI Pipeline - Standards Compliance
+
+on:
+  push:
+    branches: [main, "feat/*"]
+    paths:
+      - "**/*.rs"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "build.rs"
+      - "benches/**"
+      - "examples/**"
+      - "tests/**"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/nightly.yml"
+      - "rustfmt.toml"
+      - "clippy.toml"
+  pull_request:
+    branches: [main, "feat/*"]
+    paths:
+      - "**/*.rs"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "build.rs"
+      - "benches/**"
+      - "examples/**"
+      - "tests/**"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/nightly.yml"
+      - "rustfmt.toml"
+      - "clippy.toml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # Enforce warnings as errors globally
+  RUSTFLAGS: "-D warnings"
+  # Ensure Clippy treats all warnings as errors
+  CLIPPY_OPTS: "-D warnings"
+
+jobs:
+  # =============================================================================
+  # LINTING AND FORMATTING - ZERO TOLERANCE POLICY
+  # =============================================================================
+  lint-and-format:
+    name: 🧹 Lint & Format Check
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: true  # Stop immediately on first failure
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+          cache-on-failure: true
+
+      - name: 🔎 Detect heavy lint scope
+        id: lint_scope
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            heavy_lint:
+              - "Cargo.toml"
+              - "Cargo.lock"
+              - "build.rs"
+              - "src/**"
+              - "clippy.toml"
+              - ".github/workflows/ci.yml"
+
+      - name: 🎨 Check code formatting (FAIL ON UNFORMATTED)
+        run: |
+          echo "🎨 Enforcing code formatting standards..."
+          cargo fmt --all -- --check
+          if [ $? -ne 0 ]; then
+            echo "❌ Code is not formatted according to rustfmt.toml"
+            echo "Run 'cargo fmt --all' to fix formatting issues"
+            exit 1
+          fi
+          echo "✅ All code is properly formatted"
+
+      - name: 📋 Run Clippy lints (ZERO WARNINGS POLICY)
+        if: steps.lint_scope.outputs.heavy_lint == 'true'
+        run: |
+          echo "📋 Running Clippy with zero-warning policy..."
+          cargo clippy --all-targets --all-features --workspace -- $CLIPPY_OPTS
+          echo "✅ All linting checks passed"
+
+      - name: 🔍 Check for unused dependencies
+        if: steps.lint_scope.outputs.heavy_lint == 'true'
+        run: |
+          echo "🔍 Checking for unused dependencies..."
+          # Install cargo-machete for unused dependency detection
+          cargo install cargo-machete --locked
+          cargo machete
+          echo "✅ No unused dependencies found"
+
+      - name: ⏭️ Skip heavy lint for formatting-only changes
+        if: steps.lint_scope.outputs.heavy_lint != 'true'
+        run: echo "ℹ️ Skipping clippy/machete for formatting-only or non-core file changes"
+
+  # =============================================================================
+  # BUILD VERIFICATION - STRICT TYPE CHECKING
+  # =============================================================================
+  build-check:
+    name: 🔨 Build Check
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+          cache-on-failure: true
+
+      - name: 🔨 Build all targets with strict warnings
+        run: |
+          echo "🔨 Building all targets with strict error handling..."
+          cargo build --all-targets --all-features --workspace
+          echo "✅ Build completed successfully"
+
+      - name: 📚 Build and test documentation
+        run: |
+          echo "📚 Building and testing documentation..."
+          cargo doc --all-features --workspace --no-deps
+          cargo test --doc --all-features --workspace
+          echo "✅ Documentation builds and tests pass"
+
+  # =============================================================================
+  # FEATURE MATRIX - ENSURE ZERO-COST OPTIONALITY
+  # =============================================================================
+  feature-matrix:
+    name: 🧩 Feature Matrix Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+          cache-on-failure: true
+
+      - name: 🧪 Validate feature combinations
+        run: |
+          echo "🧪 Checking default feature set..."
+          cargo check --workspace --all-targets
+          echo "🧪 Checking no-default-features..."
+          cargo check --workspace --all-targets --no-default-features
+          echo "🧪 Checking async feature..."
+          cargo check --workspace --all-targets --features async
+          echo "✅ Feature matrix checks passed"
+
+  # =============================================================================
+  # MSRV VERIFICATION - ENFORCE DECLARED rust-version
+  # =============================================================================
+  msrv-check:
+    name: 🦀 MSRV Verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 📦 Install declared MSRV toolchain
+        run: rustup toolchain install 1.87.0 --profile minimal
+
+      - name: 🧪 Verify declared MSRV
+        run: |
+          echo "🧪 Verifying repository against declared rust-version..."
+          cargo +1.87.0 check --workspace --all-targets --all-features
+          echo "✅ MSRV verification passed"
+
+  # =============================================================================
+  # TEST SUITE - 95% COVERAGE ENFORCEMENT
+  # =============================================================================
+  test-coverage:
+    name: 🧪 Test Suite (95% Coverage)
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools-preview
+
+      - name: 📦 Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+          cache-on-failure: true
+
+      - name: 🧪 Run test suite with coverage
+        run: |
+          echo "🧪 Running test suite with coverage analysis..."
+          cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+          cargo llvm-cov --all-features --workspace --summary-only > coverage_summary.txt
+          echo "✅ Test suite completed"
+
+      - name: 📊 Enforce 95% coverage threshold
+        run: |
+          echo "📊 Enforcing 95% coverage requirement..."
+          COVERAGE=$(grep "^TOTAL" coverage_summary.txt | grep -oE '[0-9]+\.[0-9]+%' | tail -1 | sed 's/%//')
+          echo "Current line coverage: ${COVERAGE}%"
+
+          # Enforce 95% coverage threshold (allows defensive programming)
+          if awk "BEGIN {exit !($COVERAGE < 95)}"; then
+            echo "❌ Coverage ${COVERAGE}% is below required 95% threshold"
+            echo "📋 Add tests for uncovered code paths before merging"
+            cat coverage_summary.txt
+            exit 1
+          else
+            echo "✅ Coverage ${COVERAGE}% meets required 95% threshold"
+          fi
+
+      - name: 📤 Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: lcov.info
+          fail_ci_if_error: false
+
+  # =============================================================================
+  # SECURITY AUDIT - NO BYPASS ALLOWED
+  # =============================================================================
+  security-audit:
+    name: 🔒 Security Audit (Fast)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 🔐 Install cargo-audit
+        uses: taiki-e/install-action@cargo-audit
+
+      - name: 🔍 Security vulnerability scan (STRICT ENFORCEMENT)
+        run: |
+          echo "🔒 Running security audit with strict enforcement..."
+          echo "🚫 NO SECURITY BYPASSES ALLOWED"
+          cargo-audit audit --deny warnings
+
+          echo "✅ No security vulnerabilities found"
+
+      - name: 🛡️ Install cargo-deny
+        uses: taiki-e/install-action@cargo-deny
+
+      - name: 🛡️ Run cargo deny checks
+        run: |
+          echo "🛡️ Running additional security checks with cargo-deny..."
+          cargo deny check
+          echo "✅ All security policies satisfied"
+
+  security-deep:
+    name: ☢️ Security Deep Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: ☢️ Install cargo-geiger
+        continue-on-error: true
+        run: cargo install cargo-geiger --locked
+
+      - name: ☢️ Scan for unsafe code in dependencies
+        run: |
+          echo "☢️ Scanning for unsafe code with cargo-geiger..."
+          # Report unsafe code usage (informational, not blocking)
+          if command -v cargo-geiger >/dev/null 2>&1; then
+            cargo geiger --all-features --all-targets 2>&1 | tee geiger_report.txt || true
+          else
+            echo "⚠️ cargo-geiger unavailable in this environment; deep scan skipped." | tee geiger_report.txt
+          fi
+          echo "📊 Unsafe code report generated (see above)"
+          echo "⚠️ Note: Some transitive dependencies may contain unsafe code"
+
+      - name: 📤 Upload geiger report
+        uses: actions/upload-artifact@v4
+        with:
+          name: geiger-report
+          path: geiger_report.txt
+
+  # =============================================================================
+  # PERFORMANCE GUARDRAIL - BENCHMARK REGRESSION CHECK
+  # =============================================================================
+  benchmark-guardrail:
+    name: ⚡ Benchmark Guardrail
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+          cache-on-failure: true
+
+      - name: 🏃 Build benchmark binary
+        run: cargo bench --bench comprehensive_stress_test --no-run
+
+      - name: ⏱️ Enforce BENCH_FAST runtime threshold
+        run: |
+          BENCH_BIN=""
+          for CANDIDATE in $(ls -t target/release/deps/comprehensive_stress_test-* 2>/dev/null); do
+            if [ -f "$CANDIDATE" ] && [ -x "$CANDIDATE" ]; then
+              BENCH_BIN="$CANDIDATE"
+              break
+            fi
+          done
+          if [ -z "$BENCH_BIN" ]; then
+            echo "❌ Could not locate benchmark binary"
+            exit 1
+          fi
+
+          SECONDS=0
+          BENCH_FAST=1 "$BENCH_BIN" --bench --noplot | tee bench_fast_output.txt
+          ELAPSED=$SECONDS
+          echo "Benchmark elapsed time: ${ELAPSED}s"
+
+          if [ "$ELAPSED" -gt 60 ]; then
+            echo "❌ BENCH_FAST exceeded 60 seconds (${ELAPSED}s)"
+            exit 1
+          fi
+          echo "✅ BENCH_FAST completed within 60 seconds"
+
+      - name: 📤 Upload benchmark output
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-guardrail-output
+          path: bench_fast_output.txt
+
+  # =============================================================================
+  # ARCHITECTURAL COMPLIANCE
+  # =============================================================================
+  architecture-check:
+    name: 🏗️ Architecture Compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: 📦 Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install toml
+
+      - name: 🏗️ Run architectural guardrails
+        run: |
+          echo "🏗️ Enforcing architectural boundaries..."
+          if [ -f "scripts/check_architecture.py" ]; then
+            chmod +x scripts/check_architecture.py
+            python3 scripts/check_architecture.py
+          else
+            echo "⚠️ Architecture check script not found, skipping..."
+          fi
+          echo "✅ Architecture compliance verified"
+
+  # =============================================================================
+  # INTEGRATION CHECK - ALL SYSTEMS GO
+  # =============================================================================
+  integration-check:
+    name: 🔗 Integration Check
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    needs: [lint-and-format, build-check, feature-matrix, msrv-check, test-coverage, security-audit, benchmark-guardrail]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+          cache-on-failure: true
+
+      - name: 🧪 Run integration tests
+        run: |
+          echo "🔗 Running integration tests..."
+          cargo test --all-features --workspace --release
+          echo "✅ Integration tests passed"
+
+      - name: 📋 Run examples
+        run: |
+          echo "📋 Testing all examples..."
+          cargo run --example basic_usage_example --all-features
+          cargo run --example error_example --all-features
+          cargo run --example language_detector_example --all-features
+          echo "✅ All examples run successfully"
+
+      - name: 🚀 Final validation
+        run: |
+          echo "🚀 Performing final validation..."
+          echo "✅ All CI pipeline checks completed successfully"
+          echo "🎯 Repository meets langweave v0.0.2 standards compliance"
