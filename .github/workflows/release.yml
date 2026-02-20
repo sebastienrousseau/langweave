@@ -15,7 +15,6 @@ concurrency:
 env:
   CARGO_TERM_COLOR: always
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
 
 jobs:
   build:
@@ -115,13 +114,27 @@ jobs:
     name: Publish to Crates.io 🦀
     needs: release
     runs-on: ubuntu-latest
+    env:
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN || secrets.CARGO_API_TOKEN }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           override: true
+      - name: Validate crates.io token
+        run: |
+          if [ -z "${CARGO_REGISTRY_TOKEN}" ]; then
+            echo "❌ Missing crates.io token. Set CARGO_REGISTRY_TOKEN (preferred) or CARGO_API_TOKEN in repository secrets."
+            exit 1
+          fi
+          echo "✅ crates.io token is configured"
+
+      - name: Authenticate Cargo
+        run: cargo login "${CARGO_REGISTRY_TOKEN}"
+
+      - name: Verify package publishability
+        run: cargo publish --dry-run
+
       - name: Publish
-        run: cargo publish --token ${CARGO_REGISTRY_TOKEN}
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_API_TOKEN }}
+        run: cargo publish
