@@ -158,6 +158,31 @@ harness = false                             # Disable the default benchmark harn
 name = "comprehensive_stress_test"          # Performance baselines and stress testing
 harness = false                             # Disable the default benchmark harness (used by Criterion)
 
+[[bench]]
+# Decoupled async detection benchmarks
+name = "bench_async_detection"
+harness = false
+
+[[bench]]
+# Decoupled translation benchmarks
+name = "bench_translation"
+harness = false
+
+[[bench]]
+# Decoupled language support and allocation benchmarks
+name = "bench_language_support"
+harness = false
+
+[[bench]]
+# Decoupled regex benchmarks
+name = "bench_regex"
+harness = false
+
+[[bench]]
+# Decoupled concurrency benchmarks
+name = "bench_concurrency"
+harness = false
+
 # -----------------------------------------------------------------------------
 # Documentation Configuration
 # -----------------------------------------------------------------------------
