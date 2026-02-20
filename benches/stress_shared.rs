@@ -3,6 +3,7 @@
 #![allow(missing_docs)]
 #![allow(dead_code)]
 
+use criterion::{measurement::WallTime, BenchmarkGroup};
 use criterion::{BenchmarkId, Criterion, Throughput};
 use langweave::{
     detect_language, detect_language_async, is_language_supported,
@@ -18,13 +19,43 @@ use langweave::{
 use std::hint::black_box;
 use std::time::Duration;
 
+#[inline]
+fn bench_fast() -> bool {
+    match std::env::var("BENCH_FAST") {
+        Ok(v) => {
+            let v = v.trim().to_ascii_lowercase();
+            matches!(v.as_str(), "1" | "true" | "yes" | "on")
+        }
+        Err(_) => false,
+    }
+}
+
+#[inline]
+fn apply_profile(
+    group: &mut BenchmarkGroup<'_, WallTime>,
+    normal_warm: Duration,
+    normal_measure: Duration,
+) {
+    if bench_fast() {
+        group.warm_up_time(Duration::from_millis(100));
+        group.measurement_time(Duration::from_millis(300));
+        group.sample_size(10);
+    } else {
+        group.warm_up_time(normal_warm);
+        group.measurement_time(normal_measure);
+    }
+}
+
 /// Establish baseline performance metrics for language detection.
 pub(crate) fn benchmark_language_detection_baselines(
     c: &mut Criterion,
 ) {
     let mut group = c.benchmark_group("language_detection_baselines");
-    group.warm_up_time(Duration::from_secs(3));
-    group.measurement_time(Duration::from_secs(10));
+    apply_profile(
+        &mut group,
+        Duration::from_secs(3),
+        Duration::from_secs(10),
+    );
 
     let detector = LanguageDetector::new();
 
@@ -42,7 +73,7 @@ pub(crate) fn benchmark_language_detection_baselines(
     let mixed_large =
         "Hello world bonjour le monde hallo Welt. ".repeat(50);
 
-    let test_cases: Vec<(&str, &str)> = vec![
+    let mut test_cases: Vec<(&str, &str)> = vec![
         ("tiny_en", "Hello"),
         ("tiny_fr", "Bonjour"),
         ("tiny_de", "Hallo"),
@@ -55,6 +86,14 @@ pub(crate) fn benchmark_language_detection_baselines(
         ("mixed_small", "Hello bonjour hallo"),
         ("mixed_large", &mixed_large),
     ];
+    if bench_fast() {
+        test_cases = vec![
+            ("tiny_en", "Hello"),
+            ("medium_en", &medium_en),
+            ("large_en", &large_en),
+            ("mixed_small", "Hello bonjour hallo"),
+        ];
+    }
 
     for (name, text) in test_cases {
         group.throughput(Throughput::Bytes(text.len() as u64));
@@ -82,8 +121,11 @@ pub(crate) fn benchmark_language_detection_baselines(
 /// Benchmark async language detection performance.
 pub(crate) fn benchmark_async_detection(c: &mut Criterion) {
     let mut group = c.benchmark_group("async_detection_performance");
-    group.warm_up_time(Duration::from_secs(3));
-    group.measurement_time(Duration::from_secs(10));
+    apply_profile(
+        &mut group,
+        Duration::from_secs(3),
+        Duration::from_secs(10),
+    );
 
     let rt = tokio::runtime::Runtime::new().unwrap();
     let medium_async = "Hello world test sentence. ".repeat(50);
@@ -115,14 +157,23 @@ pub(crate) fn benchmark_async_detection(c: &mut Criterion) {
 /// Benchmark translation performance with various input sizes.
 pub(crate) fn benchmark_translation_performance(c: &mut Criterion) {
     let mut group = c.benchmark_group("translation_baselines");
-    group.warm_up_time(Duration::from_secs(2));
-    group.measurement_time(Duration::from_secs(8));
+    apply_profile(
+        &mut group,
+        Duration::from_secs(2),
+        Duration::from_secs(8),
+    );
 
-    let languages = ["en", "fr", "de", "es"];
-    let keys = ["Hello", "Goodbye", "Thank you", "Please"];
+    let (languages, keys): (&[&str], &[&str]) = if bench_fast() {
+        (&["en", "fr"], &["Hello", "Goodbye"])
+    } else {
+        (
+            &["en", "fr", "de", "es"],
+            &["Hello", "Goodbye", "Thank you", "Please"],
+        )
+    };
 
-    for lang in &languages {
-        for key in &keys {
+    for &lang in languages {
+        for &key in keys {
             group.bench_with_input(
                 BenchmarkId::new(
                     "translate",
@@ -149,13 +200,19 @@ pub(crate) fn benchmark_language_support_optimizations(
     c: &mut Criterion,
 ) {
     let mut group = c.benchmark_group("language_support_optimizations");
-    group.warm_up_time(Duration::from_secs(1));
-    group.measurement_time(Duration::from_secs(5));
+    apply_profile(
+        &mut group,
+        Duration::from_secs(1),
+        Duration::from_secs(5),
+    );
 
-    let test_languages =
-        ["en", "fr", "de", "es", "invalid", "zz", "EN", "FR"];
+    let test_languages: &[&str] = if bench_fast() {
+        &["en", "fr", "invalid", "EN"]
+    } else {
+        &["en", "fr", "de", "es", "invalid", "zz", "EN", "FR"]
+    };
 
-    for lang in &test_languages {
+    for &lang in test_languages {
         group.bench_with_input(
             BenchmarkId::new("original", lang),
             lang,
@@ -197,8 +254,11 @@ pub(crate) fn benchmark_language_support_optimizations(
 /// Benchmark memory allocation patterns in hot paths.
 pub(crate) fn benchmark_memory_hotspots(c: &mut Criterion) {
     let mut group = c.benchmark_group("memory_allocation_hotspots");
-    group.warm_up_time(Duration::from_secs(1));
-    group.measurement_time(Duration::from_secs(5));
+    apply_profile(
+        &mut group,
+        Duration::from_secs(1),
+        Duration::from_secs(5),
+    );
 
     group.bench_function("supported_languages_vec", |b| {
         b.iter(|| black_box(supported_languages()))
@@ -230,12 +290,17 @@ pub(crate) fn benchmark_memory_hotspots(c: &mut Criterion) {
 /// Stress test with extreme workload (1000x typical).
 pub(crate) fn benchmark_extreme_stress_test(c: &mut Criterion) {
     let mut group = c.benchmark_group("extreme_stress_test");
-    group.warm_up_time(Duration::from_secs(5));
-    group.measurement_time(Duration::from_secs(15));
-    group.sample_size(10);
+    apply_profile(
+        &mut group,
+        Duration::from_secs(5),
+        Duration::from_secs(15),
+    );
 
-    let huge_text =
-        "The quick brown fox jumps over the lazy dog. ".repeat(10000);
+    let huge_text = if bench_fast() {
+        "The quick brown fox jumps over the lazy dog. ".repeat(1000)
+    } else {
+        "The quick brown fox jumps over the lazy dog. ".repeat(10000)
+    };
 
     group.throughput(Throughput::Bytes(huge_text.len() as u64));
     group.bench_function("detect_1mb_text", |b| {
@@ -252,7 +317,8 @@ pub(crate) fn benchmark_extreme_stress_test(c: &mut Criterion) {
         ];
 
         b.iter(|| {
-            for _ in 0..100 {
+            let rounds = if bench_fast() { 10 } else { 100 };
+            for _ in 0..rounds {
                 for text in &texts {
                     let _ = black_box(detect_language(black_box(text)));
                 }
@@ -266,12 +332,21 @@ pub(crate) fn benchmark_extreme_stress_test(c: &mut Criterion) {
 /// Concurrent access performance test.
 pub(crate) fn benchmark_concurrent_performance(c: &mut Criterion) {
     let mut group = c.benchmark_group("concurrent_performance");
-    group.warm_up_time(Duration::from_secs(2));
-    group.measurement_time(Duration::from_secs(8));
+    apply_profile(
+        &mut group,
+        Duration::from_secs(2),
+        Duration::from_secs(8),
+    );
 
     let rt = tokio::runtime::Runtime::new().unwrap();
 
-    for &concurrency in &[1, 4, 8, 16, 32] {
+    let levels: &[usize] = if bench_fast() {
+        &[1, 4, 8]
+    } else {
+        &[1, 4, 8, 16, 32]
+    };
+
+    for &concurrency in levels {
         group.bench_with_input(
             BenchmarkId::new("concurrent_detection", concurrency),
             &concurrency,
@@ -306,11 +381,14 @@ pub(crate) fn benchmark_concurrent_performance(c: &mut Criterion) {
 /// Regression detector pattern benchmarks.
 pub(crate) fn benchmark_regex_performance(c: &mut Criterion) {
     let mut group = c.benchmark_group("regex_performance");
-    group.warm_up_time(Duration::from_secs(2));
-    group.measurement_time(Duration::from_secs(8));
+    apply_profile(
+        &mut group,
+        Duration::from_secs(2),
+        Duration::from_secs(8),
+    );
 
     let detector = LanguageDetector::new();
-    let test_cases = vec![
+    let mut test_cases = vec![
         ("english_patterns", "Hello world thank you please"),
         ("french_patterns", "Bonjour monde merci s'il vous plaît"),
         ("german_patterns", "Hallo Welt danke bitte schön"),
@@ -319,6 +397,13 @@ pub(crate) fn benchmark_regex_performance(c: &mut Criterion) {
         ("unicode_heavy", "مرحبا أهلاً وسهلاً كيف الحال؟"),
         ("cjk_patterns", "你好世界 こんにちは世界 안녕하세요 세계"),
     ];
+    if bench_fast() {
+        test_cases = vec![
+            ("english_patterns", "Hello world thank you please"),
+            ("mixed_scripts", "Hello مرحبا 你好 こんにちは"),
+            ("no_match_fallback", "xyz123 nonexistent patterns abc"),
+        ];
+    }
 
     for (name, text) in test_cases {
         group.throughput(Throughput::Bytes(text.len() as u64));
