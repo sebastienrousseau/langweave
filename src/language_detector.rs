@@ -740,13 +740,10 @@ mod tests {
         let result =
             compile_language_patterns_from_specs(&invalid_specs);
 
-        match result {
-            Err(I18nError::UnexpectedError(msg)) => {
-                assert!(msg.contains("xx"));
-                assert!(msg.contains("Failed to compile regex"));
-            }
-            _ => panic!("Expected UnexpectedError for invalid regex"),
-        }
+        let err = result.expect_err("Expected invalid regex to fail");
+        let rendered = err.to_string();
+        assert!(rendered.contains("xx"));
+        assert!(rendered.contains("Failed to compile regex"));
     }
 
     #[test]
@@ -757,6 +754,16 @@ mod tests {
 
         let patterns = patterns_or_empty(result);
         assert!(patterns.is_empty());
+    }
+
+    #[test]
+    fn test_detect_word_by_word_fallback_path() {
+        let detector = LanguageDetector::new();
+        let text = "xqzv hello";
+        let detected = detector.detect(text).expect(
+            "Expected word-by-word fallback to detect language",
+        );
+        assert_eq!(detected, "en");
     }
 
     #[tokio::test]

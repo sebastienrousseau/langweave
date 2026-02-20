@@ -287,13 +287,18 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: ☢️ Install cargo-geiger
+        continue-on-error: true
         uses: taiki-e/install-action@cargo-geiger
 
       - name: ☢️ Scan for unsafe code in dependencies
         run: |
           echo "☢️ Scanning for unsafe code with cargo-geiger..."
           # Report unsafe code usage (informational, not blocking)
-          cargo geiger --all-features --all-targets 2>&1 | tee geiger_report.txt || true
+          if command -v cargo-geiger >/dev/null 2>&1; then
+            cargo geiger --all-features --all-targets 2>&1 | tee geiger_report.txt || true
+          else
+            echo "⚠️ cargo-geiger unavailable in this environment; deep scan skipped." | tee geiger_report.txt
+          fi
           echo "📊 Unsafe code report generated (see above)"
           echo "⚠️ Note: Some transitive dependencies may contain unsafe code"
 
