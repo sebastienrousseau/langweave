@@ -483,6 +483,14 @@ mod tests {
     }
 
     #[test]
+    fn test_translate_with_fallback_unsupported_language() {
+        assert!(matches!(
+            translate_with_fallback("xx", "Hello"),
+            Err(I18nError::UnsupportedLanguage(_))
+        ));
+    }
+
+    #[test]
     fn test_case_sensitivity() {
         assert_eq!(translate("en", "hello").unwrap(), "Hello");
         assert_eq!(translate("fr", "GOODBYE").unwrap(), "Au revoir");

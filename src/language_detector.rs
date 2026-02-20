@@ -153,8 +153,14 @@ fn compile_language_patterns(
         ),
     ];
 
+    compile_language_patterns_from_specs(&pattern_specs)
+}
+
+fn compile_language_patterns_from_specs(
+    pattern_specs: &[(&str, &'static str)],
+) -> Result<Vec<(Regex, &'static str)>, I18nError> {
     let mut compiled_patterns = Vec::with_capacity(pattern_specs.len());
-    for (pattern_str, lang_code) in pattern_specs {
+    for &(pattern_str, lang_code) in pattern_specs {
         match Regex::new(pattern_str) {
             Ok(regex) => compiled_patterns.push((regex, lang_code)),
             Err(err) => {
@@ -173,20 +179,25 @@ fn compile_language_patterns(
     Ok(compiled_patterns)
 }
 
-/// A static list of language detection patterns for common languages.
-///
-/// This uses lazy initialization with graceful error handling.
-/// Returns empty patterns if compilation fails, allowing the system to fall back to whatlang.
-/// For explicit error handling, use `LanguageDetector::try_new()` instead.
-static PATTERNS: Lazy<Vec<(Regex, &'static str)>> = Lazy::new(|| {
-    match compile_language_patterns() {
+fn patterns_or_empty(
+    result: Result<Vec<(Regex, &'static str)>, I18nError>,
+) -> Vec<(Regex, &'static str)> {
+    match result {
         Ok(patterns) => patterns,
         Err(err) => {
             error!("Failed to compile language detection patterns, falling back to empty patterns: {}", err);
             Vec::new()
         }
     }
-});
+}
+
+/// A static list of language detection patterns for common languages.
+///
+/// This uses lazy initialization with graceful error handling.
+/// Returns empty patterns if compilation fails, allowing the system to fall back to whatlang.
+/// For explicit error handling, use `LanguageDetector::try_new()` instead.
+static PATTERNS: Lazy<Vec<(Regex, &'static str)>> =
+    Lazy::new(|| patterns_or_empty(compile_language_patterns()));
 
 impl LanguageDetector {
     /// Creates a new instance of `LanguageDetector`.
@@ -721,6 +732,31 @@ mod tests {
                 text
             );
         }
+    }
+
+    #[test]
+    fn test_compile_language_patterns_invalid_regex() {
+        let invalid_specs = vec![("(", "xx")];
+        let result =
+            compile_language_patterns_from_specs(&invalid_specs);
+
+        match result {
+            Err(I18nError::UnexpectedError(msg)) => {
+                assert!(msg.contains("xx"));
+                assert!(msg.contains("Failed to compile regex"));
+            }
+            _ => panic!("Expected UnexpectedError for invalid regex"),
+        }
+    }
+
+    #[test]
+    fn test_patterns_or_empty_fallback_on_error() {
+        let result = Err(I18nError::UnexpectedError(
+            "forced compilation error".to_string(),
+        ));
+
+        let patterns = patterns_or_empty(result);
+        assert!(patterns.is_empty());
     }
 
     #[tokio::test]
