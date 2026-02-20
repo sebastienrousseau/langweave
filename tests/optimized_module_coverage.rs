@@ -186,9 +186,7 @@ mod optimized_coverage_tests {
 
         let borrowed = ["de".to_string()];
         assert!(is_language_supported_optimized(&borrowed[0]));
-        assert!(is_language_supported_zero_alloc(
-            &borrowed[0]
-        ));
+        assert!(is_language_supported_zero_alloc(&borrowed[0]));
     }
 }
 
