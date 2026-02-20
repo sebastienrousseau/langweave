@@ -79,7 +79,7 @@ version_check = "0.9"                       # Ensures that a compatible Rust ver
 # -----------------------------------------------------------------------------
 [dev-dependencies]
 # Dependencies required for testing and development.
-criterion = { version = "0.5", features = ["async_tokio"] }  # Benchmarking library with async support
+criterion = { version = "0.8", features = ["async_tokio"] }  # Benchmarking library with async support
 proptest = "1.5"                            # Property-based testing framework
 arbitrary = { version = "1.3", features = ["derive"] } # Arbitrary data generation for testing
 quickcheck = "1.0"                          # Alternative property-based testing
