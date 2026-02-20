@@ -288,7 +288,7 @@ jobs:
 
       - name: ☢️ Install cargo-geiger
         continue-on-error: true
-        uses: taiki-e/install-action@cargo-geiger
+        run: cargo install cargo-geiger --locked
 
       - name: ☢️ Scan for unsafe code in dependencies
         run: |
