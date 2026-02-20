@@ -8,7 +8,7 @@ name = "langweave"                          # The name of the library
 version = "0.0.2"                           # Current version for v0.0.2 certification
 authors = ["LangWeave Contributors"]        # Library contributors
 edition = "2021"                            # Rust edition being used
-rust-version = "1.66.0"                     # Minimum supported Rust version
+rust-version = "1.85.0"                     # Minimum supported Rust version
 license = "MIT OR Apache-2.0"               # Dual licensing strategy
 description = """
 A Rust library for seamless internationalization (i18n) and localization.

@@ -70,8 +70,8 @@ jobs:
       - name: 🦀 Verify MSRV compatibility
         run: |
           echo "🦀 Verifying declared MSRV in nightly maintenance..."
-          rustup toolchain install 1.66.0 --profile minimal
-          cargo +1.66.0 check --workspace --all-targets --all-features --locked
+          rustup toolchain install 1.85.0 --profile minimal
+          cargo +1.85.0 check --workspace --all-targets --all-features --locked
           echo "✅ Nightly MSRV verification passed"
 
       - name: 📋 Generate dependency report

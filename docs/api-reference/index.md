@@ -90,11 +90,11 @@ langweave
 
 ### Rust Version Support
 
-LangWeave supports Rust 1.70.0 and later. We follow the Rust release train and support:
+LangWeave supports Rust 1.85.0 and later. We follow the Rust release train and support:
 
 - **Current stable** - Full support with all features
 - **Previous stable** - Support for core functionality
-- **MSRV (1.70.0)** - Basic functionality guaranteed
+- **MSRV (1.85.0)** - Basic functionality guaranteed
 
 ### Platform Support
 
