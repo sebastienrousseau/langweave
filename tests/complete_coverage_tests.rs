@@ -156,7 +156,10 @@ mod complete_coverage {
         assert!(result.is_ok());
 
         // Test that complex phrases with spaces that aren't found return an error
-        let result = translate("fr", "This is a complex phrase that does not exist");
+        let result = translate(
+            "fr",
+            "This is a complex phrase that does not exist",
+        );
         assert!(matches!(result, Err(I18nError::TranslationFailed(_))));
     }
 

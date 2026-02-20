@@ -32,7 +32,13 @@ mod branch_coverage {
         // Branch 2: Successful language check with fallback (simple key without spaces)
         let result = translate("fr", "ComplexSentenceThatDoesNotExist");
         // Simple keys fall back to original text, complex phrases fail
-        assert!(result.is_ok() || matches!(result, Err(I18nError::TranslationFailed(_))));
+        assert!(
+            result.is_ok()
+                || matches!(
+                    result,
+                    Err(I18nError::TranslationFailed(_))
+                )
+        );
 
         // Branch 3: Empty key translation
         let result = translate("fr", "");
@@ -270,11 +276,15 @@ mod branch_coverage {
 
         // Test Display implementation branches
         assert!(error1.to_string().contains("Unsupported language"));
-        assert!(error2.to_string().contains("Failed to translate text"));
+        assert!(error2
+            .to_string()
+            .contains("Failed to translate text"));
         assert!(error3
             .to_string()
             .contains("Failed to detect language"));
-        assert!(error4.to_string().contains("An unexpected error occurred"));
+        assert!(error4
+            .to_string()
+            .contains("An unexpected error occurred"));
     }
 
     /// Test conditional branches in translations module
