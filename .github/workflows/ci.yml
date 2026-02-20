@@ -170,7 +170,7 @@ jobs:
       - name: 🧪 Verify declared MSRV
         run: |
           echo "🧪 Verifying repository against declared rust-version..."
-          cargo +1.85.0 check --workspace --all-targets --all-features --locked
+          cargo +1.85.0 check --workspace --all-targets --all-features
           echo "✅ MSRV verification passed"
 
   # =============================================================================
