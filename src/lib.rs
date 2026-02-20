@@ -270,6 +270,7 @@ pub fn is_language_supported(lang: &str) -> bool {
 pub mod async_utils {
     use super::*;
     use crate::translator::Translator;
+    use tokio::task;
 
     /// Asynchronously translates a given text to a specified language.
     ///
@@ -309,13 +310,19 @@ pub mod async_utils {
         lang: &str,
         text: &str,
     ) -> Result<String, I18nError> {
-        if !is_language_supported(lang) {
-            return Err(I18nError::UnsupportedLanguage(
-                lang.to_string(),
-            ));
-        }
-        let translator = Translator::new(lang)?;
-        translator.translate(text)
+        // Translation is CPU-bound and file-backed; execute it on
+        // the blocking pool to avoid stalling async executors.
+        let lang = lang.to_string();
+        let text = text.to_string();
+        task::spawn_blocking(move || {
+            if !is_language_supported(&lang) {
+                return Err(I18nError::UnsupportedLanguage(lang));
+            }
+            let translator = Translator::new(&lang)?;
+            translator.translate(&text)
+        })
+        .await
+        .map_err(|err| I18nError::UnexpectedError(err.to_string()))?
     }
 }
 

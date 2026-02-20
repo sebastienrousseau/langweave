@@ -63,7 +63,7 @@ jobs:
           cargo update
 
           # Run security audit - this should never be bypassed
-          cargo audit
+          cargo-audit audit
 
           echo "✅ Security audit passed with latest dependencies"
 
@@ -86,7 +86,7 @@ jobs:
           fi
 
           echo "## Security Audit Results" >> dependency_report.md
-          cargo audit --format json > audit_results.json
+          cargo-audit audit --format json > audit_results.json
           echo "No vulnerabilities found as of $(date)" >> dependency_report.md
 
           cat dependency_report.md

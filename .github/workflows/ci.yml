@@ -115,6 +115,41 @@ jobs:
           echo "✅ Documentation builds and tests pass"
 
   # =============================================================================
+  # FEATURE MATRIX - ENSURE ZERO-COST OPTIONALITY
+  # =============================================================================
+  feature-matrix:
+    name: 🧩 Feature Matrix Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 💾 Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: feature-matrix-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 🧪 Validate feature combinations
+        run: |
+          echo "🧪 Checking default feature set..."
+          cargo check --workspace --all-targets
+          echo "🧪 Checking no-default-features..."
+          cargo check --workspace --all-targets --no-default-features
+          echo "🧪 Checking async feature..."
+          cargo check --workspace --all-targets --features async
+          echo "✅ Feature matrix checks passed"
+
+  # =============================================================================
   # TEST SUITE - 95% COVERAGE ENFORCEMENT
   # =============================================================================
   test-coverage:
@@ -181,7 +216,7 @@ jobs:
   # SECURITY AUDIT - NO BYPASS ALLOWED
   # =============================================================================
   security-audit:
-    name: 🔒 Security Audit
+    name: 🔒 Security Audit (Fast)
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -193,36 +228,113 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: 🔐 Install cargo-audit
-        run: cargo install cargo-audit --locked
+        uses: taiki-e/install-action@cargo-audit
 
       - name: 🔍 Security vulnerability scan (STRICT ENFORCEMENT)
         run: |
           echo "🔒 Running security audit with strict enforcement..."
           echo "🚫 NO SECURITY BYPASSES ALLOWED"
-
-          # Update dependencies first
-          cargo update
-
-          # Run security audit - FAIL IMMEDIATELY ON VULNERABILITIES
-          cargo audit
+          cargo-audit audit --deny warnings
 
           echo "✅ No security vulnerabilities found"
+
+      - name: 🛡️ Install cargo-deny
+        uses: taiki-e/install-action@cargo-deny
 
       - name: 🛡️ Run cargo deny checks
         run: |
           echo "🛡️ Running additional security checks with cargo-deny..."
-          cargo install cargo-deny --locked
           cargo deny check
           echo "✅ All security policies satisfied"
+
+  security-deep:
+    name: ☢️ Security Deep Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    continue-on-error: true
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: ☢️ Install cargo-geiger
+        uses: taiki-e/install-action@cargo-geiger
 
       - name: ☢️ Scan for unsafe code in dependencies
         run: |
           echo "☢️ Scanning for unsafe code with cargo-geiger..."
-          cargo install cargo-geiger --locked
           # Report unsafe code usage (informational, not blocking)
           cargo geiger --all-features --all-targets 2>&1 | tee geiger_report.txt || true
           echo "📊 Unsafe code report generated (see above)"
           echo "⚠️ Note: Some transitive dependencies may contain unsafe code"
+
+      - name: 📤 Upload geiger report
+        uses: actions/upload-artifact@v4
+        with:
+          name: geiger-report
+          path: geiger_report.txt
+
+  # =============================================================================
+  # PERFORMANCE GUARDRAIL - BENCHMARK REGRESSION CHECK
+  # =============================================================================
+  benchmark-guardrail:
+    name: ⚡ Benchmark Guardrail
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🦀 Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 💾 Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: benchmark-guardrail-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: 🏃 Build benchmark binary
+        run: cargo bench --bench comprehensive_stress_test --no-run
+
+      - name: ⏱️ Enforce BENCH_FAST runtime threshold
+        run: |
+          BENCH_BIN=""
+          for CANDIDATE in $(ls -t target/release/deps/comprehensive_stress_test-* 2>/dev/null); do
+            if [ -f "$CANDIDATE" ] && [ -x "$CANDIDATE" ]; then
+              BENCH_BIN="$CANDIDATE"
+              break
+            fi
+          done
+          if [ -z "$BENCH_BIN" ]; then
+            echo "❌ Could not locate benchmark binary"
+            exit 1
+          fi
+
+          SECONDS=0
+          BENCH_FAST=1 "$BENCH_BIN" --bench --noplot | tee bench_fast_output.txt
+          ELAPSED=$SECONDS
+          echo "Benchmark elapsed time: ${ELAPSED}s"
+
+          if [ "$ELAPSED" -gt 60 ]; then
+            echo "❌ BENCH_FAST exceeded 60 seconds (${ELAPSED}s)"
+            exit 1
+          fi
+          echo "✅ BENCH_FAST completed within 60 seconds"
+
+      - name: 📤 Upload benchmark output
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-guardrail-output
+          path: bench_fast_output.txt
 
   # =============================================================================
   # ARCHITECTURAL COMPLIANCE
@@ -264,7 +376,7 @@ jobs:
     name: 🔗 Integration Check
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
-    needs: [lint-and-format, build-check, test-coverage, security-audit]
+    needs: [lint-and-format, build-check, feature-matrix, test-coverage, security-audit, benchmark-guardrail]
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]

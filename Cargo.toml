@@ -65,7 +65,7 @@ path = "src/lib.rs"                         # Path to the library entry point
 [features]
 # Optional features that can be enabled or disabled.
 default = []                                # No default features enabled
-async = []                                  # Placeholder for future asynchronous feature support
+async = ["dep:tokio"]                       # Enable async utility helpers backed by Tokio
 
 # -----------------------------------------------------------------------------
 # Build Dependencies
@@ -85,6 +85,7 @@ arbitrary = { version = "1.3", features = ["derive"] } # Arbitrary data generati
 quickcheck = "1.0"                          # Alternative property-based testing
 quickcheck_macros = "1.0"                   # Macros for quickcheck
 tokio-test = "0.4"                          # Testing utilities for async code
+tokio = { version = "1.44", features = ["full"] }  # Runtime used by tests/benches/examples
 
 [dependencies]
 # Dependencies required for building and running the project.
@@ -96,11 +97,11 @@ log = "0.4"
 once_cell = "1.20"
 regex = "1.5"
 smallvec = "1.13"
-tokio = { version = "1.44", features = ["full"] }
 whatlang = "0.18"
+tokio = { version = "1.44", features = ["rt"], optional = true }
 
 # Ecosystem shared utilities
-commons = { git = "https://github.com/sebastienrousseau/commons", branch = "feat/v0.0.1", default-features = false, features = ["error", "logging", "time", "validation"] }
+commons = { git = "https://github.com/sebastienrousseau/commons", rev = "4d3ed8e239b1adaacbf18d92db81fa7f1372901a", default-features = false, features = ["error", "logging", "time", "validation"] }
 
 # -----------------------------------------------------------------------------
 # Examples
