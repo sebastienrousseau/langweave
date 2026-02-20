@@ -7,14 +7,14 @@ Welcome to the LangWeave API Reference. This section provides detailed documenta
 ## Core Modules
 
 ### [`langweave::language_detector`](language_detector.md)
-Language detection functionality for English, French, and German.
+Language detection functionality for all supported languages (English, French, German, Spanish, Portuguese, Italian, Dutch, Russian, Arabic, Hebrew, Hindi, Japanese, Korean, Chinese, and Indonesian).
 
 **Key Types:**
 - [`LanguageDetector`](language_detector.md#languagedetector) - Main language detection implementation
 - [`LanguageDetectorTrait`](language_detector.md#languagedetectortrait) - Common interface for language detectors
 
 ### [`langweave::translator`](translator.md)
-Text translation between supported language pairs (English, French, German).
+Text translation between supported language pairs across all supported languages.
 
 **Key Types:**
 - [`Translator`](translator.md#translator) - Main translation implementation
@@ -62,14 +62,14 @@ LangWeave supports optional features that can be enabled in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-langweave = "0.0.1"
+langweave = "0.0.2"
 
-# Optional async support (enabled by default)
-langweave = { version = "0.0.1", features = ["async"] }
+# Optional async support
+langweave = { version = "0.0.2", features = ["async"] }
 ```
 
 **Available Features:**
-- `async` - Async/await support (enabled by default)
+- `async` - Async/await support
 
 ## Type Hierarchy
 
@@ -182,7 +182,7 @@ fn translate_multiple(texts: &[&str], target_lang: &str) -> Result<Vec<String>, 
 
 ## Migration Guides
 
-### From 0.0.1 to 0.1.0
+### From 0.0.1 to 0.0.2
 *Coming soon*
 
 ## Contributing to API Documentation
