@@ -5,7 +5,7 @@
 #![allow(missing_docs)]
 
 use criterion::{
-    criterion_group, criterion_main, BenchmarkId, Criterion, Throughput,
+    BenchmarkId, Criterion, Throughput, criterion_group, criterion_main,
 };
 use langweave::{
     is_language_supported, language_detector::LanguageDetector,
@@ -59,10 +59,16 @@ fn bench_language_detection(c: &mut Criterion) {
         "The quick brown fox jumps over the lazy dog. ".repeat(50);
     let test_cases = [
         ("short_en", "Hello world"),
-        ("medium_en", "The quick brown fox jumps over the lazy dog. This is a longer sentence to test detection."),
+        (
+            "medium_en",
+            "The quick brown fox jumps over the lazy dog. This is a longer sentence to test detection.",
+        ),
         ("long_en", long_text.as_str()),
         ("short_fr", "Bonjour monde"),
-        ("medium_fr", "Le chat noir mange une souris blanche dans le jardin."),
+        (
+            "medium_fr",
+            "Le chat noir mange une souris blanche dans le jardin.",
+        ),
         ("mixed", "Hello bonjour hola guten tag"),
     ];
 
@@ -106,7 +112,10 @@ fn bench_word_by_word_detection(c: &mut Criterion) {
     let problematic_texts = [
         ("numbers_and_en", "123 hello 456 world"),
         ("mixed_scripts", "hello مرحبا 你好"),
-        ("long_mixed", "word1 word2 word3 word4 word5 hello world test case example"),
+        (
+            "long_mixed",
+            "word1 word2 word3 word4 word5 hello world test case example",
+        ),
     ];
 
     let mut group = c.benchmark_group("word_by_word_detection");

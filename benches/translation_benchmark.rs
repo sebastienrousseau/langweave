@@ -9,7 +9,7 @@
 //!
 
 use criterion::{
-    criterion_group, criterion_main, BenchmarkId, Criterion,
+    BenchmarkId, Criterion, criterion_group, criterion_main,
 };
 use langweave::error::I18nError;
 use langweave::translator::Translator;

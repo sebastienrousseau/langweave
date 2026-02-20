@@ -328,7 +328,10 @@ fn test_edge_cases() {
             ),
             Err(_) => {
                 // Empty string might not be in translation dictionary, this is acceptable
-                println!("Empty string translation failed for {} (acceptable)", lang);
+                println!(
+                    "Empty string translation failed for {} (acceptable)",
+                    lang
+                );
             }
         }
     }
@@ -337,7 +340,8 @@ fn test_edge_cases() {
     for &lang in &["EN", "Fr", "DE"] {
         // Language codes should be case-insensitive
         assert!(
-            is_language_supported(lang) || is_language_supported(&lang.to_lowercase()),
+            is_language_supported(lang)
+                || is_language_supported(&lang.to_lowercase()),
             "Language support check should handle case variations for {}",
             lang
         );
@@ -369,7 +373,10 @@ async fn test_language_detection_edge_cases() {
             // Expected behavior for empty string
         }
         other => {
-            panic!("Expected LanguageDetectionFailed for empty string, got {:?}", other);
+            panic!(
+                "Expected LanguageDetectionFailed for empty string, got {:?}",
+                other
+            );
         }
     }
 
@@ -460,7 +467,10 @@ async fn test_full_workflow() {
                     // Step 3: Try to translate something
                     match translate(&detected_lang, "Hello") {
                         Ok(translation) => {
-                            println!("Full workflow success: {} -> Hello -> {}", detected_lang, translation);
+                            println!(
+                                "Full workflow success: {} -> Hello -> {}",
+                                detected_lang, translation
+                            );
                         }
                         Err(e) => {
                             println!(
@@ -470,7 +480,10 @@ async fn test_full_workflow() {
                         }
                     }
                 } else {
-                    println!("Detected language {} is not supported for translation", detected_lang);
+                    println!(
+                        "Detected language {} is not supported for translation",
+                        detected_lang
+                    );
                 }
             }
             Err(e) => {

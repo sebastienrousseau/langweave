@@ -12,8 +12,8 @@ use langweave::optimized::*;
 use langweave::translations;
 use langweave::translator::Translator;
 use langweave::{
-    detect_language, detect_language_async, is_language_supported,
-    supported_languages, translate, VERSION,
+    VERSION, detect_language, detect_language_async,
+    is_language_supported, supported_languages, translate,
 };
 use tokio::task::JoinSet;
 

@@ -92,9 +92,15 @@ fn load_translations_from_dir(dir: &Path) -> TranslationMap {
                     {
                         match load_translations(&path) {
                             Ok(translations) => {
-                                let _ = all_translations.insert(lang_code.to_lowercase(), translations);
+                                let _ = all_translations.insert(
+                                    lang_code.to_lowercase(),
+                                    translations,
+                                );
                             }
-                            Err(e) => eprintln!("Error loading translations for {:?}: {}", path, e),
+                            Err(e) => eprintln!(
+                                "Error loading translations for {:?}: {}",
+                                path, e
+                            ),
                         }
                     }
                 }
@@ -455,15 +461,21 @@ mod tests {
 
     #[test]
     fn test_logger_messages() {
-        assert!(translate("en", "main_logger_msg")
-            .unwrap()
-            .contains("Please run `ssg --help`"));
-        assert!(translate("fr", "lib_banner_log_msg")
-            .unwrap()
-            .contains("Bannière imprimée"));
-        assert!(translate("de", "lib_server_log_msg")
-            .unwrap()
-            .contains("Server erfolgreich gestartet"));
+        assert!(
+            translate("en", "main_logger_msg")
+                .unwrap()
+                .contains("Please run `ssg --help`")
+        );
+        assert!(
+            translate("fr", "lib_banner_log_msg")
+                .unwrap()
+                .contains("Bannière imprimée")
+        );
+        assert!(
+            translate("de", "lib_server_log_msg")
+                .unwrap()
+                .contains("Server erfolgreich gestartet")
+        );
     }
 
     #[test]

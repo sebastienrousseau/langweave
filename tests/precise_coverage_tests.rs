@@ -19,7 +19,7 @@ mod precise_lib_coverage {
         // Try to create a scenario where language check passes but translator creation fails
         // Since the implementation is black box, let's try edge cases
         let result = translate("en\0", "test"); // null byte in language
-                                                // This should either trigger UnsupportedLanguage or TranslationFailed from translator creation
+        // This should either trigger UnsupportedLanguage or TranslationFailed from translator creation
         assert!(result.is_err());
     }
 

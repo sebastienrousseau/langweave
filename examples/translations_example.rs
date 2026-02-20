@@ -135,7 +135,10 @@ fn case_sensitivity_example() -> Result<(), I18nError> {
         match translations::translate(lang, key) {
             Ok(translated) => {
                 assert_eq!(&translated, expected);
-                println!("    ✅ '{}' in {} correctly translated to '{}' (case-insensitive)", key, lang, translated);
+                println!(
+                    "    ✅ '{}' in {} correctly translated to '{}' (case-insensitive)",
+                    key, lang, translated
+                );
             }
             Err(e) => println!(
                 "    ❌ Error translating '{}' to {}: {:?}",
@@ -160,8 +163,14 @@ fn logger_messages_example() -> Result<(), I18nError> {
 
     for (lang, key) in &logger_keys {
         match translations::translate(lang, key) {
-            Ok(translated) => println!("    ✅ Logger message '{}' in {}: {}", key, lang, translated),
-            Err(e) => println!("    ❌ Error translating logger message '{}' to {}: {:?}", key, lang, e),
+            Ok(translated) => println!(
+                "    ✅ Logger message '{}' in {}: {}",
+                key, lang, translated
+            ),
+            Err(e) => println!(
+                "    ❌ Error translating logger message '{}' to {}: {:?}",
+                key, lang, e
+            ),
         }
     }
 

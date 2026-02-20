@@ -8,7 +8,7 @@
 #![allow(missing_docs)]
 
 use criterion::{
-    criterion_group, criterion_main, BenchmarkId, Criterion, Throughput,
+    BenchmarkId, Criterion, Throughput, criterion_group, criterion_main,
 };
 use langweave::{
     is_language_supported, language_detector::LanguageDetector,

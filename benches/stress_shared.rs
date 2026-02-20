@@ -3,7 +3,7 @@
 #![allow(missing_docs)]
 #![allow(dead_code)]
 
-use criterion::{measurement::WallTime, BenchmarkGroup};
+use criterion::{BenchmarkGroup, measurement::WallTime};
 use criterion::{BenchmarkId, Criterion, Throughput};
 use langweave::{
     detect_language, detect_language_async, is_language_supported,

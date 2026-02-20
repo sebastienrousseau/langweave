@@ -5,7 +5,7 @@
 #![allow(missing_docs)]
 
 use criterion::{
-    criterion_group, criterion_main, BenchmarkId, Criterion, Throughput,
+    BenchmarkId, Criterion, Throughput, criterion_group, criterion_main,
 };
 use langweave::{
     detect_language_async, is_language_supported,
@@ -287,9 +287,9 @@ fn bench_regression_detection(c: &mut Criterion) {
         "",
         "a",
         "This is a very long sentence that might cause performance issues in regex matching or other operations",
-        "مرحبا", // Arabic
+        "مرحبا",      // Arabic
         "こんにちは", // Japanese
-        "你好", // Chinese
+        "你好",       // Chinese
         "Hello world this is English text",
         "123 456 789 numbers only",
         "Mixed 123 content with مرحبا numbers and text",

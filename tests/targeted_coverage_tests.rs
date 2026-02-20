@@ -199,11 +199,19 @@ mod async_utils_targeted_coverage {
 
             // Should either succeed or fail with proper error wrapping
             assert!(
-                result.is_ok() ||
-                matches!(result, Err(I18nError::TranslationFailed(_))) ||
-                matches!(result, Err(I18nError::UnsupportedLanguage(_))),
+                result.is_ok()
+                    || matches!(
+                        result,
+                        Err(I18nError::TranslationFailed(_))
+                    )
+                    || matches!(
+                        result,
+                        Err(I18nError::UnsupportedLanguage(_))
+                    ),
                 "Unexpected error for translate_async('{}', '{}'): {:?}",
-                lang, text, result
+                lang,
+                text,
+                result
             );
         }
     }

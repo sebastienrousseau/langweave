@@ -62,7 +62,7 @@ use log::{debug, error};
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::sync::Arc;
-use whatlang::{detect, Lang};
+use whatlang::{Lang, detect};
 
 /// A thread-safe struct for detecting the language of a given text.
 #[derive(Debug, Clone)]
@@ -82,8 +82,8 @@ pub struct LanguageDetector {
 /// # Errors
 ///
 /// Returns `I18nError::UnexpectedError` if any pattern compilation fails.
-fn compile_language_patterns(
-) -> Result<Vec<(Regex, &'static str)>, I18nError> {
+fn compile_language_patterns()
+-> Result<Vec<(Regex, &'static str)>, I18nError> {
     let pattern_specs = vec![
         // English
         (
@@ -185,7 +185,10 @@ fn patterns_or_empty(
     match result {
         Ok(patterns) => patterns,
         Err(err) => {
-            error!("Failed to compile language detection patterns, falling back to empty patterns: {}", err);
+            error!(
+                "Failed to compile language detection patterns, falling back to empty patterns: {}",
+                err
+            );
             Vec::new()
         }
     }
@@ -366,7 +369,10 @@ impl LanguageDetectorTrait for LanguageDetector {
         // Try custom patterns first
         for (pattern, lang) in self.patterns.iter() {
             if pattern.is_match(normalized_text) {
-                debug!("Custom heuristic matched pattern for language '{}'", lang);
+                debug!(
+                    "Custom heuristic matched pattern for language '{}'",
+                    lang
+                );
                 return Ok(lang.to_string());
             }
         }
@@ -572,7 +578,10 @@ mod tests {
     #[test]
     fn test_non_linguistic_characters() {
         let detector = LanguageDetector::new();
-        assert!(detector.detect("12345 @#$% !").is_err(), "Non-linguistic characters should return a detection error.");
+        assert!(
+            detector.detect("12345 @#$% !").is_err(),
+            "Non-linguistic characters should return a detection error."
+        );
     }
 
     #[tokio::test]

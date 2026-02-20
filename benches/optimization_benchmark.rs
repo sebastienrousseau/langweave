@@ -6,7 +6,7 @@
 #![allow(clippy::empty_line_after_doc_comments)]
 
 use criterion::{
-    criterion_group, criterion_main, BenchmarkId, Criterion,
+    BenchmarkId, Criterion, criterion_group, criterion_main,
 };
 use std::collections::HashMap;
 use std::hint::black_box;

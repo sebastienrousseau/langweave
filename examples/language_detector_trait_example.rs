@@ -43,8 +43,8 @@ pub(crate) async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Demonstrates using the built-in LanguageDetector.
-async fn built_in_detector_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn built_in_detector_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("🦀 Built-in Language Detector Example");
     println!("---------------------------------------------");
 
@@ -97,8 +97,8 @@ impl LanguageDetectorTrait for SimpleDetector {
 }
 
 /// Demonstrates using a custom language detector.
-async fn custom_detector_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn custom_detector_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Custom Language Detector Example");
     println!("---------------------------------------------");
 
@@ -127,8 +127,8 @@ async fn custom_detector_example(
 }
 
 /// Demonstrates using a composite language detector.
-async fn composite_detector_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn composite_detector_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Composite Language Detector Example");
     println!("---------------------------------------------");
 

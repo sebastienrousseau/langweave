@@ -55,8 +55,8 @@ pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # Examples
 ///
 /// Demonstrates language detection capabilities.
-pub(crate) fn language_detection_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+pub(crate) fn language_detection_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("🦀 Language Detection Example");
     println!("---------------------------------------------");
 
@@ -180,16 +180,21 @@ fn error_handling_example() -> Result<(), Box<dyn std::error::Error>> {
     // Non-existent translation key
     let translator = Translator::new("en")?;
     match translator.translate("NonexistentKey") {
-        Ok(_) => println!("    ❓ Unexpected success for non-existent translation key"),
-        Err(e) => println!("    ✅ Expected error for non-existent translation key: {:?}", e),
+        Ok(_) => println!(
+            "    ❓ Unexpected success for non-existent translation key"
+        ),
+        Err(e) => println!(
+            "    ✅ Expected error for non-existent translation key: {:?}",
+            e
+        ),
     }
 
     Ok(())
 }
 
 /// Demonstrates the supported languages in the library.
-fn supported_languages_example(
-) -> Result<(), Box<dyn std::error::Error>> {
+fn supported_languages_example()
+-> Result<(), Box<dyn std::error::Error>> {
     println!("\n🦀 Supported Languages Example");
     println!("---------------------------------------------");
 

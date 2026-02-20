@@ -10,7 +10,9 @@ pub enum I18nError {
     /// Indicates that the language detection process failed.
     ///
     /// This error occurs when the library is unable to determine the language of the provided text.
-    #[error("Failed to detect language: the provided text does not contain sufficient identifiable language patterns")]
+    #[error(
+        "Failed to detect language: the provided text does not contain sufficient identifiable language patterns"
+    )]
     LanguageDetectionFailed,
 
     /// Indicates that the translation process failed for the given text.

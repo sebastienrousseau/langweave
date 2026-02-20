@@ -5,8 +5,8 @@
 
 use langweave::error::I18nError;
 use langweave::{
-    detect_language, detect_language_async, is_language_supported,
-    supported_languages, translate, VERSION,
+    VERSION, detect_language, detect_language_async,
+    is_language_supported, supported_languages, translate,
 };
 
 #[cfg(test)]
