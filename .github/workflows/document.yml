@@ -23,12 +23,12 @@ jobs:
         with:
           rust-version: nightly
 
-      - uses: actions/checkout@v6.1.7
+      - uses: actions/checkout@v4
 
-      - name: Update libssl
+      - name: Install OpenSSL headers
         run: |
           sudo apt-get update
-          sudo apt-get install -y libssl1.1
+          sudo apt-get install -y libssl-dev
 
       - name: Generate documentation for all features and publish it
         run: |
@@ -38,7 +38,7 @@ jobs:
             echo '<html><head><meta http-equiv="refresh" content="0; url=/langweave/"></head><body></body></html>' > ./target/doc/index.html
 
       - name: Deploy
-        uses: actions/upload-artifact@v6.4.3
+        uses: actions/upload-artifact@v4
         with:
           name: documentation
           path: target/doc
