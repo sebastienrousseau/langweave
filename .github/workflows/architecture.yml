@@ -3,9 +3,25 @@ name: 🏗️ Architecture Guardrails
 on:
   push:
     branches: [ main, feat/*, dev ]
+    paths:
+      - "**/*.rs"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "scripts/**"
+      - ".github/workflows/architecture.yml"
   pull_request:
     branches: [ main, feat/* ]
+    paths:
+      - "**/*.rs"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "scripts/**"
+      - ".github/workflows/architecture.yml"
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   RUST_BACKTRACE: 1

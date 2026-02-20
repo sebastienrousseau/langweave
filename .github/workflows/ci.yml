@@ -3,8 +3,36 @@ name: 🚀 CI Pipeline - Standards Compliance
 on:
   push:
     branches: [main, "feat/*"]
+    paths:
+      - "**/*.rs"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "build.rs"
+      - "benches/**"
+      - "examples/**"
+      - "tests/**"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/nightly.yml"
+      - "rustfmt.toml"
+      - "clippy.toml"
   pull_request:
     branches: [main, "feat/*"]
+    paths:
+      - "**/*.rs"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "build.rs"
+      - "benches/**"
+      - "examples/**"
+      - "tests/**"
+      - ".github/workflows/ci.yml"
+      - ".github/workflows/nightly.yml"
+      - "rustfmt.toml"
+      - "clippy.toml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   CARGO_TERM_COLOR: always

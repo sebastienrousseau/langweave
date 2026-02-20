@@ -5,11 +5,27 @@ on:
     branches:
       - main
       - feat/langweave
+    paths:
+      - "**/*.rs"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "scripts/**"
+      - ".github/workflows/check.yml"
   pull_request:
     branches:
       - feat/langweave
+    paths:
+      - "**/*.rs"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "scripts/**"
+      - ".github/workflows/check.yml"
   release:
     types: [created]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
   CARGO_TERM_COLOR: always
