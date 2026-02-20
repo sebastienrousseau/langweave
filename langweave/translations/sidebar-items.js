@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["translate"]};
+window.SIDEBAR_ITEMS = {"fn":["translate","translate_with_fallback"]};

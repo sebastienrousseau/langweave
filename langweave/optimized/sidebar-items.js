@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["SUPPORTED_LANGUAGE_CODES"],"fn":["is_language_supported_optimized","is_language_supported_zero_alloc","supported_languages_optimized","translate_optimized"]};
