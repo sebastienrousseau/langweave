@@ -1,26 +1,9 @@
 name: 📶 Coverage
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "**/*.rs"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "benches/**"
-      - "examples/**"
-      - "tests/**"
-      - ".github/workflows/coverage.yml"
-  pull_request:
-    paths:
-      - "**/*.rs"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "benches/**"
-      - "examples/**"
-      - "tests/**"
-      - ".github/workflows/coverage.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -46,14 +29,11 @@ jobs:
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
 
-      - name: Cache Cargo registry
-        uses: actions/cache@v5
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/bin
-            ~/.cargo/git
-          key: linux-coverage-${{ hashFiles('**/Cargo.lock') }}
+          workspaces: ". -> target"
+          cache-on-failure: true
 
       - name: Generate code coverage
         run: |

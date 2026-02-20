@@ -1,25 +1,7 @@
 name: 🧪 Check
 
 on:
-  push:
-    branches:
-      - main
-      - feat/langweave
-    paths:
-      - "**/*.rs"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "scripts/**"
-      - ".github/workflows/check.yml"
-  pull_request:
-    branches:
-      - feat/langweave
-    paths:
-      - "**/*.rs"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "scripts/**"
-      - ".github/workflows/check.yml"
+  workflow_dispatch:
   release:
     types: [created]
 

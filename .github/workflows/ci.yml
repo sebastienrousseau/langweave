@@ -63,17 +63,24 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: 💾 Cache Cargo registry and dependencies
-        uses: actions/cache@v4
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+          workspaces: ". -> target"
+          cache-on-failure: true
+
+      - name: 🔎 Detect heavy lint scope
+        id: lint_scope
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            heavy_lint:
+              - "Cargo.toml"
+              - "Cargo.lock"
+              - "build.rs"
+              - "src/**"
+              - "clippy.toml"
+              - ".github/workflows/ci.yml"
 
       - name: 🎨 Check code formatting (FAIL ON UNFORMATTED)
         run: |
@@ -87,18 +94,24 @@ jobs:
           echo "✅ All code is properly formatted"
 
       - name: 📋 Run Clippy lints (ZERO WARNINGS POLICY)
+        if: steps.lint_scope.outputs.heavy_lint == 'true'
         run: |
           echo "📋 Running Clippy with zero-warning policy..."
           cargo clippy --all-targets --all-features --workspace -- $CLIPPY_OPTS
           echo "✅ All linting checks passed"
 
       - name: 🔍 Check for unused dependencies
+        if: steps.lint_scope.outputs.heavy_lint == 'true'
         run: |
           echo "🔍 Checking for unused dependencies..."
           # Install cargo-machete for unused dependency detection
           cargo install cargo-machete --locked
           cargo machete
           echo "✅ No unused dependencies found"
+
+      - name: ⏭️ Skip heavy lint for formatting-only changes
+        if: steps.lint_scope.outputs.heavy_lint != 'true'
+        run: echo "ℹ️ Skipping clippy/machete for formatting-only or non-core file changes"
 
   # =============================================================================
   # BUILD VERIFICATION - STRICT TYPE CHECKING
@@ -119,15 +132,11 @@ jobs:
       - name: 🦀 Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: 💾 Cache Cargo dependencies
-        uses: actions/cache@v4
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-build-${{ hashFiles('**/Cargo.lock') }}
+          workspaces: ". -> target"
+          cache-on-failure: true
 
       - name: 🔨 Build all targets with strict warnings
         run: |
@@ -157,15 +166,11 @@ jobs:
       - name: 🦀 Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: 💾 Cache Cargo dependencies
-        uses: actions/cache@v4
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: feature-matrix-${{ hashFiles('**/Cargo.lock') }}
+          workspaces: ". -> target"
+          cache-on-failure: true
 
       - name: 🧪 Validate feature combinations
         run: |
@@ -225,15 +230,11 @@ jobs:
       - name: 📦 Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
 
-      - name: 💾 Cache Cargo dependencies
-        uses: actions/cache@v4
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-coverage-${{ hashFiles('**/Cargo.lock') }}
+          workspaces: ". -> target"
+          cache-on-failure: true
 
       - name: 🧪 Run test suite with coverage
         run: |
@@ -349,15 +350,11 @@ jobs:
       - name: 🦀 Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: 💾 Cache Cargo dependencies
-        uses: actions/cache@v4
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: benchmark-guardrail-${{ hashFiles('**/Cargo.lock') }}
+          workspaces: ". -> target"
+          cache-on-failure: true
 
       - name: 🏃 Build benchmark binary
         run: cargo bench --bench comprehensive_stress_test --no-run
@@ -445,15 +442,11 @@ jobs:
       - name: 🦀 Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: 💾 Cache Cargo dependencies
-        uses: actions/cache@v4
+      - name: 💾 Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-integration-${{ hashFiles('**/Cargo.lock') }}
+          workspaces: ". -> target"
+          cache-on-failure: true
 
       - name: 🧪 Run integration tests
         run: |
