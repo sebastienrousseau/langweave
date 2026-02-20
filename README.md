@@ -49,7 +49,7 @@ langweave = "0.0.2"
 
 ## Requirements
 
-- **MSRV**: Rust 1.85.0 or later
+- **MSRV**: Rust 1.87.0 or later
 
 ## Feature Flags
 

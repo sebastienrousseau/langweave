@@ -7,8 +7,8 @@
 name = "langweave"                          # The name of the library
 version = "0.0.2"                           # Current version for v0.0.2 certification
 authors = ["LangWeave Contributors"]        # Library contributors
-edition = "2021"                            # Rust edition being used
-rust-version = "1.85.0"                     # Minimum supported Rust version
+edition = "2024"                            # Rust edition being used
+rust-version = "1.87.0"                     # Minimum supported Rust version
 license = "MIT OR Apache-2.0"               # Dual licensing strategy
 description = """
 A Rust library for seamless internationalization (i18n) and localization.
@@ -234,7 +234,7 @@ macro_use_extern_crate = "deny"             # Deny macro use of `extern crate`
 meta_variable_misuse = "deny"               # Deny misuse of meta variables in macros
 noop_method_call = "deny"                   # Deny method calls that have no effect
 rust_2018_idioms = { level = "deny", priority = -1 }    # Enforce Rust 2018 idioms
-rust_2021_compatibility = { level = "deny", priority = -1 } # Enforce Rust 2021 compatibility
+rust_2024_compatibility = { level = "deny", priority = -1 } # Enforce Rust 2024 compatibility
 single_use_lifetimes = "deny"               # Deny lifetimes that are used only once
 trivial_casts = "deny"                      # Deny trivial casts (e.g., `as` when unnecessary)
 trivial_numeric_casts = "deny"              # Deny trivial numeric casts (e.g., `i32` to `i64`)
