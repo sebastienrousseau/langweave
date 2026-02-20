@@ -100,9 +100,6 @@ smallvec = "1.13"
 whatlang = "0.18"
 tokio = { version = "1.44", features = ["rt"], optional = true }
 
-# Ecosystem shared utilities
-commons = { git = "https://github.com/sebastienrousseau/commons", rev = "4d3ed8e239b1adaacbf18d92db81fa7f1372901a", default-features = false, features = ["error", "logging", "time", "validation"] }
-
 # -----------------------------------------------------------------------------
 # Examples
 # -----------------------------------------------------------------------------
@@ -195,7 +192,7 @@ targets = ["x86_64-unknown-linux-gnu"]      # Default target platform for the do
 
 [package.metadata.cargo-machete]
 # Keep CI stable for known false positives in static dependency usage analysis.
-ignored = ["commons", "serde", "serde_json", "smallvec"]
+ignored = ["serde", "serde_json", "smallvec"]
 
 # -----------------------------------------------------------------------------
 # Linting Configuration
