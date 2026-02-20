@@ -161,18 +161,16 @@ jobs:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: 🦀 Install Rust toolchain (MSRV)
+      - name: 🦀 Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: "1.66.0"
 
-      - name: 📦 Install cargo-msrv
-        run: cargo install cargo-msrv --locked
+      - name: 📦 Install declared MSRV toolchain
+        run: rustup toolchain install 1.66.0 --profile minimal
 
       - name: 🧪 Verify declared MSRV
         run: |
           echo "🧪 Verifying repository against declared rust-version..."
-          cargo msrv verify -- cargo check --workspace --all-targets --all-features --locked
+          cargo +1.66.0 check --workspace --all-targets --all-features --locked
           echo "✅ MSRV verification passed"
 
   # =============================================================================
