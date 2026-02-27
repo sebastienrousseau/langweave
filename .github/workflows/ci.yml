@@ -330,7 +330,7 @@ jobs:
           echo "⚠️ Note: Some transitive dependencies may contain unsafe code"
 
       - name: 📤 Upload geiger report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: geiger-report
           path: geiger_report.txt
@@ -385,7 +385,7 @@ jobs:
           echo "✅ BENCH_FAST completed within 60 seconds"
 
       - name: 📤 Upload benchmark output
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-guardrail-output
           path: bench_fast_output.txt
