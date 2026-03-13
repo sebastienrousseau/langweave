@@ -71,7 +71,7 @@ jobs:
 
       - name: 🔎 Detect heavy lint scope
         id: lint_scope
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             heavy_lint:
