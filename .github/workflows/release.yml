@@ -112,24 +112,31 @@ jobs:
     name: Publish to Crates.io 🦀
     needs: release
     runs-on: ubuntu-latest
-    env:
-      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN || secrets.CARGO_API_TOKEN }}
+    permissions:
+      contents: read
+      # Mints the OIDC token crates.io exchanges for a publish token.
+      id-token: write
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
-      - name: Validate crates.io token
-        run: |
-          if [ -z "${CARGO_REGISTRY_TOKEN}" ]; then
-            echo "❌ Missing crates.io token. Set CARGO_REGISTRY_TOKEN (preferred) or CARGO_API_TOKEN in repository secrets."
-            exit 1
-          fi
-          echo "✅ crates.io token is configured"
 
-      - name: Authenticate Cargo
-        run: cargo login "${CARGO_REGISTRY_TOKEN}"
+      # Trusted publishing: swaps this job's GitHub OIDC identity for a
+      # temporary crates.io token, revoked by the action's post step when
+      # the job ends. Needs a trusted publisher on crates.io for the
+      # langweave crate (repo + release.yml).
+      #
+      # This replaces the stored-token flow: the old "Validate crates.io
+      # token" and `cargo login` steps existed to check and install a
+      # secret that no longer exists. cargo reads CARGO_REGISTRY_TOKEN
+      # directly, so no login step is needed.
+      - name: Authenticate with crates.io
+        id: auth
+        uses: rust-lang/crates-io-auth-action@v1
 
       - name: Verify package publishability
         run: cargo publish --dry-run
 
       - name: Publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
         run: cargo publish
