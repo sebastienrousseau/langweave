@@ -59,9 +59,8 @@ use crate::error::I18nError;
 use crate::language_detector_trait::LanguageDetectorTrait;
 use async_trait::async_trait;
 use log::{debug, error};
-use once_cell::sync::Lazy;
 use regex::Regex;
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 use whatlang::{Lang, detect};
 
 /// A thread-safe struct for detecting the language of a given text.
@@ -199,8 +198,8 @@ fn patterns_or_empty(
 /// This uses lazy initialization with graceful error handling.
 /// Returns empty patterns if compilation fails, allowing the system to fall back to whatlang.
 /// For explicit error handling, use `LanguageDetector::try_new()` instead.
-static PATTERNS: Lazy<Vec<(Regex, &'static str)>> =
-    Lazy::new(|| patterns_or_empty(compile_language_patterns()));
+static PATTERNS: LazyLock<Vec<(Regex, &'static str)>> =
+    LazyLock::new(|| patterns_or_empty(compile_language_patterns()));
 
 impl LanguageDetector {
     /// Creates a new instance of `LanguageDetector`.

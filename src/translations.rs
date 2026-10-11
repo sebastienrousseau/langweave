@@ -36,12 +36,12 @@
 //! ```
 
 use crate::I18nError;
-use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
+use std::sync::LazyLock;
 
 /// Type alias for the nested HashMap structure that stores translations.
 ///
@@ -53,8 +53,8 @@ type TranslationMap = HashMap<String, HashMap<String, String>>;
 ///
 /// This static variable is initialized once when first accessed and contains
 /// all available translations loaded from the `locales/` directory.
-static TRANSLATIONS: Lazy<TranslationMap> =
-    Lazy::new(load_all_translations);
+static TRANSLATIONS: LazyLock<TranslationMap> =
+    LazyLock::new(load_all_translations);
 
 /// Loads translations from all PO files in the specified directory.
 ///

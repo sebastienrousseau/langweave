@@ -14,7 +14,7 @@
 
 use language_detector_trait::LanguageDetectorTrait;
 use log::debug;
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::error::I18nError;
 use crate::language_detector::LanguageDetector;
@@ -52,8 +52,8 @@ pub mod prelude {
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// A lazy-initialized instance of the LanguageDetector.
-static LANGUAGE_DETECTOR: Lazy<LanguageDetector> =
-    Lazy::new(LanguageDetector::new);
+static LANGUAGE_DETECTOR: LazyLock<LanguageDetector> =
+    LazyLock::new(LanguageDetector::new);
 
 /// Translates a given text to a specified language.
 ///
