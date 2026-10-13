@@ -186,12 +186,12 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: 📦 Install declared MSRV toolchain
-        run: rustup toolchain install 1.87.0 --profile minimal
+        run: rustup toolchain install 1.89.0 --profile minimal
 
       - name: 🧪 Verify declared MSRV
         run: |
           echo "🧪 Verifying repository against declared rust-version..."
-          cargo +1.87.0 check --workspace --all-targets --all-features
+          cargo +1.89.0 check --workspace --all-targets --all-features
           echo "✅ MSRV verification passed"
 
   # =============================================================================
