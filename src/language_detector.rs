@@ -378,15 +378,15 @@ impl LanguageDetectorTrait for LanguageDetector {
 
         // If custom heuristics fail, detect word-by-word using `whatlang`
         for word in normalized_text.split_whitespace() {
-            if let Some(info) = detect(word) {
-                if info.is_reliable() || info.confidence() > 0.3 {
-                    debug!(
-                        "Detected language '{}' for word '{}'",
-                        info.lang(),
-                        word
-                    );
-                    return Ok(self.convert_lang_code(info.lang()));
-                }
+            if let Some(info) = detect(word)
+                && (info.is_reliable() || info.confidence() > 0.3)
+            {
+                debug!(
+                    "Detected language '{}' for word '{}'",
+                    info.lang(),
+                    word
+                );
+                return Ok(self.convert_lang_code(info.lang()));
             }
         }
 

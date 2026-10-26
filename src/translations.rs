@@ -85,24 +85,22 @@ fn load_translations_from_dir(dir: &Path) -> TranslationMap {
     if let Ok(entries) = fs::read_dir(dir) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if let Some(extension) = path.extension() {
-                if extension == "po" {
-                    if let Some(lang_code) =
-                        path.file_stem().and_then(|s| s.to_str())
-                    {
-                        match load_translations(&path) {
-                            Ok(translations) => {
-                                let _ = all_translations.insert(
-                                    lang_code.to_lowercase(),
-                                    translations,
-                                );
-                            }
-                            Err(e) => eprintln!(
-                                "Error loading translations for {:?}: {}",
-                                path, e
-                            ),
-                        }
+            if let Some(extension) = path.extension()
+                && extension == "po"
+                && let Some(lang_code) =
+                    path.file_stem().and_then(|s| s.to_str())
+            {
+                match load_translations(&path) {
+                    Ok(translations) => {
+                        let _ = all_translations.insert(
+                            lang_code.to_lowercase(),
+                            translations,
+                        );
                     }
+                    Err(e) => eprintln!(
+                        "Error loading translations for {:?}: {}",
+                        path, e
+                    ),
                 }
             }
         }

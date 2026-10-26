@@ -37,7 +37,7 @@ Found a bug? Help us fix it by providing detailed information:
 
 **Environment**:
 - OS: macOS 14.0
-- Rust: 1.87.0
+- Rust: 1.89.0
 - LangWeave: 0.0.2
 
 **Additional Context**:
