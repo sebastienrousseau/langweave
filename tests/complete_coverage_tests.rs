@@ -46,7 +46,7 @@ mod complete_coverage {
     fn test_version_constant_detailed() {
         assert!(!VERSION.is_empty());
         assert!(VERSION.starts_with("0."));
-        assert_eq!(VERSION, "0.0.2");
+        assert_eq!(VERSION, env!("CARGO_PKG_VERSION"));
 
         // Test repeated access
         let v1 = VERSION;

@@ -62,10 +62,10 @@ LangWeave supports optional features that can be enabled in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-langweave = "0.0.2"
+langweave = "0.0.4"
 
 # Optional async support
-langweave = { version = "0.0.2", features = ["async"] }
+langweave = { version = "0.0.4", features = ["async"] }
 ```
 
 **Available Features:**
@@ -90,11 +90,11 @@ langweave
 
 ### Rust Version Support
 
-LangWeave supports Rust 1.87.0 and later. We follow the Rust release train and support:
+LangWeave supports Rust 1.89.0 and later. We follow the Rust release train and support:
 
 - **Current stable** - Full support with all features
 - **Previous stable** - Support for core functionality
-- **MSRV (1.87.0)** - Basic functionality guaranteed
+- **MSRV (1.89.0)** - Basic functionality guaranteed
 
 ### Platform Support
 
