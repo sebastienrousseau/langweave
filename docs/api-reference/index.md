@@ -62,10 +62,10 @@ LangWeave supports optional features that can be enabled in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-langweave = "0.0.2"
+langweave = "0.0.4"
 
 # Optional async support
-langweave = { version = "0.0.2", features = ["async"] }
+langweave = { version = "0.0.4", features = ["async"] }
 ```
 
 **Available Features:**

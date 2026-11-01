@@ -8,7 +8,7 @@ Add to `Cargo.toml`:
 
 ```toml
 [dependencies]
-langweave = "0.0.2"
+langweave = "0.0.4"
 ```
 
 ## Basic Usage

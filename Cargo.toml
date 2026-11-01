@@ -5,7 +5,7 @@
 [package]
 # General project metadata
 name = "langweave"                          # The name of the library
-version = "0.0.2"                           # Current version for v0.0.2 certification
+version = "0.0.4"                           # Current version for v0.0.2 certification
 authors = ["LangWeave Contributors"]        # Library contributors
 edition = "2024"                            # Rust edition being used
 rust-version = "1.89.0"                     # Minimum supported Rust version

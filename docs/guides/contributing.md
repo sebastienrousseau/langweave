@@ -38,7 +38,7 @@ Found a bug? Help us fix it by providing detailed information:
 **Environment**:
 - OS: macOS 14.0
 - Rust: 1.89.0
-- LangWeave: 0.0.2
+- LangWeave: 0.0.4
 
 **Additional Context**:
 Works correctly for longer German texts (20+ characters)
