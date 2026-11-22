@@ -10,6 +10,9 @@ env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: "-D warnings"
 
+permissions:
+  contents: read
+
 jobs:
   # =============================================================================
   # DEPENDENCY UPDATE CHECKS
@@ -204,7 +207,17 @@ jobs:
       - name: 🏃‍♂️ Run performance benchmarks
         run: |
           echo "🏃‍♂️ Running performance benchmarks..."
-          cargo bench --all-features
+          # Criterion's --quick mode: every benchmark still runs, with
+          # shorter sampling, so the job fits its 30-minute limit. A
+          # full run was cancelled at the limit every night. Only the
+          # [[bench]] targets declared with harness = false run
+          # Criterion; the lib and the auto-discovered bench files use
+          # the libtest harness, which rejects --quick.
+          BENCH_ARGS=()
+          while IFS= read -r name; do
+            BENCH_ARGS+=(--bench "$name")
+          done < <(python3 -c 'import tomllib; d = tomllib.load(open("Cargo.toml", "rb")); print("\n".join(b["name"] for b in d.get("bench", []) if b.get("harness", True) is False))')
+          cargo bench --all-features "${BENCH_ARGS[@]}" -- --quick
           echo "✅ Benchmarks completed"
 
       - name: 🔄 Run stress tests
