@@ -29,6 +29,9 @@ env:
   # Ensure Clippy treats all warnings as errors
   CLIPPY_OPTS: "-D warnings"
 
+permissions:
+  contents: read
+
 jobs:
   # =============================================================================
   # LINTING AND FORMATTING - ZERO TOLERANCE POLICY

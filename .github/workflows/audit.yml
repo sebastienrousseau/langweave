@@ -11,6 +11,9 @@ on:
   release:
     types: [created]
 
+permissions:
+  contents: read
+
 jobs:
   dependencies:
     name: Audit dependencies
