@@ -210,13 +210,13 @@ jobs:
           # Criterion's --quick mode: every benchmark still runs, with
           # shorter sampling, so the job fits its 30-minute limit. A
           # full run was cancelled at the limit every night. Only the
-          # Criterion targets (files with criterion_main!) are selected:
-          # the lib and benches/stress_shared.rs (a module the others
-          # include) use the libtest harness, which rejects --quick.
+          # [[bench]] targets declared with harness = false run
+          # Criterion; the lib and the auto-discovered bench files use
+          # the libtest harness, which rejects --quick.
           BENCH_ARGS=()
-          while IFS= read -r f; do
-            BENCH_ARGS+=(--bench "$(basename "$f" .rs)")
-          done < <(grep -l 'criterion_main!' benches/*.rs)
+          while IFS= read -r name; do
+            BENCH_ARGS+=(--bench "$name")
+          done < <(python3 -c 'import tomllib; d = tomllib.load(open("Cargo.toml", "rb")); print("\n".join(b["name"] for b in d.get("bench", []) if b.get("harness", True) is False))')
           cargo bench --all-features "${BENCH_ARGS[@]}" -- --quick
           echo "✅ Benchmarks completed"
 
