@@ -207,7 +207,10 @@ jobs:
       - name: 🏃‍♂️ Run performance benchmarks
         run: |
           echo "🏃‍♂️ Running performance benchmarks..."
-          cargo bench --all-features
+          # Criterion's --quick mode: every benchmark still runs, with
+          # shorter sampling, so the job fits its 30-minute limit. A
+          # full run was cancelled at the limit every night.
+          cargo bench --all-features -- --quick
           echo "✅ Benchmarks completed"
 
       - name: 🔄 Run stress tests
