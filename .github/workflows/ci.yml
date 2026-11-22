@@ -372,14 +372,14 @@ jobs:
 
       - name: ⏱️ Enforce BENCH_FAST runtime threshold
         run: |
-          BENCH_BIN=""
-          for CANDIDATE in $(ls -t target/release/deps/comprehensive_stress_test-* 2>/dev/null); do
-            if [ -f "$CANDIDATE" ] && [ -x "$CANDIDATE" ]; then
-              BENCH_BIN="$CANDIDATE"
-              break
-            fi
-          done
-          if [ -z "$BENCH_BIN" ]; then
+          # Ask cargo where it put the binary: newer toolchains place
+          # bench executables under target/release/build/, not
+          # target/release/deps/. The build step above already compiled
+          # it, so this only reads the artifact list.
+          BENCH_BIN=$(cargo bench --bench comprehensive_stress_test --no-run --message-format=json \
+            | jq -r 'select(.reason == "compiler-artifact" and .target.name == "comprehensive_stress_test" and .executable != null) | .executable' \
+            | tail -n 1)
+          if [ -z "$BENCH_BIN" ] || [ ! -x "$BENCH_BIN" ]; then
             echo "❌ Could not locate benchmark binary"
             exit 1
           fi
