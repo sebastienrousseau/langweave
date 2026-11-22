@@ -214,9 +214,9 @@ jobs:
           # the lib and benches/stress_shared.rs (a module the others
           # include) use the libtest harness, which rejects --quick.
           BENCH_ARGS=()
-          for f in $(grep -l 'criterion_main!' benches/*.rs); do
+          while IFS= read -r f; do
             BENCH_ARGS+=(--bench "$(basename "$f" .rs)")
-          done
+          done < <(grep -l 'criterion_main!' benches/*.rs)
           cargo bench --all-features "${BENCH_ARGS[@]}" -- --quick
           echo "✅ Benchmarks completed"
 
