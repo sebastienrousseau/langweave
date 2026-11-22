@@ -209,8 +209,10 @@ jobs:
           echo "🏃‍♂️ Running performance benchmarks..."
           # Criterion's --quick mode: every benchmark still runs, with
           # shorter sampling, so the job fits its 30-minute limit. A
-          # full run was cancelled at the limit every night.
-          cargo bench --all-features -- --quick
+          # full run was cancelled at the limit every night. --benches
+          # limits the run to the Criterion targets; the lib's libtest
+          # harness would reject --quick.
+          cargo bench --all-features --benches -- --quick
           echo "✅ Benchmarks completed"
 
       - name: 🔄 Run stress tests
